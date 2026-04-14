@@ -31,7 +31,7 @@ PLATFORM_CONFIG = {
         "name": "豆包",
         "input_selector": 'textarea[placeholder]',
         "send_selector": 'button[type="submit"], button[aria-label*="发送"]',
-        "response_selector": '[class*="message"][class*="assistant"], [class*="response"], [class*="answer"]',
+        "response_selector": '[class*="message-list"]',
         "wait_ms": 12000,
     },
     "deepseek": {
@@ -61,10 +61,23 @@ PLATFORM_CONFIG = {
 }
 
 
-def extract_brands_and_urls(text: str, brand_name: str, competitors: list) -> dict:
-    """从响应文本中提取品牌提及和 URL"""
+def extract_brands_and_urls(text: str, brand_name: str, competitors: list, keyword: str = "") -> dict:
+    """从响应文本中提取品牌提及和 URL
+
+    豆包的 text 可能包含整个页面的文本，需要从中提取 AI 回复部分。
+    """
     mentioned_brands = []
     all_brands = [brand_name] + competitors
+
+    # 如果文本过长（超过 1000 字符），尝试从中提取 AI 回复部分
+    if len(text) > 1000 and keyword:
+        kw_pos = text.find(keyword)
+        if kw_pos >= 0:
+            # 从关键词位置往后截取
+            text = text[kw_pos:]
+            # 再取后面 3000 字符（足够包含 AI 回复）
+            if len(text) > 3000:
+                text = text[:3000]
 
     for brand in all_brands:
         if brand and brand.lower() in text.lower():
@@ -122,26 +135,55 @@ def detect_captcha(page) -> bool:
 
 def wait_for_response(page, config: dict, timeout_sec: float = 30.0) -> str:
     """
-    轮询等待 AI 响应生成完成，而非固定 sleep。
-    检测响应元素出现或网络空闲。
+    轮询等待 AI 响应生成完成。
+    使用 JS 获取 message-list 内容，并在内容停止增长后返回完整文本。
+
+    策略：
+    1. 先等 AI 开始响应（内容 > 50 字）
+    2. 然后再等内容连续稳定 N 秒（默认 5 秒），确保流式生成完全结束
     """
-    response_selector = config.get("response_selector", "")
     start = time.time()
-    poll_interval = 1.0  # 每秒轮询一次
+    poll_interval = 1.0
+    last_text = ""
+    last_length = 0
+    stable_seconds = 0
+    waiting_for_start = True  # 先等 AI 开始响应
 
     while time.time() - start < timeout_sec:
         try:
-            if response_selector:
-                els = page.query_selector_all(response_selector)
-                if els:
-                    text = els[-1].inner_text()
-                    if len(text) > 20:  # 至少有内容（不是空壳）
+            text = page.evaluate("""() => {
+                const lists = document.querySelectorAll('[class*="message-list"]');
+                if (!lists.length) return '';
+                return lists[lists.length - 1].innerText;
+            }""")
+            text_len = len(text)
+
+            if waiting_for_start:
+                if text_len > 50:
+                    # AI 开始响应了
+                    waiting_for_start = False
+                    last_text = text
+                    last_length = text_len
+                    stable_seconds = 0
+            else:
+                # 已经在生成中，检查是否停止增长
+                if text_len == last_length:
+                    stable_seconds += poll_interval
+                    if stable_seconds >= 5:  # 连续 5 秒没变化，认为完成
                         return text
+                else:
+                    stable_seconds = 0
+                    last_length = text_len
+                    last_text = text
         except Exception:
             pass
         time.sleep(poll_interval)
 
-    # 超时后 fallback：取页面主体文本
+    # 超时：返回最后一次拿到的内容
+    if last_text and len(last_text) > 50:
+        return last_text
+
+    # fallback
     try:
         body_text = page.inner_text("body")
         return body_text[-3000:] if len(body_text) > 3000 else body_text
@@ -234,7 +276,7 @@ def query_platform(keyword: str, platform: str, attempts: int = 3,
                 # 等待响应生成（轮询，非固定 sleep）
                 raw_text = wait_for_response(page, config, timeout_sec=30.0)
 
-                extracted = extract_brands_and_urls(raw_text, brand_name, competitors)
+                extracted = extract_brands_and_urls(raw_text, brand_name, competitors, keyword)
                 logger.info("响应提取 | attempt=%d | len=%d | brands=%s | urls=%d",
                            attempt, len(raw_text), extracted.get("mentioned_brands", []),
                            len(extracted.get("cited_urls", [])))

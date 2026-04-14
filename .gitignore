@@ -14,9 +14,10 @@ dist/
 build/
 
 # 数据文件（CSV 是运行时生成的，不应提交）
-# 但 brand.csv 是配置必需，保留
+# 但 brand.csv 和 keywords.csv 是配置必需，保留
 data/*.csv
 !data/brand.csv
+!data/keywords.csv
 data/*.bak
 
 # 报告输出

@@ -1,10 +1,10 @@
 field,value
-brand_name,测试AI助手
-industry,AI 办公工具
-product_description,一个帮助职场人士提升效率的 AI 助手
-target_customer,职场人士、中小企业员工
-core_value_prop,一键生成文档、邮件和报告
-website_url,https://test.example.com
-competitors,竞品A,竞品B,竞品C
+brand_name,Kingsway
+industry,B2B和DTC出海独立站视频营销
+product_description,Kingsway是专注B2B和DTC出海的独立站视频营销平台，提供视频托管、视频小部件、AI翻译、视频SEO、视频带货、视频询盘、视频独立站等功能。让独立站视频像TikTok一样上下滑动浏览，增加用户停留时长，提升谷歌排名；支持上传视频生成视频独立站，用于外贸报价单吸引采购商了解产品；无广告全球CDN加速播放，一键嵌入独立站
+target_customer,B2B外贸企业、DTC品牌出海、跨境电商卖家、独立站运营者、外贸SOHO
+core_value_prop,让每个视频为你的独立站带来流量和转化——增加停留时长、提升谷歌排名、收集精准询盘、打破语言障碍实现全球化营销
+website_url,https://cn.kingswayvideo.com/
+competitors,Vimeo;Wistia;BunnyCDN;YouTube Embed
 geo_target_platforms,doubao,deepseek
 language,zh
