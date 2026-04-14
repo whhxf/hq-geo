@@ -4,19 +4,35 @@
 
 ## 快速开始
 
-### 第一步：配置环境
+### 第一步：安装 web-access 技能（必需）
+
+本项目内容生成依赖 `/web-access` 技能进行数据求证。安装方式：
+
 ```bash
-cd E:\AIProject\hq-geo
+git clone https://github.com/eze-is/web-access.git ~/.claude/skills/web-access
+```
+
+安装后验证：
+```bash
+bash ~/.claude/skills/web-access/scripts/check-deps.sh
+```
+
+确保通过 Node.js 22+ 检查和 Chrome remote-debugging 配置。Chrome 地址栏打开 `chrome://inspect/#remote-debugging`，勾选 **"Allow remote debugging for this browser instance"**。
+
+### 第二步：配置环境
+```bash
+cd <项目路径>
+python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 playwright install chromium
 cp .env.example .env   # 填入你的 API Key
 ```
 
-### 第二步：填写品牌档案
+### 第三步：填写品牌档案
 直接编辑 `data/brand.csv`，或对 Claude 说：
 > "帮我填写品牌档案"
 
-### 第三步：开始对话
+### 第四步：开始对话
 对 Claude 说任意一句：
 - "帮我生成 GEO 关键词"
 - "分析一下我们在豆包上的竞争情况"
