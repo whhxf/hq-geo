@@ -21,7 +21,7 @@ description: GEO 报告生成。当用户说"生成报告"、"周报"、"月报"
 ### Step 2：调用报告生成脚本
 
 ```bash
-cd E:\AIProject\hq-geo
+cd $(git rev-parse --show-toplevel)  # 项目根目录
 python 05-report/scripts/generate_report.py --days 7
 ```
 
