@@ -133,14 +133,15 @@ def detect_captcha(page) -> bool:
     return False
 
 
-def wait_for_response(page, config: dict, timeout_sec: float = 30.0) -> str:
+def wait_for_response(page, config: dict, timeout_sec: float = 90.0) -> str:
     """
     轮询等待 AI 响应生成完成。
-    使用 JS 获取 message-list 内容，并在内容停止增长后返回完整文本。
+    直接读取 message-list 内子元素的完整文本（textContent 不受 CSS 截断影响），
+    并在内容停止增长后返回。
 
     策略：
-    1. 先等 AI 开始响应（内容 > 50 字）
-    2. 然后再等内容连续稳定 N 秒（默认 5 秒），确保流式生成完全结束
+    1. 先等 AI 开始响应（内容 > 100 字）
+    2. 然后再等内容连续稳定 N 秒（默认 8 秒），确保流式生成完全结束
     """
     start = time.time()
     poll_interval = 1.0
@@ -151,15 +152,20 @@ def wait_for_response(page, config: dict, timeout_sec: float = 30.0) -> str:
 
     while time.time() - start < timeout_sec:
         try:
+            # 使用 textContent 而非 innerText，避免 CSS overflow/ellipsis 截断
             text = page.evaluate("""() => {
                 const lists = document.querySelectorAll('[class*="message-list"]');
                 if (!lists.length) return '';
-                return lists[lists.length - 1].innerText;
+                // 豆包有两个 message-list：idx=0 是聊天消息区，idx=1 是建议追问
+                // 取第一个（聊天消息区）的完整 textContent
+                const list = lists[0];
+                const t = list.textContent || '';
+                return t.trim();
             }""")
             text_len = len(text)
 
             if waiting_for_start:
-                if text_len > 50:
+                if text_len > 100:
                     # AI 开始响应了
                     waiting_for_start = False
                     last_text = text
@@ -169,7 +175,7 @@ def wait_for_response(page, config: dict, timeout_sec: float = 30.0) -> str:
                 # 已经在生成中，检查是否停止增长
                 if text_len == last_length:
                     stable_seconds += poll_interval
-                    if stable_seconds >= 5:  # 连续 5 秒没变化，认为完成
+                    if stable_seconds >= 8:  # 连续 8 秒没变化，认为完成
                         return text
                 else:
                     stable_seconds = 0
@@ -274,7 +280,7 @@ def query_platform(keyword: str, platform: str, attempts: int = 3,
                     input_el.press("Enter")
 
                 # 等待响应生成（轮询，非固定 sleep）
-                raw_text = wait_for_response(page, config, timeout_sec=30.0)
+                raw_text = wait_for_response(page, config, timeout_sec=90.0)
 
                 extracted = extract_brands_and_urls(raw_text, brand_name, competitors, keyword)
                 logger.info("响应提取 | attempt=%d | len=%d | brands=%s | urls=%d",
