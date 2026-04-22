@@ -13,12 +13,13 @@ __pycache__/
 dist/
 build/
 
-# 数据文件（CSV 是运行时生成的，不应提交）
-# 但 brand.csv 和 keywords.csv 是配置必需，保留
+# 数据文件（运行时生成，不应提交）
 data/*.csv
-!data/brand.csv
-!data/keywords.csv
 data/*.bak
+
+# 内容输出（运行时生成）
+03-content/output/
+03-content/output.zip
 
 # 报告输出
 05-report/output/report_*.md
