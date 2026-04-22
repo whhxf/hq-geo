@@ -1,10 +1,10 @@
 field,value
-brand_name,Kingsway
-industry,B2B和DTC出海独立站视频营销
-product_description,Kingsway是专注B2B和DTC出海的独立站视频营销平台，提供视频托管、视频小部件、AI翻译、视频SEO、视频带货、视频询盘、视频独立站等功能。让独立站视频像TikTok一样上下滑动浏览，增加用户停留时长，提升谷歌排名；支持上传视频生成视频独立站，用于外贸报价单吸引采购商了解产品；无广告全球CDN加速播放，一键嵌入独立站
-target_customer,B2B外贸企业、DTC品牌出海、跨境电商卖家、独立站运营者、外贸SOHO
-core_value_prop,让每个视频为你的独立站带来流量和转化——增加停留时长、提升谷歌排名、收集精准询盘、打破语言障碍实现全球化营销
-website_url,https://cn.kingswayvideo.com/
-competitors,Vimeo;Wistia;BunnyCDN;YouTube Embed
-geo_target_platforms,doubao,deepseek
-language,zh
+brand_name,[你的品牌名称]
+industry,[所在行业]
+product_description,[产品/服务描述]
+target_customer,[目标客户画像]
+core_value_prop,[核心价值主张]
+website_url,[官网 URL]
+competitors,[竞品 1];[竞品 2];[竞品 3]
+geo_target_platforms,[目标 AI 平台，如 doubao,deepseek,gemini]
+language,[内容语言，如 zh,en]
