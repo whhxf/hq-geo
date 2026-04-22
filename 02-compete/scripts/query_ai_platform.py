@@ -31,15 +31,25 @@ PLATFORM_CONFIG = {
         "name": "豆包",
         "input_selector": 'textarea[placeholder]',
         "send_selector": 'button[type="submit"], button[aria-label*="发送"]',
-        "response_selector": '[class*="message-list"]',
+        "response_js": """() => {
+            const lists = document.querySelectorAll('[class*="message-list"]');
+            if (!lists.length) return '';
+            const list = lists[0];
+            const t = list.textContent || '';
+            return t.trim();
+        }""",
         "wait_ms": 12000,
     },
     "deepseek": {
         "url": "https://chat.deepseek.com/",
         "name": "DeepSeek",
-        "input_selector": 'textarea#chat-input, textarea[placeholder]',
-        "send_selector": 'button[type="submit"], div[role="button"][aria-label*="发送"]',
-        "response_selector": '[class*="message"][class*="ds-"], [class*="chat-message"]',
+        "input_selector": 'textarea',
+        "send_selector": 'div._52c986b',
+        "response_js": """() => {
+            const container = document.querySelector('.ds-virtual-list');
+            if (!container) return '';
+            return (container.textContent || '').trim();
+        }""",
         "wait_ms": 15000,
     },
     "chatgpt": {
@@ -47,7 +57,11 @@ PLATFORM_CONFIG = {
         "name": "ChatGPT",
         "input_selector": '#prompt-textarea',
         "send_selector": 'button[data-testid="send-button"]',
-        "response_selector": '[data-message-author-role="assistant"]',
+        "response_js": """() => {
+            const els = document.querySelectorAll('[data-message-author-role="assistant"]');
+            if (!els.length) return '';
+            return Array.from(els).map(e => e.textContent || '').join('\\n').trim();
+        }""",
         "wait_ms": 15000,
     },
     "perplexity": {
@@ -55,7 +69,11 @@ PLATFORM_CONFIG = {
         "name": "Perplexity",
         "input_selector": 'textarea[placeholder]',
         "send_selector": 'button[aria-label*="Submit"], button[type="submit"]',
-        "response_selector": '[class*="prose"], [class*="answer"]',
+        "response_js": """() => {
+            const els = document.querySelectorAll('[class*="prose"], [class*="answer"]');
+            if (!els.length) return '';
+            return els[0].textContent || '';
+        }""",
         "wait_ms": 15000,
     },
 }
@@ -105,6 +123,9 @@ def extract_brands_and_urls(text: str, brand_name: str, competitors: list, keywo
 
 def detect_captcha(page) -> bool:
     """检测页面是否出现验证码（CAPTCHA）"""
+    # 先排除登录页/注册页——这些页面本身不含验证码
+    if any(skip in page.url.lower() for skip in ["sign_in", "sign-up", "login", "register"]):
+        return False
     captcha_indicators = [
         # 常见验证码文字
         "captcha", "verification", "验证", "人机", "滑块",
@@ -113,8 +134,8 @@ def detect_captcha(page) -> bool:
         # 豆包验证码
         "verify.doubao.com",
     ]
-    # 检查 URL
-    if any(ind in page.url.lower() for ind in ["captcha", "verify", "verification"]):
+    # 检查 URL（排除已跳过的登录页）
+    if any(ind in page.url.lower() for ind in ["captcha", "verification"]):
         return True
     # 检查页面文本
     try:
@@ -136,13 +157,13 @@ def detect_captcha(page) -> bool:
 def wait_for_response(page, config: dict, timeout_sec: float = 90.0) -> str:
     """
     轮询等待 AI 响应生成完成。
-    直接读取 message-list 内子元素的完整文本（textContent 不受 CSS 截断影响），
-    并在内容停止增长后返回。
+    使用平台特定的 JS 提取器读取响应文本。
 
     策略：
     1. 先等 AI 开始响应（内容 > 100 字）
     2. 然后再等内容连续稳定 N 秒（默认 8 秒），确保流式生成完全结束
     """
+    response_js = config.get("response_js")
     start = time.time()
     poll_interval = 1.0
     last_text = ""
@@ -152,17 +173,11 @@ def wait_for_response(page, config: dict, timeout_sec: float = 90.0) -> str:
 
     while time.time() - start < timeout_sec:
         try:
-            # 使用 textContent 而非 innerText，避免 CSS overflow/ellipsis 截断
-            text = page.evaluate("""() => {
-                const lists = document.querySelectorAll('[class*="message-list"]');
-                if (!lists.length) return '';
-                // 豆包有两个 message-list：idx=0 是聊天消息区，idx=1 是建议追问
-                // 取第一个（聊天消息区）的完整 textContent
-                const list = lists[0];
-                const t = list.textContent || '';
-                return t.trim();
-            }""")
-            text_len = len(text)
+            if response_js:
+                text = page.evaluate(response_js)
+            else:
+                text = ""
+            text_len = len(text) if text else 0
 
             if waiting_for_start:
                 if text_len > 100:
@@ -189,12 +204,30 @@ def wait_for_response(page, config: dict, timeout_sec: float = 90.0) -> str:
     if last_text and len(last_text) > 50:
         return last_text
 
-    # fallback
+    # fallback: 尝试读取 body 文本
     try:
         body_text = page.inner_text("body")
         return body_text[-3000:] if len(body_text) > 3000 else body_text
     except Exception:
         return ""
+
+
+def wait_for_login(page, config: dict, timeout_sec: float = 120.0) -> bool:
+    """
+    等待用户完成登录。
+    轮询检查输入框是否出现（表示已登录）。
+    返回 True 表示登录成功，False 表示超时。
+    """
+    start = time.time()
+    while time.time() - start < timeout_sec:
+        try:
+            input_el = page.query_selector(config["input_selector"])
+            if input_el:
+                return True
+        except Exception:
+            pass
+        time.sleep(2)
+    return False
 
 
 def query_platform(keyword: str, platform: str, attempts: int = 3,
@@ -232,6 +265,38 @@ def query_platform(keyword: str, platform: str, attempts: int = 3,
             headless=headless,
         )
 
+        # 第一步：打开页面并等待登录
+        page = context.new_page()
+        try:
+            page.goto(config["url"], timeout=30000)
+            try:
+                page.wait_for_load_state("domcontentloaded", timeout=10000)
+            except Exception:
+                pass
+            time.sleep(3)
+
+            # 检查是否需要登录
+            input_el = page.query_selector(config["input_selector"])
+            if not input_el:
+                # 可能需要登录，等待用户操作
+                logger.warning("等待登录 | platform=%s | url=%s", platform, page.url)
+                print(f"\n⚠️  请先在浏览器中登录 {config['name']}，登录后脚本将自动继续...")
+                if wait_for_login(page, config, timeout_sec=120.0):
+                    logger.info("登录成功 | platform=%s", platform)
+                    print("✅ 检测到登录成功，开始查询...\n")
+                else:
+                    logger.error("登录超时 | platform=%s", platform)
+                    context.close()
+                    return {"error": "login_timeout", "platform": platform,
+                            "message": f"等待 {config['name']} 登录超时（120秒），请重试"}
+        except Exception as e:
+            logger.error("页面打开失败 | platform=%s | error=%s", platform, str(e))
+            context.close()
+            return {"error": "page_load_failed", "platform": platform, "message": str(e)}
+        finally:
+            page.close()
+
+        # 第二步：执行查询
         for attempt in range(1, attempts + 1):
             page = context.new_page()
             try:
@@ -245,16 +310,19 @@ def query_platform(keyword: str, platform: str, attempts: int = 3,
                 # 检查验证码
                 if detect_captcha(page):
                     logger.error("CAPTCHA 检测到 | platform=%s | url=%s", platform, page.url)
-                    context.close()
-                    return {"error": "captcha_detected", "platform": platform,
-                            "message": "页面出现验证码，请稍后重试或手动登录"}
-
-                # 检查是否需要登录
-                if "login" in page.url.lower() or "sign-in" in page.url.lower():
-                    logger.warning("需要登录 | platform=%s | url=%s", platform, page.url)
-                    context.close()
-                    return {"error": "login_required", "platform": platform,
-                            "message": f"请先在浏览器中登录 {config['name']}"}
+                    print(f"\n⚠️  检测到验证码，请在浏览器中完成验证后继续...")
+                    # 等待验证码解决（最多60秒）
+                    time.sleep(5)
+                    for _ in range(12):
+                        if not detect_captcha(page):
+                            break
+                        time.sleep(5)
+                    if detect_captcha(page):
+                        results.append({"attempt": attempt, "error": "captcha_not_resolved",
+                                        "raw_text": "", "mentioned_brands": [],
+                                        "cited_urls": [], "answer_structure": "unknown"})
+                        page.close()
+                        continue
 
                 # 找到输入框
                 try:
