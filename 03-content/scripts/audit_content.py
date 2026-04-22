@@ -176,19 +176,38 @@ def audit_file(filepath, auto_fix=False):
         # 检查是否有来源标注
         source_lines = re.findall(r'^[-•]\s+.*?来源[：:]\s*(\S+)', log_text, re.MULTILINE)
 
-    # 6b. 检查正文中的数据声明是否有来源标注
-    # 查找包含百分比、数字统计的句子
-    stat_patterns = [
-        r'[\d]+%',           # 百分比
-        r'约\s*[\d]+',       # 约XX
-        r'提升\s*[\d]+%',    # 提升XX%
-        r'增加\s*[\d]+%',    # 增加XX%
-        r'减少\s*[\d]+%',    # 减少XX%
-    ]
-
-    # 提取 chunk 正文（不含 FAQ 和 schema）
+    # 6b. 正文数据声明与验证日志的交叉校验（防止伪造验证记录）
+    # 提取 chunk 正文（不含 FAQ、schema、验证日志）
     body_content = re.sub(r'<!-- SCHEMA_START -->.*', '', content, flags=re.DOTALL)
     body_content = re.sub(r'<!-- DATA_VERIFICATION_LOG -->.*', '', body_content, flags=re.DOTALL)
+
+    # 提取正文中的具体数据声明（包含机构名 + 百分比的组合）
+    # 模式：机构名/来源名 + 数据（如 "Wyzowl 2026 年报告显示 91%"、"Google 页面速度研究表明...32%"）
+    data_claims = []
+    # 匹配形如 "XXX 显示/表明/数据/报告 ... XX%" 的模式
+    claim_patterns = [
+        r'(\w[\w\s]{0,30}?(?:显示|表明|数据|报告|研究|统计))\s*?[，,。：:]?\s*?([\d]+%)',
+        r'(\w[\w\s]{0,30}?(?:提升|增加|减少|降低|下降))\s*?([\d]+%)',
+    ]
+    for pattern in claim_patterns:
+        matches = re.findall(pattern, body_content)
+        for m in matches:
+            context = m[0] if isinstance(m, tuple) else m
+            pct = m[1] if isinstance(m, tuple) else ''
+            data_claims.append(f"{context}{pct}")
+
+    # 如果正文中有具体数据声明，检查日志中是否有对应记录
+    if data_claims and verif_log:
+        log_lower = log_text.lower()
+        for claim in data_claims:
+            claim_short = claim[:40]
+            # 提取 claim 中的关键数字
+            pct_match = re.search(r'(\d+)%', claim)
+            if pct_match:
+                pct = pct_match.group(1)
+                # 检查日志中是否包含这个数字
+                if pct not in log_lower and '✅' not in log_text:
+                    warnings.append(f"正文数据声明在验证日志中未找到对应记录: {claim_short}...")
 
     # 检查是否有年份标记（时效性）
     current_year = '2026'
