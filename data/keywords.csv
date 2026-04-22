@@ -1,0 +1,2 @@
+id,keyword,intent_type,platform_affinity,priority_score,content_format,poi_semantic,poi_authority,poi_entity,poi_evidence,poi_corroboration,poi_recency,poi_structure,status,created_at
+kw_001,[示例关键词],awareness,all,8,howto,1,2,1,1,1,1,1,pending,2026-01-01
