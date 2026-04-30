@@ -117,8 +117,9 @@ def audit_file(filepath, auto_fix=False):
         issues.append("缺少 LLMS_TXT_START/END 标记")
 
     # === 5. Schema FAQ 与正文 FAQ 匹配 ===
+    # 仅统计最终 FAQ 区块，避免把「常见故障与解决方法」等章节误识别为 FAQ 区块
     faq_section = re.search(
-        r'## 常见问题.*?(?=<!-- SCHEMA|<!-- LLMS_TXT)',
+        r'## 常见问题（FAQ）.*?(?=<!-- SCHEMA|<!-- LLMS_TXT)',
         content, re.DOTALL
     )
     if faq_section:
@@ -126,6 +127,7 @@ def audit_file(filepath, auto_fix=False):
         faq_count = len(faq_q)
     else:
         faq_count = 0
+        issues.append("缺少标准 FAQ 区块标题：## 常见问题（FAQ）")
 
     # Schema FAQ 数量
     schema_match = re.search(
@@ -136,10 +138,17 @@ def audit_file(filepath, auto_fix=False):
         try:
             schema_data = json.loads(schema_match.group(1))
             schema_faq_count = 0
-            for graph_item in schema_data.get('@graph', []):
-                if graph_item.get('@type') == 'FAQPage':
-                    schema_faq_count = len(graph_item.get('mainEntity', []))
-                    break
+
+            # 支持两种结构：
+            # 1) 根节点就是 FAQPage
+            # 2) FAQPage 在 @graph 中
+            if schema_data.get("@type") == "FAQPage":
+                schema_faq_count = len(schema_data.get("mainEntity", []))
+            else:
+                for graph_item in schema_data.get('@graph', []):
+                    if graph_item.get('@type') == 'FAQPage':
+                        schema_faq_count = len(graph_item.get('mainEntity', []))
+                        break
 
             if faq_count != schema_faq_count:
                 issues.append(

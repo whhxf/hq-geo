@@ -19,6 +19,8 @@ data/*.bak
 # 但品牌模板和关键词模板是 SOP 必需，保留
 !data/brand.csv
 !data/keywords.csv
+!data/questions.csv
+!data/evidence.csv
 
 # 内容输出（运行时生成）
 03-content/output/

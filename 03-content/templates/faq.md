@@ -44,7 +44,7 @@
 {{DATA_OR_RESEARCH_CITATION}}
 <!-- CHUNK_END: chunk_05 -->
 
-## 更多常见问题
+## 常见问题（FAQ）
 
 **Q: {{QUICK_Q_1}}**
 A: {{QUICK_A_1}}

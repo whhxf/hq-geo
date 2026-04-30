@@ -6,5 +6,5 @@ target_customer,[目标客户画像]
 core_value_prop,[核心价值主张]
 website_url,[官网 URL]
 competitors,[竞品 1];[竞品 2];[竞品 3]
-geo_target_platforms,[目标 AI 平台，如 doubao,deepseek,gemini]
-language,[内容语言，如 zh,en]
+geo_target_platforms,"[目标 AI 平台，如 doubao,deepseek,chatgpt,perplexity]"
+language,"[内容语言，如 zh,en]"

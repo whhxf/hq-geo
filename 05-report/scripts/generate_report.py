@@ -10,14 +10,20 @@ generate_report.py
 
 import argparse
 import csv
-import json
 import os
 import sys
-from datetime import date, timedelta
+from datetime import date
 from collections import defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.insert(0, os.path.join(ROOT, "04-monitor", "scripts"))
+sys.path.insert(0, os.path.join(ROOT, "lib"))
+from monitor_metrics import (
+    mention_rate,
+    split_period_logs,
+    group_logs_by_keyword,
+    group_logs_by_platform,
+    competitor_counts,
+)
 
 MONITOR_LOG_CSV = os.path.join(ROOT, "data", "monitor_log.csv")
 KEYWORDS_CSV = os.path.join(ROOT, "data", "keywords.csv")
@@ -38,25 +44,6 @@ def load_brand() -> dict:
     return {r["field"]: r["value"] for r in rows}
 
 
-def get_period_logs(days: int) -> tuple:
-    today = date.today()
-    period_end = today.isoformat()
-    period_start = (today - timedelta(days=days - 1)).isoformat()
-    prev_end = (today - timedelta(days=days)).isoformat()
-    prev_start = (today - timedelta(days=days * 2 - 1)).isoformat()
-
-    all_logs = load_csv(MONITOR_LOG_CSV)
-    current = [l for l in all_logs if period_start <= l.get("run_date", "") <= period_end]
-    prev = [l for l in all_logs if prev_start <= l.get("run_date", "") <= prev_end]
-    return current, prev, period_start, period_end
-
-
-def mention_rate(logs: list) -> float:
-    if not logs:
-        return 0.0
-    return sum(1 for l in logs if l.get("brand_mentioned") == "true") / len(logs)
-
-
 def generate_report(days: int = 7) -> str:
     brand = load_brand()
     brand_name = brand.get("brand_name", "（品牌名未填写）")
@@ -64,7 +51,8 @@ def generate_report(days: int = 7) -> str:
 
     keywords = load_csv(KEYWORDS_CSV)
     contents = load_csv(CONTENT_CSV)
-    current_logs, prev_logs, period_start, period_end = get_period_logs(days)
+    all_logs = load_csv(MONITOR_LOG_CSV)
+    current_logs, prev_logs, period_start, period_end = split_period_logs(all_logs, days)
 
     today_str = date.today().strftime("%Y-%m-%d")
     period_label = "周报" if days <= 7 else ("月报" if days <= 31 else f"{days}天报告")
@@ -80,21 +68,11 @@ def generate_report(days: int = 7) -> str:
     change_icon = "↑" if rate_change > 0 else ("↓" if rate_change < 0 else "→")
 
     # ── 按关键词统计 ──────────────────────────────
-    kw_logs = defaultdict(list)
-    for log in current_logs:
-        kw_logs[log.get("keyword_id", "")].append(log)
-
-    prev_kw_logs = defaultdict(list)
-    for log in prev_logs:
-        prev_kw_logs[log.get("keyword_id", "")].append(log)
+    kw_logs = group_logs_by_keyword(current_logs)
+    prev_kw_logs = group_logs_by_keyword(prev_logs)
 
     # ── 竞品统计 ──────────────────────────────────
-    competitor_counts = defaultdict(int)
-    for log in current_logs:
-        for comp in log.get("competitor_mentioned", "").split(","):
-            comp = comp.strip()
-            if comp:
-                competitor_counts[comp] += 1
+    comp_counts = competitor_counts(current_logs)
 
     # ── 内容状态统计 ──────────────────────────────
     content_by_status = defaultdict(int)
@@ -106,9 +84,7 @@ def generate_report(days: int = 7) -> str:
         kw_by_status[kw.get("status", "pending")] += 1
 
     # ── 平台分析 ──────────────────────────────────
-    platform_stats = defaultdict(list)
-    for log in current_logs:
-        platform_stats[log.get("platform", "")].append(log)
+    platform_stats = group_logs_by_platform(current_logs)
 
     # ── 需要关注的关键词 ──────────────────────────
     attention_kws = []
@@ -204,10 +180,10 @@ def generate_report(days: int = 7) -> str:
     # 竞品动态
     lines.append("---\n")
     lines.append("## 四、竞品动态\n")
-    if competitor_counts:
+    if comp_counts:
         lines.append("| 竞品 | 被提及次数 |")
         lines.append("|------|-----------|")
-        for comp, cnt in sorted(competitor_counts.items(), key=lambda x: -x[1]):
+        for comp, cnt in sorted(comp_counts.items(), key=lambda x: -x[1]):
             lines.append(f"| {comp} | {cnt} |")
     else:
         lines.append("_本期未检测到竞品被提及_")

@@ -13,12 +13,15 @@ import argparse
 import csv
 import json
 import os
+import sys
 from datetime import date, timedelta
 from collections import defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MONITOR_LOG_CSV = os.path.join(ROOT, "data", "monitor_log.csv")
 KEYWORDS_CSV = os.path.join(ROOT, "data", "keywords.csv")
+sys.path.insert(0, os.path.join(ROOT, "lib"))
+from monitor_metrics import mention_rate, competitor_counts
 
 
 def load_keywords_map() -> dict:
@@ -45,13 +48,6 @@ def load_logs(start_date: str, end_date: str) -> list:
     return logs
 
 
-def calc_mention_rate(logs: list) -> float:
-    if not logs:
-        return 0.0
-    mentioned = sum(1 for r in logs if r.get("brand_mentioned") == "true")
-    return round(mentioned / len(logs), 4)
-
-
 def analyze(days: int = 7, compare_days: int = 7) -> dict:
     today = date.today()
     period_end = today.isoformat()
@@ -71,8 +67,8 @@ def analyze(days: int = 7, compare_days: int = 7) -> dict:
         }
 
     # 整体统计
-    overall_rate = calc_mention_rate(current_logs)
-    prev_overall_rate = calc_mention_rate(prev_logs)
+    overall_rate = mention_rate(current_logs)
+    prev_overall_rate = mention_rate(prev_logs)
     change = round(overall_rate - prev_overall_rate, 4)
 
     # 按关键词统计
@@ -93,16 +89,16 @@ def analyze(days: int = 7, compare_days: int = 7) -> dict:
     for kid, platforms_data in by_keyword.items():
         kw_text = kw_map.get(kid, kid)
         all_logs = [log for logs in platforms_data.values() for log in logs]
-        current_rate = calc_mention_rate(all_logs)
-        prev_rate = calc_mention_rate(prev_by_keyword[kid])
+        current_rate = mention_rate(all_logs)
+        prev_rate = mention_rate(prev_by_keyword[kid])
         kw_change = round(current_rate - prev_rate, 4)
 
         platform_breakdown = {}
         for platform, plogs in platforms_data.items():
-            prate = calc_mention_rate(plogs)
+            prate = mention_rate(plogs)
             if prev_by_keyword[kid]:
                 prev_plogs = [l for l in prev_by_keyword[kid] if l.get("platform") == platform]
-                prev_prate = calc_mention_rate(prev_plogs)
+                prev_prate = mention_rate(prev_plogs)
                 trend = "up" if prate > prev_prate else ("down" if prate < prev_prate else "stable")
             else:
                 trend = "new"
@@ -123,22 +119,15 @@ def analyze(days: int = 7, compare_days: int = 7) -> dict:
             keywords_needing_attention.append(kid)
 
     # 竞品统计
-    competitor_counts = defaultdict(int)
-    for log in current_logs:
-        if log.get("competitor_mentioned"):
-            for comp in log["competitor_mentioned"].split(","):
-                comp = comp.strip()
-                if comp:
-                    competitor_counts[comp] += 1
-
-    top_competitors = sorted(competitor_counts.items(), key=lambda x: -x[1])[:5]
+    comp_counts = competitor_counts(current_logs)
+    top_competitors = sorted(comp_counts.items(), key=lambda x: -x[1])[:5]
 
     # 按日期的引用率趋势
     daily_trend = defaultdict(list)
     for log in current_logs:
         daily_trend[log.get("run_date", "")].append(log)
     daily_rates = {
-        d: calc_mention_rate(logs)
+        d: mention_rate(logs)
         for d, logs in sorted(daily_trend.items())
     }
 

@@ -3,6 +3,9 @@
 > 作者：基于 Mike King（iPullRank）Relevance Engineering 框架 + Jack Boutchard（Exalt Growth）EGOS 方法论综合设计
 > 日期：2026-04-08
 
+> 说明：本文是「目标架构与方法论蓝图」，不是当前仓库实现清单。  
+> 当前 `hq-geo` 仓库以本地模板为主（`SKILL.md + Python + CSV + Markdown`），优先实现 Intent / Compete / Content / Monitor / Report 五段闭环，不包含自动发布、任务队列、Web UI、数据库服务化等重型能力。
+
 ---
 
 ## 一、可行性判断

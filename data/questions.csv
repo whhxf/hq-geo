@@ -1,0 +1,4 @@
+id,keyword_id,question,intent,platform,answer_type,priority,status,created_at
+q_001,kw_001,[示例问题：用户在AI里会怎么问],awareness,all,definition,6,pending,2026-01-01
+q_002,kw_002,GEO 测试关键词 A 是什么？,awareness,all,definition,6,pending,2026-04-30
+q_003,kw_002,GEO 测试关键词 A 适合哪些场景？,awareness,all,faq,7,pending,2026-04-30

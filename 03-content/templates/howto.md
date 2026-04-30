@@ -42,7 +42,7 @@
 <!-- CHUNK_END: chunk_04 -->
 
 <!-- CHUNK_START: chunk_05 -->
-## 常见问题和解决方法
+## 常见故障与解决方法
 
 **问题：{{COMMON_PROBLEM_1}}**
 解决方法：{{SOLUTION_1}}
