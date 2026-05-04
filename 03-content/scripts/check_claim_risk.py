@@ -11,6 +11,9 @@ import argparse
 import re
 import sys
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
 
 ABSOLUTE_PATTERNS = [
     r"100%\s*(有效|提升|保证)",

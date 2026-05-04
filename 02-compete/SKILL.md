@@ -64,6 +64,15 @@ python 02-compete/scripts/query_ai_platform.py --keyword "关键词文本" --pla
 **D. PoI 信号差距**
 对比竞品内容，推断竞品在哪几个 PoI 信号上比我方强。
 
+**E. Citation Audit（引用审计）**
+批量审计各平台对各关键词的引用情况：
+1. 哪个品牌被哪个平台的哪个 URL 引用
+2. 引用 URL 的内容类型（博客/文档/论坛/Wiki/官网）
+3. 同一品牌在不同平台的引用一致性
+4. 引用 URL 的权威信号（ICP 备案、第三方认证、域名权威度）
+
+将 Citation Audit 结果单独记录，作为后续内容生产的重要输入。
+
 ### Step 4：调用脚本保存竞品数据
 
 ```bash

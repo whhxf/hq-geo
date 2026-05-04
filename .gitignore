@@ -21,6 +21,8 @@ data/*.bak
 !data/keywords.csv
 !data/questions.csv
 !data/evidence.csv
+!data/source_pool.csv
+!data/prepublish_score.csv
 
 # 内容输出（运行时生成）
 03-content/output/

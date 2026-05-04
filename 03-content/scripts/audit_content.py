@@ -23,6 +23,9 @@ import sys
 import json
 import argparse
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
 
 def count_zi(text):
     """估算中文字数：中文字符数 + 英文单词数"""

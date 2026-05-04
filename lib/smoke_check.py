@@ -12,6 +12,9 @@ import os
 import py_compile
 import sys
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -33,6 +36,7 @@ REQUIRED_CSV_HEADERS = {
         "poi_structure",
         "status",
         "created_at",
+        "market",
     ],
 }
 
@@ -61,6 +65,16 @@ OPTIONAL_CSV_HEADERS = {
         "status",
         "notes",
     ],
+    "data/source_pool.csv": [
+        "id", "platform_name", "platform_type", "platform_url",
+        "account_status", "deploy_status", "priority", "created_at",
+    ],
+    "data/prepublish_score.csv": [
+        "id", "content_id", "content_title",
+        "intent_coverage", "scene_matching", "structure_clarity",
+        "keyword_coverage", "verifiability", "language_naturalness",
+        "weighted_score", "pass_threshold", "status", "scored_at",
+    ],
 }
 
 SUPPORTED_PLATFORMS = {"doubao", "deepseek", "chatgpt", "perplexity"}
@@ -77,8 +91,12 @@ COMPILE_TARGETS = [
     "04-monitor/scripts/monitor.py",
     "04-monitor/scripts/analyze_trend.py",
     "05-report/scripts/generate_report.py",
+    "06-source-pool/scripts/manage_sources.py",
+    "06-source-pool/scripts/analyze_preference.py",
+    "07-prepublish/scripts/score_quality.py",
     "lib/hq_geo_lib.py",
     "lib/monitor_metrics.py",
+    "lib/prompt_render.py",
 ]
 
 

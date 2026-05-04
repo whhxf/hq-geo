@@ -24,7 +24,7 @@ FIELDNAMES = [
     "id", "keyword", "intent_type", "platform_affinity", "priority_score",
     "content_format", "poi_semantic", "poi_authority", "poi_entity",
     "poi_evidence", "poi_corroboration", "poi_recency", "poi_structure",
-    "status", "created_at"
+    "status", "created_at", "market"
 ]
 
 
@@ -72,6 +72,7 @@ def save_keywords(keywords: list) -> dict:
             "poi_structure": kw.get("poi_structure", 1),
             "status": "pending",
             "created_at": today,
+            "market": kw.get("market", "domestic"),
         }
         csv_append(KEYWORDS_CSV, FIELDNAMES, row)
         added.append(keyword_text)

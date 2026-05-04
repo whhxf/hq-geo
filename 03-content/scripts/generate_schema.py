@@ -106,8 +106,8 @@ def generate_schema(fmt: str, title: str, keyword: str, url: str,
         graph.append(make_howto_schema(title, url, brand, steps))
         graph.append(make_article_schema(title, keyword, url, brand))
         graph.append(make_faq_page(faqs))
-    elif fmt == "comparison":
-        graph.append(make_comparison_schema(title, keyword, url, brand))
+    elif fmt in ("comparison", "scenario", "region", "decision"):
+        graph.append(make_article_schema(title, keyword, url, brand))
         graph.append(make_faq_page(faqs))
     else:  # definition, default
         graph.append(make_article_schema(title, keyword, url, brand))
@@ -124,7 +124,7 @@ def generate_schema(fmt: str, title: str, keyword: str, url: str,
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="生成 JSON-LD 结构化数据")
     parser.add_argument("--format", required=True,
-                        choices=["faq", "howto", "comparison", "definition"],
+                        choices=["faq", "howto", "comparison", "definition", "scenario", "region", "decision"],
                         help="内容格式")
     parser.add_argument("--title", required=True, help="文章标题")
     parser.add_argument("--keyword", default="", help="目标关键词")

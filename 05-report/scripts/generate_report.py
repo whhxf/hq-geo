@@ -29,6 +29,8 @@ MONITOR_LOG_CSV = os.path.join(ROOT, "data", "monitor_log.csv")
 KEYWORDS_CSV = os.path.join(ROOT, "data", "keywords.csv")
 CONTENT_CSV = os.path.join(ROOT, "data", "content.csv")
 BRAND_CSV = os.path.join(ROOT, "data", "brand.csv")
+SOURCE_POOL_CSV = os.path.join(ROOT, "data", "source_pool.csv")
+PREPUBLISH_CSV = os.path.join(ROOT, "data", "prepublish_score.csv")
 REPORT_OUTPUT_DIR = os.path.join(ROOT, "05-report", "output")
 
 
@@ -214,6 +216,62 @@ def generate_report(days: int = 7) -> str:
             )
     else:
         lines.append("_✅ 所有高优先级关键词均已有内容_")
+    lines.append("")
+
+    # ── 信源池状态 ──────────────────────────────
+    lines.append("---\n")
+    lines.append("## 八、信源池状态\n")
+    sources = load_csv(SOURCE_POOL_CSV)
+    if sources:
+        total_src = len(sources)
+        registered = sum(1 for s in sources if s.get("account_status") != "not_started")
+        deployed = sum(1 for s in sources if s.get("deploy_status") == "live")
+        pending = sum(1 for s in sources if s.get("deploy_status") == "pending_review")
+
+        lines.append(f"| 状态 | 数量 |")
+        lines.append(f"|------|------|")
+        lines.append(f"| 总平台数 | {total_src} |")
+        lines.append(f"| 已注册 | {registered} |")
+        lines.append(f"| 已部署上线 | {deployed} |")
+        lines.append(f"| 待审核 | {pending} |")
+        lines.append("")
+
+        if deployed > 0:
+            lines.append("**已部署平台：**")
+            for s in sources:
+                if s.get("deploy_status") == "live":
+                    url = s.get("deploy_url", "")
+                    lines.append(f"- {s.get('platform_name', '')} ({s.get('platform_type', '')})" + (f" → {url}" if url else ""))
+            lines.append("")
+    else:
+        lines.append("_信源池尚未初始化。建议运行「信源池」模块开始建设。_")
+    lines.append("")
+
+    # ── 预发布评分摘要 ──────────────────────────
+    lines.append("---\n")
+    lines.append("## 九、内容质量评分摘要\n")
+    scores = load_csv(PREPUBLISH_CSV)
+    if scores:
+        total_scored = len(scores)
+        passed = sum(1 for s in scores if s.get("status") == "pass")
+        needs_rev = sum(1 for s in scores if s.get("status") == "needs_revision")
+        failed = sum(1 for s in scores if s.get("status") == "fail")
+
+        avg_score = 0.0
+        valid_scores = [float(s.get("weighted_score", 0)) for s in scores if s.get("weighted_score", "")]
+        if valid_scores:
+            avg_score = sum(valid_scores) / len(valid_scores)
+
+        lines.append(f"| 指标 | 数值 |")
+        lines.append(f"|------|------|")
+        lines.append(f"| 总评分次数 | {total_scored} |")
+        lines.append(f"| 通过 (>=7.0) | {passed} |")
+        lines.append(f"| 需修改 (5.0-6.9) | {needs_rev} |")
+        lines.append(f"| 不通过 (<5.0) | {failed} |")
+        lines.append(f"| 平均分 | {avg_score:.2f} |")
+        lines.append("")
+    else:
+        lines.append("_尚无预发布评分记录。建议内容发布前先进行预发布质量评分。_")
     lines.append("")
 
     # 行动建议

@@ -121,7 +121,7 @@ if __name__ == "__main__":
     parser.add_argument("--keyword-id", default="", help="关键词 ID（kw_xxx）")
     parser.add_argument("--keyword", required=True, help="目标关键词")
     parser.add_argument("--format", required=True,
-                        choices=["faq", "comparison", "definition", "howto"],
+                        choices=["faq", "comparison", "definition", "howto", "scenario", "region", "decision", "company_profile", "product_announce", "ranking"],
                         help="内容格式")
     parser.add_argument("--title", required=True, help="文章标题")
     parser.add_argument("--file", required=True, help="内容文件路径（.md）")
