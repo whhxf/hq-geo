@@ -29,28 +29,22 @@ PLATFORM_CONFIG = {
     "doubao": {
         "url": "https://www.doubao.com/chat/",
         "name": "豆包",
-        "input_selector": 'textarea[placeholder]',
-        "send_selector": 'button[type="submit"], button[aria-label*="发送"]',
+        "input_selector": 'textarea[placeholder], [contenteditable="true"][role="textbox"]',
+        "send_selector": 'button[type="submit"], [aria-label*="发送"], [aria-label*="send"], button[class*="send"], button[class*="submit"], [class*="chat-send"]',
         "response_js": """() => {
-            const lists = document.querySelectorAll('[class*="message-list"]');
-            if (!lists.length) return '';
-            const list = lists[0];
-            const t = list.textContent || '';
-            return t.trim();
+            return (document.body && document.body.innerText) ? document.body.innerText.trim() : '';
         }""",
         "wait_ms": 12000,
     },
     "deepseek": {
         "url": "https://chat.deepseek.com/",
         "name": "DeepSeek",
-        "input_selector": 'textarea',
-        "send_selector": 'div._52c986b',
+        "input_selector": 'textarea, [contenteditable="true"]',
+        "send_selector": '[class*="send"], button[type="submit"], [aria-label*="send"], [aria-label*="发送"], div[class*="_52c986b"]',
         "response_js": """() => {
-            const container = document.querySelector('.ds-virtual-list');
-            if (!container) return '';
-            return (container.textContent || '').trim();
+            return (document.body && document.body.innerText) ? document.body.innerText.trim() : '';
         }""",
-        "wait_ms": 15000,
+        "wait_ms": 180000,
     },
     "chatgpt": {
         "url": "https://chat.openai.com/",
@@ -154,14 +148,13 @@ def detect_captcha(page) -> bool:
     return False
 
 
-def wait_for_response(page, config: dict, timeout_sec: float = 90.0) -> str:
+def wait_for_response(page, config: dict, timeout_sec: float = 90.0, before_text: str = "") -> str:
     """
     轮询等待 AI 响应生成完成。
-    使用平台特定的 JS 提取器读取响应文本。
 
-    策略：
-    1. 先等 AI 开始响应（内容 > 100 字）
-    2. 然后再等内容连续稳定 N 秒（默认 8 秒），确保流式生成完全结束
+    策略（selector-agnostic）：
+    1. 对比发送前文本，等待页面出现显著新增内容
+    2. 然后等内容连续稳定 N 秒（默认 8 秒），确保流式生成完全结束
     """
     response_js = config.get("response_js")
     start = time.time()
@@ -169,7 +162,10 @@ def wait_for_response(page, config: dict, timeout_sec: float = 90.0) -> str:
     last_text = ""
     last_length = 0
     stable_seconds = 0
-    waiting_for_start = True  # 先等 AI 开始响应
+    waiting_for_start = True
+    before_len = len(before_text) if before_text else 0
+    # 启动阈值：发送前文本长度 + 150 字符增量
+    start_threshold = before_len + 150
 
     while time.time() - start < timeout_sec:
         try:
@@ -180,17 +176,18 @@ def wait_for_response(page, config: dict, timeout_sec: float = 90.0) -> str:
             text_len = len(text) if text else 0
 
             if waiting_for_start:
-                if text_len > 100:
-                    # AI 开始响应了
+                if text_len > start_threshold:
                     waiting_for_start = False
                     last_text = text
                     last_length = text_len
                     stable_seconds = 0
             else:
-                # 已经在生成中，检查是否停止增长
                 if text_len == last_length:
                     stable_seconds += poll_interval
-                    if stable_seconds >= 8:  # 连续 8 秒没变化，认为完成
+                    if stable_seconds >= 8:
+                        # Only return the new portion if we have before_text
+                        if before_text and text.startswith(before_text):
+                            return text[before_len:].strip()
                         return text
                 else:
                     stable_seconds = 0
@@ -202,12 +199,17 @@ def wait_for_response(page, config: dict, timeout_sec: float = 90.0) -> str:
 
     # 超时：返回最后一次拿到的内容
     if last_text and len(last_text) > 50:
+        if before_text and last_text.startswith(before_text):
+            return last_text[before_len:].strip()
         return last_text
 
     # fallback: 尝试读取 body 文本
     try:
         body_text = page.inner_text("body")
-        return body_text[-3000:] if len(body_text) > 3000 else body_text
+        tail = body_text[-5000:] if len(body_text) > 5000 else body_text
+        if before_text and tail.startswith(before_text):
+            return tail[before_len:].strip()
+        return tail
     except Exception:
         return ""
 
@@ -334,21 +336,45 @@ def query_platform(keyword: str, platform: str, attempts: int = 3,
                     page.close()
                     continue
 
-                # 清空并输入查询词
-                input_el.click()
-                input_el.fill("")
-                input_el.type(keyword, delay=80)
-                time.sleep(0.5)
-
-                # 发送
+                # 捕获发送前页面文本
                 try:
-                    send_btn = page.wait_for_selector(config["send_selector"], timeout=5000)
-                    send_btn.click()
+                    before_text = page.evaluate("() => document.body ? document.body.innerText || '' : ''")
                 except Exception:
-                    input_el.press("Enter")
+                    before_text = ""
 
-                # 等待响应生成（轮询，非固定 sleep）
-                raw_text = wait_for_response(page, config, timeout_sec=90.0)
+                # DeepSeek: 点击"New chat"开始新对话，避免复用旧对话
+                if platform == "deepseek":
+                    try:
+                        new_chat_btn = page.query_selector('text="New chat"')
+                        if new_chat_btn:
+                            new_chat_btn.click()
+                            time.sleep(1.5)
+                            # 重新捕获 before_text
+                            before_text = page.evaluate("() => document.body ? document.body.innerText || '' : ''")
+                    except Exception:
+                        pass
+
+                # 填入关键词：先尝试 page.fill()，失败则用 page.keyboard.type()
+                try:
+                    page.fill(config["input_selector"], keyword)
+                except Exception:
+                    try:
+                        input_el.click()
+                        input_el.fill("")
+                    except Exception:
+                        pass
+                    page.keyboard.type(keyword, delay=30)
+                time.sleep(0.8)
+
+                # 发送：全局键盘 Enter（对所有 Chat UI 最可靠）
+                page.keyboard.press("Enter")
+
+                # 给页面一点时间开始处理
+                time.sleep(3)
+
+                # 等待响应生成（使用文本增量检测）
+                timeout_sec = config.get("wait_ms", 90000) / 1000.0
+                raw_text = wait_for_response(page, config, timeout_sec=timeout_sec, before_text=before_text)
 
                 extracted = extract_brands_and_urls(raw_text, brand_name, competitors, keyword)
                 logger.info("响应提取 | attempt=%d | len=%d | brands=%s | urls=%d",
