@@ -41,3 +41,6 @@ desktop.ini
 
 # 日志
 *.log
+
+# 积压工作项（本地参考，不推送远程）
+08-backlog/

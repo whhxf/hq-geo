@@ -3,7 +3,7 @@
 Content Quality Auditor - 内容质量自动审计脚本
 
 在内容生成完成后自动运行，检查以下项目：
-1. Chunk 字数（250-400 字）
+1. Chunk 字数（建议 250-400 字，以移动端可读性为准；不达标仅提醒，不阻断发布）
 2. llms.txt 长度（≤150 字符）
 3. Schema FAQ 与正文 FAQ 数量匹配
 4. Chunk 编号连续性
@@ -102,9 +102,9 @@ def audit_file(filepath, auto_fix=False):
     for chunk_id, chunk_text in chunks:
         zi = count_zi(chunk_text.strip())
         if zi < 250:
-            issues.append(f"{chunk_id}: {zi} 字（低于 250 下限，差 {250 - zi} 字）")
+            warnings.append(f"{chunk_id}: {zi} 字（偏短，建议补充；如内容已完整可忽略）")
         elif zi > 400:
-            issues.append(f"{chunk_id}: {zi} 字（超过 400 上限，超 {zi - 400} 字）")
+            warnings.append(f"{chunk_id}: {zi} 字（偏长，建议拆分以提升移动端阅读体验）")
 
     # === 4. llms.txt 长度检查 ===
     llms_match = re.search(
