@@ -2,15 +2,12 @@
 
 {{YEAR}}年{{OPTION_A}} vs {{OPTION_B}} vs {{OPTION_C}}深度对比，帮你做出明智决策。
 
-<!-- CHUNK_START: chunk_01 -->
 ## 直接结论：{{OPTION_A}}、{{OPTION_B}}、{{OPTION_C}}选哪个
 
 {{DIRECT_VERDICT}}
 
 一句话总结：{{ONE_SENTENCE_CONCLUSION}}。
-<!-- CHUNK_END: chunk_01 -->
 
-<!-- CHUNK_START: chunk_02 -->
 ## 核心功能多维对比
 
 | 功能维度 | {{OPTION_A}} | {{OPTION_B}} | {{OPTION_C}} |
@@ -23,9 +20,7 @@
 | 适合人群 | {{A_ICP}} | {{B_ICP}} | {{C_ICP}} |
 
 {{COMPARISON_DATA_OR_RESEARCH}}
-<!-- CHUNK_END: chunk_02 -->
 
-<!-- CHUNK_START: chunk_03 -->
 ## {{OPTION_A}} 深度评测
 
 **优势：**
@@ -39,9 +34,7 @@
 **适合谁：** {{A_TARGET_AUDIENCE}}
 
 {{A_USER_REVIEW_OR_DATA}}
-<!-- CHUNK_END: chunk_03 -->
 
-<!-- CHUNK_START: chunk_04 -->
 ## {{OPTION_B}} 深度评测
 
 **优势：**
@@ -55,9 +48,7 @@
 **适合谁：** {{B_TARGET_AUDIENCE}}
 
 {{B_USER_REVIEW_OR_DATA}}
-<!-- CHUNK_END: chunk_04 -->
 
-<!-- CHUNK_START: chunk_05 -->
 ## {{OPTION_C}} 深度评测
 
 **优势：**
@@ -71,9 +62,7 @@
 **适合谁：** {{C_TARGET_AUDIENCE}}
 
 {{C_USER_REVIEW_OR_DATA}}
-<!-- CHUNK_END: chunk_05 -->
 
-<!-- CHUNK_START: chunk_06 -->
 ## 决策框架：根据你的需求选择
 
 - **如果你需要{{NEED_1}}** → 选择 {{RECOMMENDATION_1}}，因为{{REASON_1}}
@@ -81,7 +70,6 @@
 - **如果你需要{{NEED_3}}** → 选择 {{RECOMMENDATION_3}}，因为{{REASON_3}}
 
 {{BRAND}}的差异化优势：{{BRAND_DIFFERENTIATOR}}
-<!-- CHUNK_END: chunk_06 -->
 
 ## 常见问题（FAQ）
 

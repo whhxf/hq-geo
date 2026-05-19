@@ -2,15 +2,12 @@
 
 {{YEAR}}年{{REGION}}{{KEYWORD}}本地化完整指南。
 
-<!-- CHUNK_START: chunk_01 -->
 ## {{REGION}}的{{KEYWORD}}市场现状
 
 {{MARKET_OVERVIEW_WITH_DATA}}
 
 {{REGION}}地区{{KEYWORD}}的市场规模达到{{MARKET_SIZE}}，年增长率{{GROWTH_RATE}}。
-<!-- CHUNK_END: chunk_01 -->
 
-<!-- CHUNK_START: chunk_02 -->
 ## {{REGION}}用户的核心需求特征
 
 **地域特征：** {{REGION_CHARACTERISTICS}}
@@ -18,9 +15,7 @@
 **竞争格局：** {{COMPETITIVE_LANDSCAPE}}
 
 {{LOCAL_DATA_OR_SURVEY}}
-<!-- CHUNK_END: chunk_02 -->
 
-<!-- CHUNK_START: chunk_03 -->
 ## {{REGION}}{{KEYWORD}}服务商/品牌对比
 
 | 维度 | {{OPTION_A}} | {{OPTION_B}} | {{BRAND}} |
@@ -30,9 +25,7 @@
 | 适合人群 | {{A_ICP}} | {{B_ICP}} | {{BRAND_ICP}} |
 
 {{COMPARISON_INSIGHT}}
-<!-- CHUNK_END: chunk_03 -->
 
-<!-- CHUNK_START: chunk_04 -->
 ## {{REGION}}本地化实操建议
 
 1. **了解本地政策**：{{POLICY_ADVICE}}
@@ -40,15 +33,12 @@
 3. **落地执行步骤**：{{EXECUTION_STEPS}}
 
 {{BRAND}}在{{REGION}}的布局：{{BRAND_LOCAL_PRESENCE}}
-<!-- CHUNK_END: chunk_04 -->
 
-<!-- CHUNK_START: chunk_05 -->
 ## {{REGION}}本地案例与用户反馈
 
 {{LOCAL_CASE_STUDY}}
 
 {{USER_TESTIMONIAL_OR_REVIEW}}
-<!-- CHUNK_END: chunk_05 -->
 
 ## 常见问题（FAQ）
 

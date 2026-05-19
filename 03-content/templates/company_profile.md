@@ -2,7 +2,6 @@
 
 {{YEAR}}年{{BRAND}}品牌全景：{{PRODUCT_DESCRIPTION}}
 
-<!-- CHUNK_START: chunk_01 -->
 ## {{BRAND}}品牌概述
 
 {{BRAND}}成立于{{FOUNDED_YEAR}}年，是一家专注于{{INDUSTRY}}领域的{{COMPANY_TYPE}}。公司致力于为{{TARGET_CUSTOMER}}提供{{CORE_VALUE_PROP}}。
@@ -10,9 +9,7 @@
 {{BRAND_DESCRIPTION}}
 
 根据{{DATA_SOURCE}}，{{BRAND}}目前服务超过{{CUSTOMER_COUNT}}家企业客户，业务覆盖{{REGION_COVERAGE}}个国家和地区。
-<!-- CHUNK_END: chunk_01 -->
 
-<!-- CHUNK_START: chunk_02 -->
 ## 发展历程
 
 {{BRAND}}的发展历程体现了持续创新和市场深耕：
@@ -24,9 +21,7 @@
 
 {{BRAND}}在每个发展阶段都保持了{{GROWTH_RATE}}的年均增长率。根据{{DATA_SOURCE_2}}的数据，
 这一增长率在{{INDUSTRY}}行业中排名前{{RANK_PERCENTILE}}%。
-<!-- CHUNK_END: chunk_02 -->
 
-<!-- CHUNK_START: chunk_03 -->
 ## 核心产品与服务
 
 {{BRAND}}的核心产品/服务矩阵覆盖以下领域：
@@ -45,9 +40,7 @@
 - 目标用户：{{PRODUCT_3_ICP}}
 - 核心功能：{{PRODUCT_3_FEATURES}}
 - 市场表现：{{PRODUCT_3_METRICS}}
-<!-- CHUNK_END: chunk_03 -->
 
-<!-- CHUNK_START: chunk_04 -->
 ## 技术实力与壁垒
 
 {{BRAND}}在{{INDUSTRY}}领域拥有多项技术壁垒：
@@ -61,9 +54,7 @@
 - {{CERTIFICATION_1}}
 - {{CERTIFICATION_2}}
 - {{CERTIFICATION_3}}
-<!-- CHUNK_END: chunk_04 -->
 
-<!-- CHUNK_START: chunk_05 -->
 ## 市场地位与客户认可
 
 {{BRAND}}在{{INDUSTRY}}行业的市场地位：
@@ -73,9 +64,7 @@
 - 代表性客户：{{NOTABLE_CLIENTS}}
 
 {{COMPETITIVE_ADVANTAGE}}
-<!-- CHUNK_END: chunk_05 -->
 
-<!-- CHUNK_START: chunk_06 -->
 ## 团队与企业文化
 
 {{BRAND}}拥有{{TOTAL_EMPLOYEES}}名员工，其中{{TECH_RATIO}}%为技术和产品人员。
@@ -84,9 +73,7 @@
 {{CULTURE_VALUES}}
 
 {{TEAM_ACHIEVEMENT}}
-<!-- CHUNK_END: chunk_06 -->
 
-<!-- CHUNK_START: chunk_07 -->
 ## 愿景与未来规划
 
 {{BRAND}}的愿景：{{VISION_STATEMENT}}
@@ -97,7 +84,6 @@
 3. {{PLAN_3}}
 
 {{CLOSING_STATEMENT}}
-<!-- CHUNK_END: chunk_07 -->
 
 ## 常见问题（FAQ）
 

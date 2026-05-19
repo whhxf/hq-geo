@@ -6,7 +6,7 @@ description: GEO 内容生成。当用户说"写内容"、"生成文章"、"针�
 # Skill: GEO Content Engine（内容生成工厂）
 
 ## 角色定位
-你是 GEO 内容工程师。基于 Mike King 的 chunk-level 优化原理和 PoI 7 信号框架，生成结构化、AI 友好的内容。每篇内容都能被 AI 搜索引擎精准 chunk、embed、rank 和 cite。
+你是 GEO 内容工程师。基于 Mike King 的 Relevance Engineering 原理和 PoI 7 信号框架，生成结构化、AI 友好的内容。每篇内容都能被 AI 搜索引擎精准 embed、rank 和 cite。
 
 ## 前置步骤：确认官网就绪状态
 
@@ -18,7 +18,7 @@ description: GEO 内容生成。当用户说"写内容"、"生成文章"、"针�
 
 ## 核心原则（必须遵守）
 
-1. **Chunk 粒度**：每个 H2 段落建议 250-400 字，以移动端可读性为准；Google 官方明确不需要为 AI 刻意切块，chunk 的目的是提升用户阅读体验而非迎合 AI 抓取
+1. **段落可读性**：每个 H2 段落建议 250-400 字，以移动端可读性为准——段落太长读者在手机上看着累，太短则信息密度不足
 2. **直接回答优先**：每个 H2 段落第一句必须直接回答该子问题，不得铺垫
 3. **证据必须**：每个段落至少包含 1 个具体数据、研究结论或可验证事实。**所有引用数据必须通过 /web-access 技能在线求证，禁止 AI 凭训练记忆捏造统计数字。无法核实的数据使用模糊表述（如"行业数据显示"）而不标注具体来源名称。**
 4. **实体锚定**：提及品牌/产品/概念时，使用完整准确名称，不用缩写
@@ -192,9 +192,7 @@ python3 03-content/scripts/audit_content.py <文件路径>
 **格式检查：**
 | 检查项 | 标准 | 失败处理 |
 |--------|------|---------|
-| CHUNK_START/END 配对 | 数量一致 | 修复标记 |
-| Chunk 编号连续性 | chunk_01, chunk_02... 无跳跃 | 重编号 |
-| Chunk 字数 | 建议 250-400 字 | 偏短/偏长：提醒作者注意移动端阅读体验 |
+| H2 结构 | ≥ 3 个 H2 标题 | 补充段落 |
 | llms.txt 长度 | ≤150 字符 | 精简描述 |
 | Schema FAQ 匹配 | 正文 FAQ 数量 = Schema `FAQPage.mainEntity` 数量 | 补全 Schema 或正文 |
 | 必要元素 | H2、FAQ、Schema、验证日志 | 补充缺失 |
@@ -243,7 +241,7 @@ python3 07-prepublish/scripts/score_quality.py --file <文件路径> --threshold
 |------|------|--------|
 | 意图覆盖 | 25% | 是否覆盖用户意图？对照 questions.csv |
 | 场景匹配 | 15% | 是否有真实场景？对照 brand.csv target_customer |
-| 结构清晰 | 15% | CHUNK 结构、H2/H3 层级 |
+| 结构清晰 | 15% | H2/H3 层级、步骤结构、FAQ 区块 |
 | 关键词覆盖 | 15% | 主词+变体+长尾，对照 keywords.csv |
 | 可验证性 | 20% | 数据验证日志、evidence.csv、来源权威性 |
 | 语言自然 | 10% | AI Slop 检测、句式多样性 |
@@ -301,17 +299,13 @@ brand: 品牌名
 
 [引言段，50字以内，直接点题]
 
-<!-- CHUNK_START: chunk_01 -->
 ## H2标题（直接关联关键词）
 [直接回答，1-2句，不得超过50字]
 
 [展开说明 + 数据支撑，200-300字]
-<!-- CHUNK_END: chunk_01 -->
 
-<!-- CHUNK_START: chunk_02 -->
 ## H2标题
 ...
-<!-- CHUNK_END: chunk_02 -->
 
 ## 常见问题（FAQ）
 

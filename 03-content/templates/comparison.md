@@ -2,15 +2,12 @@
 
 {{YEAR}}年深度对比：{{OPTION_A}} vs {{OPTION_B}}，帮你做出最适合的选择。
 
-<!-- CHUNK_START: chunk_01 -->
 ## {{OPTION_A}} 和 {{OPTION_B}} 哪个更好
 
 {{DIRECT_VERDICT}}：{{ONE_SENTENCE_CONCLUSION}}
 
 {{CONTEXT_AND_NUANCE_200_CHARS}}
-<!-- CHUNK_END: chunk_01 -->
 
-<!-- CHUNK_START: chunk_02 -->
 ## 核心功能对比
 
 | 功能维度 | {{OPTION_A}} | {{OPTION_B}} |
@@ -23,9 +20,7 @@
 | 适合人群 | {{A_ICP}} | {{B_ICP}} |
 
 {{DATA_SOURCE_OR_RESEARCH}}
-<!-- CHUNK_END: chunk_02 -->
 
-<!-- CHUNK_START: chunk_03 -->
 ## {{OPTION_A}} 的优势与不足
 
 **适合你的情况：**
@@ -36,9 +31,7 @@
 **不适合的情况：**
 - {{A_WEAKNESS_1}}
 - {{A_WEAKNESS_2}}
-<!-- CHUNK_END: chunk_03 -->
 
-<!-- CHUNK_START: chunk_04 -->
 ## {{OPTION_B}} 的优势与不足
 
 **适合你的情况：**
@@ -49,9 +42,7 @@
 **不适合的情况：**
 - {{B_WEAKNESS_1}}
 - {{B_WEAKNESS_2}}
-<!-- CHUNK_END: chunk_04 -->
 
-<!-- CHUNK_START: chunk_05 -->
 ## 如何选择：决策框架
 
 {{DECISION_FRAMEWORK_INTRO}}
@@ -61,7 +52,6 @@
 - **如果你需要{{NEED_3}}**：{{RECOMMENDATION_3}}
 
 {{BRAND}}的用户中，{{DATA_POINT_ABOUT_BRAND}}
-<!-- CHUNK_END: chunk_05 -->
 
 ## 常见问题（FAQ）
 

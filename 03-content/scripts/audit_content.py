@@ -3,14 +3,11 @@
 Content Quality Auditor - 内容质量自动审计脚本
 
 在内容生成完成后自动运行，检查以下项目：
-1. Chunk 字数（建议 250-400 字，以移动端可读性为准；不达标仅提醒，不阻断发布）
-2. llms.txt 长度（≤150 字符）
-3. Schema FAQ 与正文 FAQ 数量匹配
-4. Chunk 编号连续性
-5. CHUNK_START/END 配对
-6. 必要元素检查（H2、FAQ、Schema、验证日志）
-7. 数据有效性审计（所有引用数据必须有来源标记）
-8. 权威性检查（数据来源是否为权威机构/官方来源）
+1. llms.txt 长度（≤150 字符）
+2. Schema FAQ 与正文 FAQ 数量匹配
+3. 必要元素检查（H2、FAQ、Schema、验证日志）
+4. 数据有效性审计（所有引用数据必须有来源标记）
+5. 权威性检查（数据来源是否为权威机构/官方来源）
 
 用法：
     python audit_content.py <file_path>           # 审计单文件
@@ -25,13 +22,6 @@ import argparse
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
-
-
-def count_zi(text):
-    """估算中文字数：中文字符数 + 英文单词数"""
-    chinese = len(re.findall(r'[\u4e00-\u9fff]', text))
-    english = len(re.findall(r'[a-zA-Z]+', text))
-    return chinese + english
 
 
 # 权威数据来源白名单
@@ -68,8 +58,8 @@ AI_SLOP_PATTERNS = [
     r'值得注意的是', r'值得一提的是',
     r'不可否认', r'不可否认的是',
     r'随着科技的不断发展', r'在当今社会',
-    r'作为一个.*的.*',  # "作为一个AI助手"
-    r'首先.*其次.*最后.*总结',  # 过度模板化
+    r'作为一个.*的.*',
+    r'首先.*其次.*最后.*总结',
 ]
 
 
@@ -81,32 +71,12 @@ def audit_file(filepath, auto_fix=False):
     issues = []
     warnings = []
 
-    # === 1. CHUNK_START/END 配对检查 ===
-    starts = re.findall(r'<!-- CHUNK_START: (chunk_\d+) -->', content)
-    ends = re.findall(r'<!-- CHUNK_END: (chunk_\d+) -->', content)
+    # === 1. H2 结构检查 ===
+    h2_count = len(re.findall(r'^## .+', content, re.MULTILINE))
+    if h2_count < 3:
+        issues.append(f"H2 标题不足: 仅 {h2_count} 个（至少 3 个）")
 
-    if len(starts) != len(ends):
-        issues.append(f"CHUNK 标记不匹配: {len(starts)} 个 START, {len(ends)} 个 END")
-
-    # === 2. Chunk 编号连续性 ===
-    expected = [f'chunk_{i:02d}' for i in range(1, len(starts) + 1)]
-    if starts != expected:
-        issues.append(f"Chunk 编号不连续: 实际 {starts}, 期望 {expected}")
-
-    # === 3. Chunk 字数检查 ===
-    chunks = re.findall(
-        r'<!-- CHUNK_START: (chunk_\d+) -->(.*?)<!-- CHUNK_END: \1 -->',
-        content, re.DOTALL
-    )
-
-    for chunk_id, chunk_text in chunks:
-        zi = count_zi(chunk_text.strip())
-        if zi < 250:
-            warnings.append(f"{chunk_id}: {zi} 字（偏短，建议补充；如内容已完整可忽略）")
-        elif zi > 400:
-            warnings.append(f"{chunk_id}: {zi} 字（偏长，建议拆分以提升移动端阅读体验）")
-
-    # === 4. llms.txt 长度检查 ===
+    # === 2. llms.txt 长度检查 ===
     llms_match = re.search(
         r'<!-- LLMS_TXT_START -->(.*?)<!-- LLMS_TXT_END -->',
         content, re.DOTALL
@@ -119,10 +89,9 @@ def audit_file(filepath, auto_fix=False):
     else:
         issues.append("缺少 LLMS_TXT_START/END 标记")
 
-    # === 5. Schema FAQ 与正文 FAQ 匹配 ===
-    # 仅统计最终 FAQ 区块，避免把「常见故障与解决方法」等章节误识别为 FAQ 区块
+    # === 3. Schema FAQ 与正文 FAQ 匹配 ===
     faq_section = re.search(
-        r'## 常见问题（FAQ）.*?(?=<!-- SCHEMA|<!-- LLMS_TXT)',
+        r'## 常见问题.*?(?=<!-- SCHEMA|<!-- LLMS_TXT)',
         content, re.DOTALL
     )
     if faq_section:
@@ -130,7 +99,7 @@ def audit_file(filepath, auto_fix=False):
         faq_count = len(faq_q)
     else:
         faq_count = 0
-        issues.append("缺少标准 FAQ 区块标题：## 常见问题（FAQ）")
+        issues.append("缺少 FAQ 区块（## 常见问题）")
 
     # Schema FAQ 数量
     schema_match = re.search(
@@ -142,9 +111,6 @@ def audit_file(filepath, auto_fix=False):
             schema_data = json.loads(schema_match.group(1))
             schema_faq_count = 0
 
-            # 支持两种结构：
-            # 1) 根节点就是 FAQPage
-            # 2) FAQPage 在 @graph 中
             if schema_data.get("@type") == "FAQPage":
                 schema_faq_count = len(schema_data.get("mainEntity", []))
             else:
@@ -164,8 +130,7 @@ def audit_file(filepath, auto_fix=False):
     else:
         issues.append("缺少 JSON-LD Schema")
 
-    # === 6. 数据有效性审计 ===
-    # 6a. 检查是否有数据验证日志
+    # === 4. 数据有效性审计 ===
     verif_log = re.search(
         r'<!-- DATA_VERIFICATION_LOG -->(.*?)<!-- END_VERIFICATION_LOG -->',
         content, re.DOTALL
@@ -174,10 +139,6 @@ def audit_file(filepath, auto_fix=False):
         issues.append("缺少数据验证日志（DATA_VERIFICATION_LOG）")
     else:
         log_text = verif_log.group(1)
-        # 检查每条数据是否有来源标记
-        data_lines = [l.strip() for l in log_text.split('\n') if l.strip() and not l.strip().startswith(('数据求证记录', '- [数据'))]
-
-        # 检查是否有 ✅ 标记（表示已验证）
         verified_count = len(re.findall(r'✅', log_text))
         unverified = re.findall(r'^[-•]\s+(?!.*✅)(.+)$', log_text, re.MULTILINE)
         if unverified:
@@ -185,21 +146,14 @@ def audit_file(filepath, auto_fix=False):
                 if u.strip():
                     issues.append(f"数据未验证: {u.strip()[:60]}")
 
-        # 检查是否有来源标注
-        source_lines = re.findall(r'^[-•]\s+.*?来源[：:]\s*(\S+)', log_text, re.MULTILINE)
-
-    # 6b. 正文数据声明与验证日志的交叉校验（防止伪造验证记录）
-    # 提取 chunk 正文（不含 FAQ、schema、验证日志）
+    # 正文数据声明与验证日志的交叉校验
     body_content = re.sub(r'<!-- SCHEMA_START -->.*', '', content, flags=re.DOTALL)
     body_content = re.sub(r'<!-- DATA_VERIFICATION_LOG -->.*', '', body_content, flags=re.DOTALL)
 
-    # 提取正文中的具体数据声明（包含机构名 + 百分比的组合）
-    # 模式：机构名/来源名 + 数据（如 "Wyzowl 2026 年报告显示 91%"、"Google 页面速度研究表明...32%"）
     data_claims = []
-    # 匹配形如 "XXX 显示/表明/数据/报告 ... XX%" 的模式
     claim_patterns = [
-        r'(\w[\w\s]{0,30}?(?:显示|表明|数据|报告|研究|统计))\s*?[，,。：:]?\s*?([\d]+%)',
-        r'(\w[\w\s]{0,30}?(?:提升|增加|减少|降低|下降))\s*?([\d]+%)',
+        r'(\w[\w\s]{0,30}(?:显示|表明|数据|报告|研究|统计))\s*?[，,。：:]?\s*?([\d]+%)',
+        r'(\w[\w\s]{0,30}(?:提升|增加|减少|降低|下降))\s*?([\d]+%)',
     ]
     for pattern in claim_patterns:
         matches = re.findall(pattern, body_content)
@@ -208,28 +162,24 @@ def audit_file(filepath, auto_fix=False):
             pct = m[1] if isinstance(m, tuple) else ''
             data_claims.append(f"{context}{pct}")
 
-    # 如果正文中有具体数据声明，检查日志中是否有对应记录
     if data_claims and verif_log:
         log_lower = log_text.lower()
         for claim in data_claims:
             claim_short = claim[:40]
-            # 提取 claim 中的关键数字
             pct_match = re.search(r'(\d+)%', claim)
             if pct_match:
                 pct = pct_match.group(1)
-                # 检查日志中是否包含这个数字
                 if pct not in log_lower and '✅' not in log_text:
                     warnings.append(f"正文数据声明在验证日志中未找到对应记录: {claim_short}...")
 
-    # 检查是否有年份标记（时效性）
+    # 时效性检查
     current_year = '2026'
     if current_year not in body_content:
         warnings.append(f"内容中未提及当前年份（{current_year}），可能影响时效性评分")
 
-    # 6c. 权威性检查 - 数据来源是否在白名单中
+    # 权威性检查
     if verif_log:
         log_text = verif_log.group(1)
-        # 提取来源名称第一个词
         sources_mentioned = re.findall(r'来源\s+([^\s:：/]+)', log_text)
         for src in sources_mentioned:
             src_lower = src.lower().rstrip('。')
@@ -239,7 +189,7 @@ def audit_file(filepath, auto_fix=False):
             if not is_authoritative and src not in ('技术事实',):
                 warnings.append(f"数据来源权威性待确认: {src}")
 
-    # === 7. AI Slop 检查 ===
+    # === 5. AI Slop 检查 ===
     slop_found = []
     for pattern in AI_SLOP_PATTERNS:
         matches = re.findall(pattern, body_content)
@@ -249,14 +199,11 @@ def audit_file(filepath, auto_fix=False):
     if slop_found:
         warnings.append(f"检测到 AI Slop 模式: {slop_found[:3]}")
 
-    # === 8. 必要元素检查 ===
-    if not re.findall(r'^## .+', content, re.MULTILINE):
-        issues.append("缺少 H2 标题")
-
+    # === 6. 必要元素检查 ===
     if 'SCHEMA_START' not in content:
         issues.append("缺少 Schema 标记")
 
-    # === 9. 品牌提及检查 ===
+    # === 7. 品牌提及检查 ===
     brand_match = re.search(r'^brand:\s*(.+)$', content, re.MULTILINE)
     if brand_match:
         brand = brand_match.group(1).strip()
@@ -285,7 +232,7 @@ def audit_file(filepath, auto_fix=False):
         print("  所有检查通过")
 
     data_count = len(re.findall(r'✅', verif_log.group(1))) if verif_log else 0
-    print(f"  Chunks: {len(chunks)} | FAQ: {faq_count} | "
+    print(f"  H2: {h2_count} | FAQ: {faq_count} | "
           f"llms.txt: {llms_len if llms_match else 'N/A'} chars | "
           f"已验证数据: {data_count} 条")
 

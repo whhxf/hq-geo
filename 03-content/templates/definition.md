@@ -2,15 +2,12 @@
 
 {{BRAND}} 解析：{{KEYWORD}} 的完整定义与应用指南。
 
-<!-- CHUNK_START: chunk_01 -->
 ## 什么是{{CORE_CONCEPT}}
 
 {{CORE_CONCEPT}}是指{{DIRECT_DEFINITION}}。
 
 {{EXPANDED_EXPLANATION_WITH_DATA}}
-<!-- CHUNK_END: chunk_01 -->
 
-<!-- CHUNK_START: chunk_02 -->
 ## {{CORE_CONCEPT}}的核心要素
 
 {{DIRECT_ANSWER}}
@@ -20,9 +17,7 @@
 - **要素三**：{{ELEMENT_3}}
 
 {{DATA_OR_RESEARCH_CITATION}}
-<!-- CHUNK_END: chunk_02 -->
 
-<!-- CHUNK_START: chunk_03 -->
 ## {{CORE_CONCEPT}}与{{RELATED_CONCEPT}}的区别
 
 {{DIRECT_COMPARISON_SENTENCE}}
@@ -32,9 +27,7 @@
 | 定义 | ... | ... |
 | 适用场景 | ... | ... |
 | 核心目标 | ... | ... |
-<!-- CHUNK_END: chunk_03 -->
 
-<!-- CHUNK_START: chunk_04 -->
 ## 如何应用{{CORE_CONCEPT}}
 
 {{DIRECT_ANSWER}}
@@ -44,7 +37,6 @@
 3. **第三步**：{{STEP_3}}
 
 {{BRAND}}在{{APPLICATION_SCENARIO}}中的实践：{{BRAND_CASE}}
-<!-- CHUNK_END: chunk_04 -->
 
 ## 常见问题（FAQ）
 

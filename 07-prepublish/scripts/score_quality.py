@@ -170,32 +170,38 @@ def _score_structure(content, brand, keywords, questions):
     score = 5
     reasons = []
 
-    # CHUNK 配对
-    starts = len(re.findall(r'<!-- CHUNK_START: (chunk_\d+) -->', content))
-    ends = len(re.findall(r'<!-- CHUNK_END: chunk_\d+ -->', content))
-
-    if starts == ends and starts > 0:
-        score += 2
-        reasons.append(f"CHUNK 配对正确 ({starts} 对)")
-    elif starts > 0:
-        score -= 1
-        reasons.append(f"CHUNK 不匹配: {starts} START, {ends} END")
-    else:
-        score -= 2
-        reasons.append("无 CHUNK 标记")
-
     # H2 标题数量
     h2_count = len(re.findall(r'^## .+', content, re.MULTILINE))
-    if h2_count >= 3:
+    if h2_count >= 5:
+        score += 2
+        reasons.append(f"H2 标题 {h2_count} 个（结构丰富）")
+    elif h2_count >= 3:
         score += 1
         reasons.append(f"H2 标题 {h2_count} 个")
     elif h2_count > 0:
+        score -= 1
         reasons.append(f"H2 标题仅 {h2_count} 个")
     else:
-        score -= 1
+        score -= 2
         reasons.append("无 H2 标题")
 
-    # 检查段落是否以直接回答开头（不铺垫）
+    # H3 子标题（说明段落内层级清晰）
+    h3_count = len(re.findall(r'^### .+', content, re.MULTILINE))
+    if h3_count >= 3:
+        score += 1
+        reasons.append(f"H3 子标题 {h3_count} 个")
+
+    # 检查有序列表/步骤结构
+    steps = len(re.findall(r'\*\*第 \d+ 步', content))
+    if steps >= 2:
+        score += 1
+        reasons.append(f"步骤结构 {steps} 步")
+
+    # FAQ 区块
+    if '## 常见问题' in content:
+        score += 1
+        reasons.append("含 FAQ 区块")
+
     return max(1, min(10, score)), "; ".join(reasons) if reasons else "默认评分"
 
 
