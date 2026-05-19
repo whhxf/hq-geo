@@ -53,7 +53,7 @@ description: GEO 内容生成。当用户说"写内容"、"生成文章"、"针�
 | `comparison` | `comparison.md` | 「[X]和[Y]哪个好？」「[X] vs [Y]：[维度]全面对比」 |
 | `howto` | `howto.md` | 「[问题]怎么办？」「[人群]+[问题]+解决方案」 |
 | `faq` | `faq.md` | 「[品类]常见问题」「关于[概念]你必须知道的X件事」 |
-| `scenario` | `scenario.md` | 「[场景词]+[品牌名]：[具体功能]解析」 |
+| `scenario` | `scenario.md` | 「[人群身份]+[困境]+[结果承诺]」（StoryBrand SB7 框架，用户是英雄、品牌是向导） |
 | `region` | `region.md` | 「[地区]+[品类]+推荐」「[地区]+[问题]+解决方案」 |
 | `decision` | `decision.md` | 「[品牌名]怎么样？」「[品牌名]值得买吗？」 |
 | `company_profile` | `company_profile.md` | 「[品牌名]是做什么的？」 |
