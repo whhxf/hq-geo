@@ -8,6 +8,14 @@ description: GEO 意图分析与关键词生成。当用户说"生成关键词"�
 ## 角色定位
 你是 GEO 关键词策略师。基于品牌信息，模拟 AI 搜索引擎的 Query Fan-Out 机制，生成高价值的 GEO 目标关键词矩阵，并基于 PoI（Proof of Importance）7 信号为每个关键词诊断当前状态。
 
+## 前置步骤：官网 AI 友好度体检
+
+在生成关键词之前，先引导用户完成官网体检（参考 `00-meta/website-audit-guide.md`）：
+
+> "在生成关键词之前，建议先检查你的官网 AI 友好度。官网是 AI 引用的第一信源——官网不达标，关键词排名很难起来。要我帮你过一遍官网三层体检清单吗？"
+
+用户可以选择跳过，但必须告知其风险。体检结果直接影响关键词优先级判定（Step 3）。
+
 ## 执行 SOP
 
 ### Step 0：初始化引导（当用户说"初始化系统"时）
@@ -77,12 +85,27 @@ description: GEO 意图分析与关键词生成。当用户说"生成关键词"�
 - 格式：「什么是 [品类/概念]」「[概念] 的定义」「[概念] 是指」
 - 示例：「什么是 GEO 优化」「AI 搜索引擎优化是什么意思」
 
+**每个关键词额外标注 keyword_category（实操分类，与 intent_type 互补）：**
+
+| keyword_category | 说明 | 对应 intent_type | 标题公式 |
+|-----------------|------|-----------------|---------|
+| `product` | 产品词/服务词：用户直接搜产品或服务 | awareness/definition | 「[品类]是什么」「[品类]怎么选」 |
+| `scenario` | 场景词/痛点词：用户在特定场景下的问题 | awareness/consideration | 「[人群]+[场景]+怎么办」「[场景]+[品牌名]」 |
+| `compare` | 对比词/决策词：用户在多方案中比较 | consideration/decision | 「[X]和[Y]哪个好」「[X] vs [Y]」 |
+
+> 这两个分类体系互补：intent_type 描述"用户处于决策的哪个阶段"（理论框架），keyword_category 描述"用户用什么方式在搜索"（实操抓手）。
+
 ### Step 3：为每个关键词评分
 
 **优先级分（1-10）= 商业价值 × AI 触发频率 × 竞争难度倒数**
 - Decision 层通常 8-10 分（商业价值高）
 - Consideration 层通常 6-8 分
 - Awareness / Definition 层通常 4-7 分
+
+**官网体检加权**：如果已完成官网体检（`00-meta/website-audit-guide.md`），按以下规则调整优先级：
+- 官网场景层缺失 → scenario 类关键词优先级 +2
+- 官网知识层 FAQ 缺失 → 对应 FAQ 类关键词优先级 +1
+- 官网知识层对比缺失 → compare 类关键词优先级 +1
 
 **PoI 7 信号诊断（各 1-5 分，基于品牌现有信息推断）：**
 - poi_semantic：内容是否已覆盖该查询语义（无内容→1，有内容→3-5）
@@ -113,6 +136,7 @@ JSON 格式：
   {
     "keyword": "AI 搜索优化工具哪个好",
     "intent_type": "consideration",
+    "keyword_category": "compare",
     "platform_affinity": "all",
     "priority_score": 8,
     "content_format": "comparison",
@@ -128,14 +152,16 @@ JSON 格式：
 ]
 ```
 
+> `keyword_category` 字段可选（`product`/`scenario`/`compare`），不传则留空。
+
 ### Step 5：输出展示
 
 在对话中以表格展示关键词矩阵，并给出**「建议优先做内容的 Top 3 关键词」**，说明理由。
 
 表格格式：
-| 优先级 | 关键词 | 意图类型 | 推荐格式 | 优先级分 | PoI 综合弱项 |
-|--------|--------|---------|---------|---------|-------------|
-| 1 | ... | ... | ... | ... | ... |
+| 优先级 | 关键词 | 意图类型 | 实操分类 | 推荐格式 | 优先级分 | PoI 综合弱项 |
+|--------|--------|---------|---------|---------|---------|-------------|
+| 1 | ... | ... | ... | ... | ... | ... |
 
 ### Step 6：补充问题层（questions.csv）
 
@@ -169,3 +195,4 @@ python 01-intent/scripts/save_questions.py '<JSON_DATA>'
 - 每次运行追加写入 keywords.csv，不覆盖已有数据
 - 如果 keywords.csv 中已有类似关键词，提醒用户并跳过重复项
 - 每条关键词必须带 `market` 字段，与 brand.csv 中的 market 值一致
+- keyword_category 为可选字段，不填不影响流程，但填了能帮 03-content 更精准选模板

@@ -4,12 +4,14 @@
 
 HQ-GEO 是一个本地 GEO 作战模板，不是重型后端系统。它通过 `SKILL.md + Python 脚本 + CSV/Markdown` 形成可复制的工作流闭环：
 
+- 官网 AI 友好度体检（00-meta website audit）
 - 关键词规划（01-intent）
 - 竞争观察（02-compete）
 - 内容生产与审计（03-content）
+- 信源池建设（06-source-pool）
 - 平台监控（04-monitor）
 - 报告生成（05-report）
-- 问题层与证据层沉淀（data/questions.csv, data/evidence.csv）
+- 预发布质量评分（07-prepublish）
 
 ## 这是什么 / 不是什么
 
@@ -48,31 +50,54 @@ cp .env.example .env
 
 ### 4) 对话触发
 
+- "帮我检查官网的 AI 友好度"
 - "帮我生成 GEO 关键词"
 - "分析一下我们在豆包上的竞争情况"
 - "针对「XXX」这个关键词写一篇 GEO 内容"
 - "运行今天的监控"
 - "生成本周 GEO 报告"
+- "帮我建设信源池"
 
 ## 关键文档路径
 
 - 产品需求与范围：`00-meta/PRD.md`
 - 架构思想与愿景：`00-meta/GEO系统设计方案.md`
+- 官网 AI 友好度体检：`00-meta/website-audit-guide.md`（GEO 第一步）
 - 测试与运行说明：`TEST_PLAN.md`
 
 > 注：`00-meta/GEO系统设计方案.md` 中包含部分中长期愿景；当前仓库实现以 `SKILL.md + scripts` 实际行为为准。
 
-## 目录结构（当前实现）
+## 工作流（推荐顺序）
+
+```text
+1. 官网 AI 友好度体检（00-meta/website-audit-guide.md）
+   → 官网是 AI 引用的第一信源，先确保官网就绪
+2. 信源池第一层：百科 + 企业数据库（06-source-pool）
+   → 百科是 AI 的实体锚点，先注册后增量的策略
+3. 关键词生成（01-intent）
+   → 官网体检结果影响关键词优先级
+4. 竞争分析（02-compete）
+5. 内容生产 + 审计 + 预发布评分（03-content → 07-prepublish）
+6. 信源池第二、三层：新闻媒体 + 活跃信号（06-source-pool）
+7. 监控（04-monitor）
+8. 报告（05-report）
+```
+
+> 核心逻辑：**先修根基（官网 + 百科），再做关键词规划，再产内容，再扩散信源，最后监控迭代。**
+
+## 目录结构
 
 ```text
 hq-geo/
-├── 00-meta/                      ← PRD 与架构文档
-├── data/                         ← 主数据层（模板默认带 brand/keywords/questions/evidence）
-├── 01-intent/
-├── 02-compete/
-├── 03-content/
-├── 04-monitor/
-├── 05-report/
+├── 00-meta/                      ← PRD、架构文档、官网体检指南
+├── data/                         ← 主数据层（brand/keywords/questions/evidence/source_pool）
+├── 01-intent/                    ← 关键词生成（意图分析 + 实操分类）
+├── 02-compete/                   ← AI 平台竞争分析
+├── 03-content/                   ← 内容工厂（模板 + 审计 + 发布节奏）
+├── 04-monitor/                   ← AI 平台引用监控
+├── 05-report/                    ← 报告生成
+├── 06-source-pool/               ← 信源池三层建设（实体锚点/权威背书/活跃信号）
+├── 07-prepublish/                ← 预发布质量评分
 ├── lib/
 ├── requirements.txt
 └── .env.example
@@ -84,24 +109,39 @@ hq-geo/
 - `data/evidence.csv`：求证后结构化证据资产，可复用到内容更新与报告分析
 - `03-content/rules/`：白帽声明规则与合规检查清单
 - `03-content/scripts/check_claim_risk.py`：轻量声明风险扫描
+- `00-meta/website-audit-guide.md`：官网 AI 友好度三层体检（v2.9 新增）
 
 ## 数据层分级（基础 / 增强）
 
 - 基础层（默认必需）：`data/brand.csv`、`data/keywords.csv`
-- 增强层（按需启用）：`data/questions.csv`、`data/evidence.csv`
+- 增强层（按需启用）：`data/questions.csv`、`data/evidence.csv`、`data/source_pool.csv`
 - 运行期可选：`data/content.csv`、`data/monitor_log.csv`、`05-report/output/*.md`
 
-## 数据流（实现语义）
+## 数据流
 
 ```text
+website-audit-guide.md（官网体检，建议前置）
+    ↓
 brand.csv（品牌档案）
-  -> 01-intent 生成 keywords.csv
-  -> 01-intent 可补充 questions.csv（问题层）
-  -> 02-compete 查询平台并写 competitors.csv（可选）
-  -> 03-content 生成内容文件与 content.csv（可选）
-  -> 03-content 求证后可写 evidence.csv（证据层）
-  -> 04-monitor 对已产内容关键词执行监控，写 monitor_log.csv（可选）
-  -> 05-report 读取 CSV 聚合生成 report_YYYY-MM-DD.md（可选）
+    ↓ [01-intent]
+keywords.csv（关键词矩阵，含 intent_type + keyword_category 双标签）
+    ↓ [02-compete]
+competitors.csv（竞品引用分析）
+    ↓ [03-content]
+03-content/output/*.md（内容文件）+ content.csv（索引）
+    ↓ [04-monitor]
+monitor_log.csv（每日监控数据）
+    ↓ [05-report]
+05-report/output/report_*.md（周报/月报）
+```
+
+信源池数据流（并行）：
+```text
+brand.csv + website-audit-guide.md
+    ↓ [06-source-pool]
+source_pool.csv（三层信源状态）
+    ↓
+信源偏好分析 → 内容分发策略建议
 ```
 
 ## 当前脚本实际支持的平台
@@ -126,7 +166,7 @@ brand.csv（品牌档案）
 - 只保留必要机制：`CSV + Markdown + Python 脚本`，不引入数据库、消息队列、任务编排器。
 - 多值字段统一约定：`competitor_mentioned` 允许 `,` 与 `;`，统计层做兼容解析。
 - CSV 示例中若值包含逗号，必须加引号（如 `geo_target_platforms`），避免截断。
-- 新增脚本遵循“单一职责 + 可直接命令行执行”，避免过度抽象。
+- 新增脚本遵循"单一职责 + 可直接命令行执行"，避免过度抽象。
 - 任何增强先问：是否能减少故障面？若不能，则不加。
 
 ## 一键轻量体检

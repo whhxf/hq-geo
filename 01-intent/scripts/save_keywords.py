@@ -21,7 +21,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 KEYWORDS_CSV = os.path.join(ROOT, "data", "keywords.csv")
 
 FIELDNAMES = [
-    "id", "keyword", "intent_type", "platform_affinity", "priority_score",
+    "id", "keyword", "intent_type", "keyword_category", "platform_affinity", "priority_score",
     "content_format", "poi_semantic", "poi_authority", "poi_entity",
     "poi_evidence", "poi_corroboration", "poi_recency", "poi_structure",
     "status", "created_at", "market"
@@ -60,6 +60,7 @@ def save_keywords(keywords: list) -> dict:
             "id": kw_id,
             "keyword": keyword_text,
             "intent_type": kw.get("intent_type", "awareness"),
+            "keyword_category": kw.get("keyword_category", ""),
             "platform_affinity": kw.get("platform_affinity", "all"),
             "priority_score": kw.get("priority_score", 5),
             "content_format": kw.get("content_format", "faq"),

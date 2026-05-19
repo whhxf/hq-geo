@@ -8,6 +8,14 @@ description: GEO 内容生成。当用户说"写内容"、"生成文章"、"针�
 ## 角色定位
 你是 GEO 内容工程师。基于 Mike King 的 chunk-level 优化原理和 PoI 7 信号框架，生成结构化、AI 友好的内容。每篇内容都能被 AI 搜索引擎精准 chunk、embed、rank 和 cite。
 
+## 前置步骤：确认官网就绪状态
+
+在开始写内容之前，先确认用户的官网 AI 友好度（参考 `00-meta/website-audit-guide.md`）。如果用户尚未完成官网体检：
+
+> "写内容之前，建议先快速过一遍官网体检——确认你的官网本身做好了被 AI 引用的准备。官网缺基础层内容的话，外部内容发再多事倍功半。要我帮你快速过一遍吗？"
+
+如果官网基础层（关于我们、产品分类、备案）有缺失，**优先建议用户补齐官网，而非立即开始写外部内容**。
+
 ## 核心原则（必须遵守）
 
 1. **Chunk 粒度**：每个 H2 段落建议 250-400 字，以移动端可读性为准；Google 官方明确不需要为 AI 刻意切块，chunk 的目的是提升用户阅读体验而非迎合 AI 抓取
@@ -29,6 +37,7 @@ description: GEO 内容生成。当用户说"写内容"、"生成文章"、"针�
 读取 `data/keywords.csv` 获取：
 - keyword（关键词文本）
 - intent_type（意图类型）
+- keyword_category（实操分类，product/scenario/compare）
 - content_format（推荐格式）
 - poi_* 各信号当前得分（了解哪里最弱，重点补强）
 
@@ -37,16 +46,21 @@ description: GEO 内容生成。当用户说"写内容"、"生成文章"、"针�
 ### Step 2：选择内容模板
 
 根据 content_format 字段选择对应模板：
-- `definition` → 读取 `03-content/templates/definition.md`
-- `comparison` → 读取 `03-content/templates/comparison.md`
-- `howto` → 读取 `03-content/templates/howto.md`
-- `faq` → 读取 `03-content/templates/faq.md`
-- `scenario` → 读取 `03-content/templates/scenario.md`
-- `region` → 读取 `03-content/templates/region.md`
-- `decision` → 读取 `03-content/templates/decision.md`
-- `company_profile` → 读取 `03-content/templates/company_profile.md`（7 层公司简介，基于课程 6-5）
-- `product_announce` → 读取 `03-content/templates/product_announce.md`（6 维产品官宣，基于课程 6-6）
-- `ranking` → 读取 `03-content/templates/ranking.md`（行业排名，我方排第一详细 + 竞品简要）
+
+| content_format | 模板文件 | 推荐标题公式 |
+|---------------|---------|-------------|
+| `definition` | `definition.md` | 「什么是[关键词]？」「[关键词]是指」 |
+| `comparison` | `comparison.md` | 「[X]和[Y]哪个好？」「[X] vs [Y]：[维度]全面对比」 |
+| `howto` | `howto.md` | 「[问题]怎么办？」「[人群]+[问题]+解决方案」 |
+| `faq` | `faq.md` | 「[品类]常见问题」「关于[概念]你必须知道的X件事」 |
+| `scenario` | `scenario.md` | 「[场景词]+[品牌名]：[具体功能]解析」 |
+| `region` | `region.md` | 「[地区]+[品类]+推荐」「[地区]+[问题]+解决方案」 |
+| `decision` | `decision.md` | 「[品牌名]怎么样？」「[品牌名]值得买吗？」 |
+| `company_profile` | `company_profile.md` | 「[品牌名]是做什么的？」 |
+| `product_announce` | `product_announce.md` | 「[品牌名]发布[新产品]」「[年份]+[品牌]+新品发布」 |
+| `ranking` | `ranking.md` | 「[年份]年[行业词]Top X排行榜」「[预算/场景]+[品类]+排名推荐」 |
+
+> 标题公式优先级：ranking（排行榜）和 scenario（场景+品牌绑定）是夫唯验证过的最高效形式，尤其适合信源池分发。
 
 ### Step 3：数据求证（⚠️ 必须执行，不可跳过，不可批量跳过）
 
@@ -251,6 +265,21 @@ python3 07-prepublish/scripts/score_quality.py --file <文件路径> --threshold
    |------|--------|--------|---------|
 3. 给出「发布建议」：推荐发布到哪些平台，理由是什么
 4. 给出「Corroboration 建议」：应该在哪些第三方平台同步发摘要版
+
+### Step 9：发布节奏建议
+
+内容完成后，给用户发布节奏建议（参考 `06-source-pool/SKILL.md` 信源三层架构）：
+
+| 内容类型 | 发布优先级 | 建议发布渠道 | 发布节奏 |
+|---------|-----------|-------------|---------|
+| 品牌直推/公司简介 | 第一优先 | 官网 + 百科 + 企业数据库 | 一次性，后续季度更新 |
+| 场景方案/人群方案 | 第一优先 | 官网场景层 + 搜狐号/百家号 | 每类人群 1 篇，按场景扩展 |
+| 行业排名/排行榜 | 第二优先 | 官网知识层 + 新闻媒体（头条/搜狐） | 每季度 1 篇 |
+| FAQ/痛点解析 | 第二优先 | 官网 FAQ 页 + 知乎 | 每月新增 3-5 条 |
+| 对比/测评 | 第三优先 | 官网知识层 + 垂直行业平台 | 每 2-3 月 1 篇 |
+| 技术教程/深度文章 | 第三优先 | 官网知识层 + 开发者社区 | 每月 1-2 篇 |
+
+> 核心原则：**官网首发 → 信源池分发摘要版 → 社交平台引导讨论**。不要把所有内容全量复制到所有平台——AI 会识别重复内容并降权。
 
 ## 内容文件格式规范
 
