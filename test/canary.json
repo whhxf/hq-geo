@@ -1,0 +1,443 @@
+{
+  "note": "每条是一个破坏点：把 edits 里的 find 换成 replace（替换所有出现），跑 test 指定的测试，看它会不会红。不会红就是空转的断言。改了断言就加一条——新断言可能一出生就是空转的。",
+  "cases": [
+    {
+      "name": "站1 去掉受众坐标的定义行",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "**定受众坐标。**",
+          "replace": "**看看读者是谁。**"
+        }
+      ]
+    },
+    {
+      "name": "站1 去掉定位卡引用",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "先看事实包里有没有 `positioning.json`",
+          "replace": "先看看手头有什么材料"
+        }
+      ]
+    },
+    {
+      "name": "站1 去掉定位校验器",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "跑 `python3 capabilities/geo/scripts/validate_positioning.py <定位卡路径>`。",
+          "replace": "草案不用校验。"
+        }
+      ]
+    },
+    {
+      "name": "站1 允许一篇对准多个人",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "一篇内容只能对准一个人写。",
+          "replace": "一篇内容可以同时对准几类人。"
+        }
+      ]
+    },
+    {
+      "name": "站3 断开与受众坐标的联系",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "**三半都从站 1 的受众坐标来，不是临时想的**",
+          "replace": "**三半都要写清楚**"
+        }
+      ]
+    },
+    {
+      "name": "站5 去掉标题候选这一步",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "**标题。** 正文写完后生成**至少 3 个**候选",
+          "replace": "**标题。** 用关键词当标题就行。"
+        }
+      ]
+    },
+    {
+      "name": "站5 允许关键词照抄当标题",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "**关键词原文照抄不算做标题**",
+          "replace": "**关键词原文照抄也能当标题**"
+        }
+      ]
+    },
+    {
+      "name": "站5 把事实纪律退化成堆免责声明",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "**事实纪律要求的是「不夸大」，不是「写免责声明」。**",
+          "replace": "**事实纪律要求的是每段都加上免责声明。**"
+        }
+      ]
+    },
+    {
+      "name": "站6 去掉受众复核这一节",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "#### 二、受众复核",
+          "replace": "#### 二、再读一遍"
+        }
+      ]
+    },
+    {
+      "name": "站6 复核清单换成泛泛的问题",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "读者能否认出自己的问题？",
+          "replace": "句子读起来顺不顺？"
+        }
+      ]
+    },
+    {
+      "name": "站6 去掉 sha256 登记",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "`artifact_sha256` 用 `shasum -a 256 <成稿路径>` 取，成稿改了就要重取。",
+          "replace": "复核结果在对话里说一下就行。"
+        }
+      ]
+    },
+    {
+      "name": "定位校验器默认回到系统根找事实包",
+      "test": "geo-pack-unit",
+      "edits": [
+        {
+          "file": "capabilities/geo/scripts/validate_positioning.py",
+          "find": "        root = find_project()",
+          "replace": "        root = SYSTEM"
+        }
+      ]
+    },
+    {
+      "name": "顾问清单去掉受众视角（三处同时）",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "capabilities/content-production/external-advisors.md",
+          "find": "`dbs-jtbd`",
+          "replace": "`dbs-hook`"
+        },
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "`dbs-jtbd`",
+          "replace": "`dbs-hook`"
+        },
+        {
+          "file": "PLAYBOOK.md",
+          "find": "`dbs-jtbd`",
+          "replace": "`dbs-hook`"
+        }
+      ]
+    },
+    {
+      "name": "顾问清单去掉传播视角（三处同时）",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "capabilities/content-production/external-advisors.md",
+          "find": "`dbs-spread`、`dbs-resonate`",
+          "replace": "`dbs-hook`"
+        },
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "`dbs-spread`、`dbs-resonate`",
+          "replace": "`dbs-hook`"
+        },
+        {
+          "file": "PLAYBOOK.md",
+          "find": "`dbs-spread`、`dbs-resonate`",
+          "replace": "`dbs-hook`"
+        }
+      ]
+    },
+    {
+      "name": "站5 去掉读者获得声明",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "**写完正文，逐节（按 `##`）写一句「读者获得」：这一节让读者从什么状态到什么状态。**",
+          "replace": "**写完正文，自己觉得没问题就行。**"
+        }
+      ]
+    },
+    {
+      "name": "站5 读者获得声明失去判据",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "写不出「到什么状态」的节就是凑数",
+          "replace": "每节都填一句就行"
+        }
+      ]
+    },
+    {
+      "name": "站5 主稿路径退回硬编码 blog",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "content/packages/<channel>/<idea>/<topic>/article.md",
+          "replace": "content/packages/blog/<idea>/<topic>/article.md"
+        }
+      ]
+    },
+    {
+      "name": "站6 去掉读者审计这一节",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "#### 三、读者审计",
+          "replace": "#### 三、再看一遍"
+        }
+      ]
+    },
+    {
+      "name": "站6 读者审计改回写稿的人自己审",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "**必须用 Agent 工具起一个独立 agent 执行，不能用写稿的自己审。**",
+          "replace": "**写稿的人自己读一遍就行。**"
+        }
+      ]
+    },
+    {
+      "name": "站6 读者审计与站5 声明脱钩",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "**逐节对照站 5 的「读者获得」声明。对不上的地方就是要改的地方**",
+          "replace": "**看看读者反应如何。**"
+        }
+      ]
+    },
+    {
+      "name": "站6 读者审计失去判红标准",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "**判红标准**（任一条成立就不得进站 7）",
+          "replace": "**参考意见**（看看就行）"
+        }
+      ]
+    },
+    {
+      "name": "读者审计脚本允许抄原文",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "capabilities/content-production/reader-audit.md",
+          "find": "不要抄原文",
+          "replace": "可以引用原文"
+        }
+      ]
+    },
+    {
+      "name": "读者审计脚本允许给写作背景",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "capabilities/content-production/reader-audit.md",
+          "find": "**不要给它**：写作背景",
+          "replace": "**要给它**：写作背景"
+        }
+      ]
+    },
+    {
+      "name": "渠道包统计退回只数 copy.md（主稿住的包就数不到了）",
+      "test": "quality-gate-unit",
+      "edits": [
+        {
+          "file": "test/run_quality_gate.py",
+          "find": "for name in (\"article.md\", \"copy.md\")",
+          "replace": "for name in (\"copy.md\",)"
+        }
+      ]
+    },
+    {
+      "name": "读者审计失去停止条件（判红项可以不改）",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "capabilities/content-production/reader-audit.md",
+          "find": "**判红四条**是硬标准，触发就必须改",
+          "replace": "**判红四条**只是参考，可以不改"
+        }
+      ]
+    },
+    {
+      "name": "读者提什么就改什么（没有「体验不是指令」这条线）",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "capabilities/content-production/reader-audit.md",
+          "find": "读者说的是体验，不是指令",
+          "replace": "读者说的都是指令，照改"
+        }
+      ]
+    },
+    {
+      "name": "底子有问题却继续打补丁（不退回站 5 重写）",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "capabilities/content-production/reader-audit.md",
+          "find": "退回站 5 重写，不要在上面继续糊",
+          "replace": "继续在原文上打补丁"
+        }
+      ]
+    },
+    {
+      "name": "读者审计抓到的论证问题不回写受众复核",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "capabilities/content-production/reader-audit.md",
+          "find": "## 论证层的问题，读者审计在替受众复核补位",
+          "replace": "## 论证层的问题与受众复核无关"
+        }
+      ]
+    },
+    {
+      "name": "站3 失去关键词歧义检查（判断传出去了但不是那个意思）",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "**二、核心判断里的关键词，读者理解的和你说的是不是一回事？**",
+          "replace": "**二、核心判断读起来顺不顺？**"
+        }
+      ]
+    },
+    {
+      "name": "站3 关键词检查没有产出物",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "每个关键词写一句「读者会怎么理解它」",
+          "replace": "自己心里过一遍就行"
+        }
+      ]
+    },
+    {
+      "name": "读者审计失去「改稿优先删」规则",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "capabilities/content-production/reader-audit.md",
+          "find": "**改稿优先删，不优先加。**",
+          "replace": "**改稿时尽管加。**"
+        }
+      ]
+    },
+    {
+      "name": "受众复核失去「动作做得了吗」",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "capabilities/geo/methods/positioning-and-audience.md",
+          "find": "**给的动作，读者现在做得了吗？**",
+          "replace": "**内容够不够长？**"
+        }
+      ]
+    },
+    {
+      "name": "读者审计失去「补某类人要给落点」规则",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "capabilities/content-production/reader-audit.md",
+          "find": "**补「照顾某类人」的句子，要给那类人认得出的落点。**",
+          "replace": "**补「照顾某类人」的句子就够了。**"
+        }
+      ]
+    },
+    {
+      "name": "读者审计失去「落点」判据",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "capabilities/content-production/reader-audit.md",
+          "find": "把新加的那句读给那类人听，他能说出「那我明天做什么」吗？",
+          "replace": "句子读起来顺不顺？"
+        }
+      ]
+    },
+    {
+      "name": "读者审计不再区分「真退出」和「最想跳过」",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "capabilities/content-production/reader-audit.md",
+          "find": "**判红第 2 条要区分「真退出」和「相对最想跳过」。**",
+          "replace": "**判红第 2 条只要读者提了就算。**"
+        }
+      ]
+    },
+    {
+      "name": "读者审计失去「卡了不等于走了」判据",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "capabilities/content-production/reader-audit.md",
+          "find": "**卡了不等于走了**",
+          "replace": "**读者说的都对**"
+        }
+      ]
+    },
+    {
+      "name": "读者审计失去轮次上限",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "capabilities/content-production/reader-audit.md",
+          "find": "**最多两轮。**",
+          "replace": "**审到满意为止。**"
+        }
+      ]
+    },
+    {
+      "name": "轮次上限没说清怎么走",
+      "test": "content-assets-contract",
+      "edits": [
+        {
+          "file": "capabilities/content-production/reader-audit.md",
+          "find": "第一轮审 → 改 → 第二轮审 → 改 → **交付**",
+          "replace": "两轮之后再看情况决定要不要继续"
+        }
+      ]
+    }
+  ]
+}

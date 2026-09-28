@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.hq-content-engine/geo-context.schema.json",
+  "title": "GEO Context",
+  "type": "object",
+  "required": ["goal", "target_surfaces", "geo_mode", "status"],
+  "properties": {
+    "goal": {
+      "type": "string",
+      "minLength": 1
+    },
+    "positioning_ref": {
+      "type": "object",
+      "required": ["path", "revision"],
+      "properties": {"path": {"type": "string"}, "revision": {"type": "integer", "minimum": 1}},
+      "description": "Brand creation references its fact-pack positioning view; ordinary knowledge content may omit it."
+    },
+    "target_surfaces": {
+      "type": "array",
+      "items": {
+        "enum": ["website", "chatgpt", "perplexity", "doubao", "deepseek", "gemini", "channels", "douyin", "xhs", "other"]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "geo_mode": {
+      "enum": ["full", "lightweight", "off"]
+    },
+    "trigger_reason": {
+      "type": "string"
+    },
+    "idea_id": {
+      "type": ["string", "null"]
+    },
+    "research_questions": {
+      "type": "array",
+      "items": {"type": "object"}
+    },
+    "claims": {
+      "type": "array",
+      "items": {"type": "object"}
+    },
+    "entities": {
+      "type": "array",
+      "items": {"type": "object"}
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "uncertainties": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "measurement_objective": {
+      "enum": ["description_accuracy", "visibility", "qualified_leads", "orders", "revenue", "contribution_margin"]
+    },
+    "attribution_plan": {
+      "type": ["string", "null"],
+      "description": "Path or stable ID of a GEO attribution plan validated against the attribution contract."
+    },
+    "status": {
+      "enum": ["draft", "researching", "brief_ready", "rendered", "needs_revision", "blocked", "ready", "monitoring", "attributing", "analyzed"]
+    }
+  },
+  "additionalProperties": true
+}

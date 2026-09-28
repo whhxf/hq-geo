@@ -1,0 +1,39 @@
+{
+  "skill_name": "content-orchestrator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我有个想法：创业者不是缺自律，而是每天被执行细节切碎。帮我调研一下，再做成视频号、抖音和小红书内容。",
+      "expected_output": "选择纯社交流程，geo_mode=lightweight，先做三平台研究和选题，不强制网站 GEO 结构。",
+      "files": [],
+      "expectations": [
+        "不会要求用户先选择 Skill",
+        "不会强制 FAQ、Schema 或 llms.txt",
+        "会保留事实可验证、实体一致和观点可复述三个守卫"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "把这个选题做成三平台内容，同时沉淀一篇官网文章，希望以后能被 ChatGPT 引用。",
+      "expected_output": "选择混合流程，共享母内容，并为网站分支加载完整 GEO 链路。",
+      "files": [],
+      "expectations": [
+        "三平台与网站使用同一个事实和观点真源",
+        "网站分支路由到 geo-content-brief、geo-website-renderer 和 geo-prepublish-core",
+        "不会把网站 Schema 强加给社交平台"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "看看 Kingsway Video 为什么没有出现在 AI 的视频翻译工具推荐里，先别写内容。",
+      "expected_output": "直接路由到 geo-research，研究后停止，不擅自生成或发布内容。",
+      "files": [],
+      "expectations": [
+        "设置 geo_mode=full",
+        "只调用研究阶段",
+        "区分无品牌提及、访问失败和无引用"
+      ]
+    }
+  ]
+}
+

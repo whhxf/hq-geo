@@ -1,0 +1,60 @@
+{
+  "plan_id": "geo-pilot-001",
+  "objective": "qualified_leads",
+  "decision": {
+    "question": "试点结束后应扩投、迭代还是停止？",
+    "options": ["scale", "iterate", "stop"]
+  },
+  "intent_clusters": [
+    {
+      "id": "intent-01",
+      "label": "高商业意图比较问题",
+      "source": "crm",
+      "treatment": "发布带证据的比较内容并投向已验证信源"
+    }
+  ],
+  "markers": [
+    {
+      "id": "marker-01",
+      "type": "form",
+      "evidence_tier": "corroborated",
+      "scope": "官网注册表单首次了解渠道",
+      "known_leakage": ["用户回忆偏差", "多触点只选择一个来源"]
+    }
+  ],
+  "experiment": {
+    "design": "phased_rollout",
+    "treatment_units": ["intent-01"],
+    "control_units": ["历史趋势匹配意图簇"],
+    "comparability_notes": "按试点前合格线索趋势和客单价匹配",
+    "contamination_risks": ["同期 SEM 调价", "销售跟进变化"]
+  },
+  "metrics": {
+    "primary": "qualified_leads",
+    "guardrails": ["lead_to_order_rate", "refund_rate"],
+    "visibility": ["mention_rate", "first_mention_rate", "description_accuracy"]
+  },
+  "observation_window": {
+    "baseline_start": "2026-09-01",
+    "baseline_end": "2026-09-30",
+    "treatment_start": "2026-10-01",
+    "treatment_end": "2026-10-31",
+    "maturity_days": 30
+  },
+  "economics": {
+    "currency": "CNY",
+    "cost_scope": ["content", "media", "tools", "monitoring", "internal_labor"],
+    "value_basis": "qualified_lead"
+  },
+  "deduplication": {
+    "entity_key": "crm_lead_id",
+    "attribution_model": "multi_touch"
+  },
+  "confounders": ["同期品牌活动", "季节性需求"],
+  "decision_rules": {
+    "scale": "数据成熟且合格线索成本低于企业预设上限，护栏指标未恶化",
+    "iterate": "AI 呈现改善但合格线索未改善，优先调整意图簇、价值主张或转化路径",
+    "stop": "两轮迭代后主指标仍无改善，或成本/合规护栏被突破"
+  },
+  "status": "ready"
+}

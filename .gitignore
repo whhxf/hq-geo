@@ -1,9 +1,6 @@
 # 环境变量和敏感数据
 .env
 
-# 浏览器配置
-.playwright-profile/
-
 # Python
 __pycache__/
 *.py[cod]
@@ -12,24 +9,16 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+venv/
 
-# 数据文件（运行时生成，不应提交）
-data/*.csv
-data/*.bak
-# 但品牌模板和关键词模板是 SOP 必需，保留
-!data/brand.csv
-!data/keywords.csv
-!data/questions.csv
-!data/evidence.csv
-!data/source_pool.csv
-!data/prepublish_score.csv
+# 本地创作工作台（已冻结，见 test/feature_registry.json 的 frozen）
+workbench/node_modules/
+workbench/.next/
+workbench/workbench-*.png
 
-# 内容输出（运行时生成）
-03-content/output/
-03-content/output.zip
-
-# 报告输出
-05-report/output/report_*.md
+# 质量门禁报告是运行时产物，按项目分目录写在 test/reports/<项目>/ 下。
+# 不进版本库：它是「这次跑出来什么」，不是「系统是什么」。
+test/reports/
 
 # Claude 配置
 .claude/
@@ -41,6 +30,3 @@ desktop.ini
 
 # 日志
 *.log
-
-# 积压工作项（本地参考，不推送远程）
-08-backlog/

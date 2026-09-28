@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.hq-content-engine/geo-attribution-plan.schema.json",
+  "title": "GEO Attribution Plan",
+  "type": "object",
+  "required": [
+    "plan_id",
+    "objective",
+    "decision",
+    "intent_clusters",
+    "markers",
+    "metrics",
+    "observation_window",
+    "economics",
+    "deduplication",
+    "decision_rules",
+    "status"
+  ],
+  "properties": {
+    "plan_id": {"type": "string", "minLength": 1},
+    "objective": {
+      "enum": ["description_accuracy", "visibility", "qualified_leads", "orders", "revenue", "contribution_margin"]
+    },
+    "decision": {
+      "type": "object",
+      "required": ["question", "options"],
+      "properties": {
+        "question": {"type": "string", "minLength": 1},
+        "options": {
+          "type": "array",
+          "items": {"enum": ["scale", "iterate", "stop"]},
+          "minItems": 2,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "intent_clusters": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "source", "treatment"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "label": {"type": "string", "minLength": 1},
+          "source": {"enum": ["crm", "sales", "support", "sem", "platform", "model_hypothesis", "other"]},
+          "treatment": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": true
+      }
+    },
+    "markers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "evidence_tier", "scope", "known_leakage"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "type": {"enum": ["dedicated_phone", "dedicated_account", "code", "landing_page", "form", "sales_question", "referrer", "post_purchase_survey", "experiment", "trend"]},
+          "evidence_tier": {"enum": ["direct", "corroborated", "experimental", "directional"]},
+          "scope": {"type": "string", "minLength": 1},
+          "known_leakage": {"type": "array", "items": {"type": "string"}}
+        },
+        "additionalProperties": true
+      }
+    },
+    "experiment": {
+      "type": ["object", "null"],
+      "properties": {
+        "design": {"enum": ["geo_holdout", "store_holdout", "intent_holdout", "phased_rollout", "channel_synergy", "none"]},
+        "treatment_units": {"type": "array", "items": {"type": "string"}},
+        "control_units": {"type": "array", "items": {"type": "string"}},
+        "comparability_notes": {"type": "string"},
+        "contamination_risks": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    },
+    "metrics": {
+      "type": "object",
+      "required": ["primary", "guardrails"],
+      "properties": {
+        "primary": {"type": "string", "minLength": 1},
+        "guardrails": {"type": "array", "items": {"type": "string"}},
+        "visibility": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    },
+    "observation_window": {
+      "type": "object",
+      "required": ["baseline_start", "baseline_end", "treatment_start", "treatment_end", "maturity_days"],
+      "properties": {
+        "baseline_start": {"type": "string", "format": "date"},
+        "baseline_end": {"type": "string", "format": "date"},
+        "treatment_start": {"type": "string", "format": "date"},
+        "treatment_end": {"type": "string", "format": "date"},
+        "maturity_days": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "economics": {
+      "type": "object",
+      "required": ["currency", "cost_scope", "value_basis"],
+      "properties": {
+        "currency": {"type": "string", "minLength": 3},
+        "cost_scope": {"type": "array", "minItems": 1, "items": {"enum": ["content", "media", "tools", "monitoring", "service", "internal_labor", "other"]}},
+        "value_basis": {"enum": ["qualified_lead", "revenue", "contribution_margin", "ltv"]}
+      },
+      "additionalProperties": true
+    },
+    "deduplication": {
+      "type": "object",
+      "required": ["entity_key", "attribution_model"],
+      "properties": {
+        "entity_key": {"type": "string", "minLength": 1},
+        "attribution_model": {"enum": ["first_touch", "last_touch", "linear", "multi_touch", "incremental"]}
+      },
+      "additionalProperties": true
+    },
+    "confounders": {"type": "array", "items": {"type": "string"}},
+    "decision_rules": {
+      "type": "object",
+      "required": ["scale", "iterate", "stop"],
+      "properties": {
+        "scale": {"type": "string", "minLength": 1},
+        "iterate": {"type": "string", "minLength": 1},
+        "stop": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "status": {"enum": ["draft", "ready", "running", "maturing", "analyzed", "blocked"]}
+  },
+  "additionalProperties": true
+}

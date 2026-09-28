@@ -1,0 +1,72 @@
+{
+  "name": "hq-geo-capability-pack",
+  "version": "1.2.0",
+  "scope": "project",
+  "method_sources": [
+    "capabilities/geo/methods/intent-and-query-model.md",
+    "capabilities/geo/methods/evidence-and-entity-policy.md",
+    "capabilities/geo/methods/citability-and-content-policy.md",
+    "capabilities/geo/methods/measurement-attribution-and-roi.md",
+    "capabilities/geo/methods/positioning-and-audience.md"
+  ],
+  "contract": "capabilities/geo/contracts/geo-context.schema.json",
+  "positioning_contract": "capabilities/geo/contracts/positioning.schema.json",
+  "attribution_contract": "capabilities/geo/contracts/geo-attribution-plan.schema.json",
+  "skills": [
+    {
+      "name": "geo-research",
+      "path": "skills/geo-research/SKILL.md"
+    },
+    {
+      "name": "geo-content-brief",
+      "path": "skills/geo-content-brief/SKILL.md"
+    },
+    {
+      "name": "geo-website-renderer",
+      "path": "skills/geo-website-renderer/SKILL.md"
+    },
+    {
+      "name": "geo-prepublish-core",
+      "path": "skills/geo-prepublish-core/SKILL.md"
+    },
+    {
+      "name": "geo-monitor",
+      "path": "skills/geo-monitor/SKILL.md"
+    },
+    {
+      "name": "geo-attribution",
+      "path": "skills/geo-attribution/SKILL.md"
+    }
+  ],
+  "orchestrator": {
+    "name": "content-orchestrator",
+    "path": "skills/content-orchestrator/SKILL.md"
+  },
+  "full_geo_routes": [
+    "explicit_geo_goal",
+    "owned_website_content",
+    "ai_citation_or_visibility",
+    "source_authority_building",
+    "ai_answer_monitoring",
+    "geo_attribution_or_roi"
+  ],
+  "lightweight_social_guards": [
+    "verifiable_claims",
+    "entity_consistency",
+    "accurate_one_sentence_thesis"
+  ],
+  "never_global_defaults": [
+    "faq_required",
+    "schema_required",
+    "llms_txt_required",
+    "keyword_density_target",
+    "one_statistic_per_paragraph",
+    "guaranteed_ai_citation"
+  ],
+  "execution_boundary": {
+    "ships_executors": false,
+    "platform_sampling": "manual_via_ego_browser",
+    "schema_generation": "handwritten_from_visible_body",
+    "prepublish_scoring": "three_state_verdict_only"
+  }
+}

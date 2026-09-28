@@ -1,0 +1,26 @@
+{
+  "skill_name": "geo-monitor",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "运行今天的 GEO 监控，看看豆包和 ChatGPT 有没有提到 Kingsway Video。",
+      "expected_output": "按当前代码支持能力采样，保存时间戳，并区分提及、无引用和访问失败。",
+      "files": [],
+      "expectations": [
+        "先检查当前脚本实际支持的平台",
+        "不会把登录失败记录为品牌未出现",
+        "不把单次回答称为稳定排名"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "看看我昨天的抖音播放量。",
+      "expected_output": "本 Skill 不应触发，因为这是社交平台数据而不是 AI 回答监控。",
+      "files": [],
+      "expectations": [
+        "不会调用 GEO 监控"
+      ]
+    }
+  ]
+}
+

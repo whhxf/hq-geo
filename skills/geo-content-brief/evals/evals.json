@@ -1,0 +1,26 @@
+{
+  "skill_name": "geo-content-brief",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "基于刚才的 GEO 研究，规划一篇‘视频翻译软件怎么选’官网比较页，先出蓝图。",
+      "expected_output": "输出页面任务、问题结构、声明证据、实体、边界和机器结构建议。",
+      "files": [],
+      "expectations": [
+        "不会提前生成完整正文",
+        "事实、经验、观点和预测分开处理",
+        "FAQ 和 Schema 只在适用时建议"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "给这个抖音视频写一个 3 秒开头。",
+      "expected_output": "本 Skill 不应触发，应交给短视频创作能力。",
+      "files": [],
+      "expectations": [
+        "不会把短视频任务转成网站 Content Brief"
+      ]
+    }
+  ]
+}
+

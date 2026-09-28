@@ -1,0 +1,27 @@
+{
+  "skill_name": "geo-website-renderer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "把已确认的比较页 brief 写成官网正文，正文没有 FAQ。",
+      "expected_output": "生成直接回答、证据清楚的网站正文，不强行增加 FAQPage Schema。",
+      "files": [],
+      "expectations": [
+        "不会强制添加 FAQ",
+        "不会要求每段包含统计数字",
+        "会说明省略 FAQPage Schema 的原因"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "这是一页真实 FAQ，帮我生成网站版本和匹配的结构化数据。",
+      "expected_output": "正文问答与 FAQPage Schema 完全一致，并保留来源和实体。",
+      "files": [],
+      "expectations": [
+        "Schema 与可见正文一致",
+        "不会承诺一定被 AI 引用"
+      ]
+    }
+  ]
+}
+

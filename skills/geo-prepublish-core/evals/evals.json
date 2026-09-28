@@ -1,0 +1,25 @@
+{
+  "skill_name": "geo-prepublish-core",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "检查这篇官网文章能不能发布，其中核心效果数字没有来源，但质量评分是 8.5。",
+      "expected_output": "状态为 blocked；未核实核心声明优先于数值评分。",
+      "files": [],
+      "expectations": [
+        "不会因为 8.5 分放行",
+        "明确指出需要补什么来源或如何删改声明"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "检查一篇没有 FAQ 和 Schema 的品牌故事页。",
+      "expected_output": "按页面目标检查，不因缺少 FAQ 或 Schema 自动判失败。",
+      "files": [],
+      "expectations": [
+        "不会把 FAQ 或 Schema 当成所有页面硬要求"
+      ]
+    }
+  ]
+}
+

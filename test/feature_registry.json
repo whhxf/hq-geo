@@ -1,0 +1,279 @@
+{
+  "schema_version": 2,
+  "status_definitions": {
+    "implemented": "已进入系统，必须绑定自动测试",
+    "partial": "已有可用切片，已实现部分必须绑定自动测试",
+    "planned": "设计存在但尚不能对用户承诺"
+  },
+  "features": [
+    {
+      "id": "positioning-writing",
+      "name": "定位与用户场景核心创作规则、事实引用与渠道复核门禁",
+      "status": "partial",
+      "owner_paths": [
+        "capabilities/geo",
+        "skills/content-orchestrator",
+        "skills/geo-content-brief",
+        "skills/geo-website-renderer",
+        "skills/geo-prepublish-core",
+        "skills/geo-monitor"
+      ],
+      "test_ids": [
+        "geo-pack-unit",
+        "geo-pack-contract",
+        "content-routing-contract"
+      ]
+    },
+    {
+      "id": "quality-gate",
+      "name": "功能登记、分层测试与发布门禁",
+      "status": "implemented",
+      "owner_paths": [
+        "test/run_quality_gate.py",
+        "test/test_manifest.json",
+        "test/feature_registry.json"
+      ],
+      "test_ids": [
+        "feature-registry-contract",
+        "quality-gate-unit"
+      ]
+    },
+    {
+      "id": "test-canary",
+      "name": "Canary 工具：故意破坏被测对象，证明断言不是空转的",
+      "status": "implemented",
+      "owner_paths": [
+        "test/tools/canary.py",
+        "test/canary.json",
+        "test/suites/test_canary.py"
+      ],
+      "test_ids": [
+        "canary-unit"
+      ]
+    },
+    {
+      "id": "audience-coordinate",
+      "name": "受众坐标：站 1 定、站 3 用、站 5 出标题、站 6 复核并登记进定位卡",
+      "status": "partial",
+      "owner_paths": [
+        "capabilities/geo/methods/positioning-and-audience.md",
+        "capabilities/geo/scripts/validate_positioning.py",
+        "capabilities/geo/contracts/positioning.schema.json",
+        "skills/article-pipeline"
+      ],
+      "test_ids": [
+        "content-assets-contract",
+        "geo-pack-contract"
+      ]
+    },
+    {
+      "id": "layered-project-structure",
+      "name": "系统根与项目根分离：项目可插拔，系统层不写死项目标识",
+      "status": "implemented",
+      "owner_paths": [
+        "project.py",
+        "capabilities/project-scaffold",
+        "test/suites/test_project_structure.py",
+        "AGENTS.md"
+      ],
+      "test_ids": [
+        "project-structure"
+      ]
+    },
+    {
+      "id": "geo-capability-pack",
+      "name": "项目内 GEO 方法与 Skill 能力包",
+      "status": "implemented",
+      "owner_paths": [
+        "capabilities/geo",
+        "skills/geo-research",
+        "skills/geo-content-brief",
+        "skills/geo-website-renderer",
+        "skills/geo-prepublish-core",
+        "skills/geo-monitor",
+        "skills/geo-attribution"
+      ],
+      "test_ids": [
+        "geo-pack-contract",
+        "geo-pack-unit"
+      ]
+    },
+    {
+      "id": "content-routing",
+      "name": "普通社交内容与完整 GEO 流程的按需路由",
+      "status": "implemented",
+      "owner_paths": [
+        "skills/content-orchestrator",
+        "AGENTS.md"
+      ],
+      "test_ids": [
+        "content-routing-contract"
+      ]
+    },
+    {
+      "id": "fact-pack-knowledge-base",
+      "name": "文件夹级多模态事实包、对话补录、准入审核与防遗漏门禁",
+      "status": "partial",
+      "owner_paths": [
+        "capabilities/fact-packs"
+      ],
+      "test_ids": [
+        "fact-pack-contract",
+        "fact-pack-unit"
+      ]
+    },
+    {
+      "id": "tri-platform-research",
+      "name": "视频号、抖音、小红书综合调研与关键词抽样",
+      "status": "planned",
+      "owner_paths": [
+        "00-meta/content-engine"
+      ],
+      "test_ids": []
+    },
+    {
+      "id": "topic-validation",
+      "name": "基于证据生成并筛选测试选题",
+      "status": "planned",
+      "owner_paths": [
+        "00-meta/content-engine"
+      ],
+      "test_ids": []
+    },
+    {
+      "id": "tri-platform-assets",
+      "name": "三平台文案、视频与图片物料生成及规则检查",
+      "status": "planned",
+      "owner_paths": [
+        "00-meta/content-engine"
+      ],
+      "test_ids": []
+    },
+    {
+      "id": "multi-format-deliverables",
+      "name": "文章成稿、视频制作简报、图片简报与外部制作系统交接",
+      "status": "partial",
+      "owner_paths": [
+        "capabilities/content-production",
+        "skills/content-orchestrator"
+      ],
+      "test_ids": [
+        "content-deliverable-contract",
+        "content-deliverable-unit"
+      ]
+    },
+    {
+      "id": "creative-production-handoff",
+      "name": "HQ Content Engine 与 Vidmix 的创作任务和成品回读协议",
+      "status": "partial",
+      "owner_paths": [
+        "capabilities/creative-handoff"
+      ],
+      "test_ids": [
+        "creative-handoff-contract"
+      ]
+    },
+    {
+      "id": "draft-upload-and-publish",
+      "name": "三平台草稿上传、预览与授权发布",
+      "status": "planned",
+      "owner_paths": [
+        "00-meta/content-engine"
+      ],
+      "test_ids": []
+    },
+    {
+      "id": "task-intake",
+      "name": "任务单据：在文件夹里发布任务，Agent 回写进度、缺口与产物",
+      "status": "implemented",
+      "owner_paths": [
+        "capabilities/content-production/tasks",
+        "capabilities/content-production/scripts/validate_tasks.py"
+      ],
+      "test_ids": [
+        "task-contract",
+        "content-assets-contract"
+      ]
+    },
+    {
+      "id": "article-pipeline",
+      "name": "文章流水线：从任务到成稿的八站流程",
+      "status": "partial",
+      "owner_paths": [
+        "skills/article-pipeline",
+        "capabilities/content-production/strategies"
+      ],
+      "test_ids": [
+        "content-assets-contract",
+        "content-routing-contract"
+      ]
+    },
+    {
+      "id": "external-advisors",
+      "name": "外部顾问：什么时候可以借 dbs 辅助创作，以及三条铁律",
+      "status": "implemented",
+      "owner_paths": [
+        "capabilities/content-production/external-advisors.md",
+        "skills/article-pipeline"
+      ],
+      "test_ids": [
+        "content-assets-contract"
+      ]
+    },
+    {
+      "id": "authorial-check",
+      "name": "作者化检查：模糊修饰语与机器化模式的确定性诊断",
+      "status": "partial",
+      "owner_paths": [
+        "capabilities/content-production/scripts/check_authorial.py"
+      ],
+      "test_ids": [
+        "content-deliverable-unit"
+      ]
+    },
+    {
+      "id": "reader-audit",
+      "name": "读者审计：独立 agent 从读者视角逐节审稿，与作者的读者获得声明对照",
+      "status": "partial",
+      "owner_paths": [
+        "capabilities/content-production/reader-audit.md",
+        "skills/article-pipeline"
+      ],
+      "test_ids": [
+        "content-assets-contract"
+      ]
+    },
+    {
+      "id": "style-selection",
+      "name": "风格示例与风格库：看 HTML 选风格，吸收外部样本",
+      "status": "partial",
+      "owner_paths": [
+        "capabilities/content-production/styles"
+      ],
+      "test_ids": [
+        "content-assets-contract"
+      ]
+    },
+    {
+      "id": "learning-loop",
+      "name": "学习闭环：分发登记 → 学习记录 → 改进",
+      "status": "partial",
+      "owner_paths": [
+        "capabilities/content-production/learning-loop.md",
+        "capabilities/content-production/tasks/README.md",
+        "skills/article-pipeline"
+      ],
+      "test_ids": [
+        "content-assets-contract"
+      ]
+    }
+  ],
+  "frozen": [
+    {
+      "id": "creator-workbench",
+      "name": "本地创作工作台",
+      "path": "workbench",
+      "note": "2026-09-28 冻结：n=1 的只读查看器，不接入质量门禁，不再扩建。恢复条件：并行创意 ≥3。"
+    }
+  ]
+}

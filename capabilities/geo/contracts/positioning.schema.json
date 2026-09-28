@@ -1,0 +1,273 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Evidence-backed positioning",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "id",
+    "revision",
+    "fact_pack",
+    "positioning",
+    "statement",
+    "tags",
+    "boundaries",
+    "applications",
+    "status"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "fact_pack": {
+      "type": "string",
+      "pattern": "^facts/"
+    },
+    "positioning": {
+      "type": "object",
+      "required": [
+        "identity",
+        "audience",
+        "scenario",
+        "problem",
+        "advantage"
+      ],
+      "properties": {
+        "identity": {
+          "type": "object",
+          "required": [
+            "text",
+            "fact_ids"
+          ],
+          "properties": {
+            "text": {
+              "type": "string"
+            },
+            "fact_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            }
+          }
+        },
+        "audience": {
+          "type": "object",
+          "required": [
+            "text",
+            "fact_ids"
+          ],
+          "properties": {
+            "text": {
+              "type": "string"
+            },
+            "fact_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            }
+          }
+        },
+        "scenario": {
+          "type": "object",
+          "required": [
+            "text",
+            "fact_ids"
+          ],
+          "properties": {
+            "text": {
+              "type": "string"
+            },
+            "fact_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            }
+          }
+        },
+        "problem": {
+          "type": "object",
+          "required": [
+            "text",
+            "fact_ids"
+          ],
+          "properties": {
+            "text": {
+              "type": "string"
+            },
+            "fact_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            }
+          }
+        },
+        "advantage": {
+          "type": "object",
+          "required": [
+            "text",
+            "fact_ids"
+          ],
+          "properties": {
+            "text": {
+              "type": "string"
+            },
+            "fact_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            }
+          }
+        }
+      }
+    },
+    "statement": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tags": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "dimension",
+          "status",
+          "text",
+          "reason",
+          "fact_ids"
+        ],
+        "properties": {
+          "dimension": {
+            "enum": [
+              "region",
+              "customer",
+              "group",
+              "price",
+              "scenario"
+            ]
+          },
+          "status": {
+            "enum": [
+              "known",
+              "unknown",
+              "not_applicable"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "fact_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "boundaries": {
+      "type": "array",
+      "description": "Boundary fact IDs from the same pack — not prose. Boundaries are the facts that say what the product must not claim; write them as fact IDs so the text stays in facts.jsonl, single-sourced. Boundary facts may be prohibited_claim, which positive positioning slots must not use.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "applications": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "channel",
+          "audience",
+          "scenario",
+          "problem",
+          "positioning_revision",
+          "used_fact_ids",
+          "review"
+        ],
+        "properties": {
+          "channel": {
+            "type": "string",
+            "minLength": 1
+          },
+          "artifact_path": {"type": "string", "description": "Project-relative actual article/script; required for ready"},
+          "audience": {
+            "type": "string",
+            "minLength": 1
+          },
+          "scenario": {
+            "type": "string",
+            "minLength": 1
+          },
+          "problem": {
+            "type": "string",
+            "minLength": 1
+          },
+          "positioning_revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "used_fact_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "review": {
+            "type": "object",
+            "required": [
+              "status",
+              "reviewer",
+              "note"
+            ],
+            "properties": {
+              "artifact_sha256": {"type": "string", "description": "Reviewed content checksum; required for ready"},
+              "status": {
+                "enum": [
+                  "pending",
+                  "pass",
+                  "fail"
+                ]
+              },
+              "reviewer": {
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "ready"
+      ]
+    }
+  }
+}

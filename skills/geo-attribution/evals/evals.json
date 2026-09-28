@@ -1,0 +1,27 @@
+{
+  "skill_name": "geo-attribution",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我们 GEO 提及率涨了 30%，该不该把预算翻倍？",
+      "expected_output": "先区分可见度和商业结果，设计小范围标记与增量试点，再给出扩投条件。",
+      "files": [],
+      "expectations": [
+        "不会仅凭提及率建议扩投",
+        "会明确主指标、观察窗口和 scale/iterate/stop 条件",
+        "不会套用固定 ROI 阈值"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "GEO 带来 10 万收入，花了 5 万，所以 ROI 是 100%，对吗？",
+      "expected_output": "指出这最多是收入回报口径；补充贡献毛利、成本和增量归因后才能计算利润 ROI。",
+      "files": [],
+      "expectations": [
+        "区分 revenue_return 与 profit_roi",
+        "检查收入是否增量、成本是否完整",
+        "不会把收入直接当利润"
+      ]
+    }
+  ]
+}

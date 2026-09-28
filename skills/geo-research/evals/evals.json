@@ -1,0 +1,26 @@
+{
+  "skill_name": "geo-research",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "研究一下 AI 视频翻译工具这个方向，看看用户会问什么、现在 AI 都引用谁。",
+      "expected_output": "生成可追溯 Query Fan-Out，核验当前答案与引用，并给出三项内容机会。",
+      "files": [],
+      "expectations": [
+        "模型扩展问题不会被写成真实搜索量",
+        "记录当前答案和引用来源",
+        "结论包含反例或不确定性"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "给我 40 个小红书标题，和 GEO 无关。",
+      "expected_output": "本 Skill 不应触发，应交给社交内容或小红书标题能力。",
+      "files": [],
+      "expectations": [
+        "不会执行完整 GEO 研究"
+      ]
+    }
+  ]
+}
+
