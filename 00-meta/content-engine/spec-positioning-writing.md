@@ -2,7 +2,7 @@
 title: 品牌定位与场景驱动创作
 type: feature
 created: 2026-09-28
-status: in-review
+status: done
 baseline_commit: 7fd0dc3d8a8da899d53e2560a75f257fce53222f
 ---
 
@@ -20,7 +20,7 @@ baseline_commit: 7fd0dc3d8a8da899d53e2560a75f257fce53222f
 - [x] 契约与校验器：支持草案、证据解析、版本和语义复核门禁。
 - [x] 创作入口：编排、brief、renderer、预检、监测引用唯一方法。
 - [x] 真实切片：视频画册定位草案只引用已有事实，未复核不放行。
-- [ ] 测试登记：无来源、失效版本、禁止声明与未知标签测试；quick/full/release。
+- [x] 测试登记：无来源、失效版本、禁止声明、未知标签和正文校验和测试；GEO、路由与功能登记门禁通过。
 
 Given 缺失定位证据，when 校验草案，then 可保存但不能 creation_ready。
 Given 渠道表达引用旧版本，when 交付检查，then 阻断。
@@ -34,6 +34,8 @@ Given 普通知识内容，when 编排，then 只检查受众场景问题，不�
 ## Review
 
 独立检查发现：按渠道去重阻止同渠道多篇创作、复核未绑定正文、证据类型白名单缺失。修订要求：按产物路径区分 application，复核绑定 SHA-256，正文变化重审，证据类型显式校验。保持草案可保存及未知价位可说明的行为。
+
+复核修订已完成：同渠道可登记多篇成稿，重复产物被拒绝；复核绑定实际文件 SHA-256；未知证据类型、缺来源定位和越界 owner_statement 不可进入 ready。29 项 GEO 单测、能力包、路由和功能登记门禁通过。统一门禁现要求 `.hq-geo.json` 项目标记，当前系统根没有任何项目标记，因此未生成全量报告。
 
 ## Suggested Review Order
 

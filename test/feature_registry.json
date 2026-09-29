@@ -7,6 +7,18 @@
   },
   "features": [
     {
+      "id": "sourcing",
+      "name": "取材：把想法或主题变成 production-brief（访谈 / 检索两条路径）",
+      "status": "partial",
+      "owner_paths": [
+        "capabilities/sourcing",
+        "skills/sourcing"
+      ],
+      "test_ids": [
+        "sourcing-contract"
+      ]
+    },
+    {
       "id": "positioning-writing",
       "name": "定位与用户场景核心创作规则、事实引用与渠道复核门禁",
       "status": "partial",
@@ -123,22 +135,29 @@
       ]
     },
     {
-      "id": "tri-platform-research",
-      "name": "视频号、抖音、小红书综合调研与关键词抽样",
-      "status": "planned",
+      "id": "keyword-research",
+      "name": "关键词研究：渠道适配器采集真实需求信号，归一化成需求簇",
+      "status": "partial",
       "owner_paths": [
-        "00-meta/content-engine"
+        "capabilities/keyword-research",
+        "skills/keyword-research"
       ],
-      "test_ids": []
+      "test_ids": [
+        "keyword-research-unit",
+        "keyword-research-contract"
+      ]
     },
     {
-      "id": "topic-validation",
-      "name": "基于证据生成并筛选测试选题",
-      "status": "planned",
+      "id": "topic-registry",
+      "name": "选题记录：五问准入、三种来源与生产进度分层",
+      "status": "partial",
       "owner_paths": [
-        "00-meta/content-engine"
+        "capabilities/topic-registry"
       ],
-      "test_ids": []
+      "test_ids": [
+        "topic-registry-unit",
+        "topic-registry-contract"
+      ]
     },
     {
       "id": "tri-platform-assets",
@@ -265,6 +284,20 @@
       ],
       "test_ids": [
         "content-assets-contract"
+      ]
+    },
+    {
+      "id": "image-production",
+      "name": "图片线：ImageBrief 契约、14 套视觉风格与一步出图",
+      "status": "partial",
+      "owner_paths": [
+        "capabilities/image-production",
+        "skills/image-pipeline"
+      ],
+      "test_ids": [
+        "image-pipeline-contract",
+        "image-brief-unit",
+        "image-brief-contract"
       ]
     }
   ],

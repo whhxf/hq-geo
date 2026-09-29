@@ -31,6 +31,22 @@ SYSTEM = Path(__file__).resolve().parents[2]
 MANIFEST = SYSTEM / "test" / "test_manifest.json"
 CASES = SYSTEM / "test" / "canary.json"
 
+sys.path.insert(0, str(SYSTEM))
+from project import MARKER  # noqa: E402
+
+
+def resolve_project(raw: str) -> str:
+    """把 --project 解析成绝对路径，在起任何子进程之前。
+
+    测试固定以 `cwd=系统根` 运行，所以相对路径会在**系统根**解析，不是在你
+    敲命令的地方。2026-09-28 踩过：在项目目录里用 `--project .` 跑全量，
+    所有测试都因为找不到项目而退出非零——于是每一条都显示「✓ 变红」，
+    **全是假红**，而末尾复跑同样失败，报的是「文件可能没恢复干净」。
+
+    假红和假绿一样有害：你会以为断言在守着，其实它什么都没测。
+    """
+    return str(Path(raw).resolve())
+
 
 def load_commands() -> dict:
     """测试 ID → 命令。复用门禁的清单，不另造第二套真源。"""
@@ -84,6 +100,13 @@ def main() -> int:
     parser.add_argument("--project", required=True, help="项目根，测试要用它找实例层")
     parser.add_argument("--only", default="", help="只跑名字里含这个词的破坏点")
     args = parser.parse_args()
+    args.project = resolve_project(args.project)
+
+    if not (Path(args.project) / MARKER).is_file():
+        print(f"这里不是 hq-geo 项目根（没有 {MARKER}）：{args.project}")
+        print("路径给错时，测试会全部报错退出——而 canary 把非零退出当成「变红」，")
+        print("于是你会看到一整片假红。先确认 --project 指向项目根，再跑。")
+        return 1
 
     commands = load_commands()
     config = json.loads(CASES.read_text(encoding="utf-8"))

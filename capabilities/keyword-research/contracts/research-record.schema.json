@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hq-geo.local/contracts/research-record.schema.json",
+  "title": "ResearchRecord",
+  "description": "一次渠道采集的完整记录。一次采集一个文件，文件名带日期，只新增不修改。落盘在项目根 research/raw/。",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "channel",
+    "platform",
+    "captured_at",
+    "core_keyword",
+    "access",
+    "evidence_nature",
+    "surfaces"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "channel": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "渠道 id。必须能在 capabilities/keyword-research/channels/<id>.md 找到定义——校验器会查，写错的渠道名不会静默通过。"
+    },
+    "platform": { "type": "string", "description": "平台名，如「小红书」。" },
+    "entry": { "type": "string", "description": "采集入口 URL 或界面路径。" },
+    "captured_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "description": "采集日期。平台数据会过期，引用时必须能回看是哪天采的。"
+    },
+    "core_keyword": { "type": "string", "minLength": 1 },
+    "access": {
+      "enum": ["public", "login_required", "commercial_account"],
+      "description": "进这个渠道要什么权限。必须与渠道定义一致。"
+    },
+    "evidence_nature": {
+      "enum": ["official_commercial", "official_creative", "native_content", "proxy"],
+      "description": "这批信号的证据性质。official_commercial=平台官方商业工具（聚光指数/出价）；official_creative=平台官方创作工具；native_content=原生内容信号（搜索建议/笔记/评论）；proxy=代理信号（微信指数之于视频号）。必须与渠道定义一致。"
+    },
+    "surfaces": {
+      "type": "array",
+      "minItems": 1,
+      "description": "这次采集走了渠道里的哪几个页签。每个页签一组记录。",
+      "items": {
+        "type": "object",
+        "required": ["surface", "records"],
+        "properties": {
+          "surface": { "type": "string", "description": "页签名，如「词根拓词」。" },
+          "records": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/$defs/record" }
+          }
+        }
+      }
+    },
+    "noise": {
+      "type": "array",
+      "description": "平台返回但与本轮任务无关的词。保留说明、明确排除——不假装没看见，也不混进需求簇。",
+      "items": {
+        "type": "object",
+        "required": ["keyword", "why"],
+        "properties": {
+          "keyword": { "type": "string" },
+          "why": { "type": "string", "description": "为什么是噪音。写清判断依据，不写「无关」两个字。" }
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "description": "这次采集现场发现的、值得记下来的口径问题或异常。",
+      "items": { "type": "string" }
+    }
+  },
+  "$defs": {
+    "record": {
+      "type": "object",
+      "required": ["keyword"],
+      "description": "一条信号。至少要有 keyword 加一个信号字段——只有词没有数的记录不是采集结果。",
+      "properties": {
+        "keyword": { "type": "string", "minLength": 1 },
+        "monthly_search_index": {
+          "type": ["integer", "string", "null"],
+          "description": "月搜索指数，平台原值。平台自有口径，不跨平台比较、不与其它指标相加。平台报「<100」这类阈值时照抄——换算成 100 是编数，换成 null 是丢信息。"
+        },
+        "competition": {
+          "enum": ["高", "中", "低", null],
+          "description": "竞争指数，保留平台原值。"
+        },
+        "bid_cny": {
+          "type": ["number", "null"],
+          "description": "市场出价，元。与搜索指数分开保存，不相加、不换算成同一个分。"
+        },
+        "reason": {
+          "type": ["string", "null"],
+          "description": "平台给的推荐理由，如「同行买词」「高点击」。原值保留。"
+        },
+        "upstream_downstream": {
+          "enum": ["上游", "下游", null],
+          "description": "上下游推词页签里的方向标记。"
+        },
+        "path": {
+          "type": ["string", "null"],
+          "description": "用户路径拓词页签里的路径名。"
+        },
+        "path_share_percent": {
+          "type": ["number", "null"],
+          "description": "用户路径内的占比。这是路径内占比，不是全站占比，不与月搜索指数混算。"
+        }
+      }
+    }
+  }
+}

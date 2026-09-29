@@ -1,103 +1,286 @@
 {
   "schema_version": 2,
-  "tiers": ["static", "unit", "contract", "integration", "workflow", "release"],
+  "tiers": [
+    "static",
+    "unit",
+    "contract",
+    "integration",
+    "workflow",
+    "release"
+  ],
   "tests": [
     {
       "id": "project-structure",
       "name": "系统根与项目根的分根边界",
       "tier": "static",
-      "command": ["python3", "test/suites/test_project_structure.py"],
+      "command": [
+        "python3",
+        "test/suites/test_project_structure.py"
+      ],
       "timeout_seconds": 60
     },
     {
       "id": "feature-registry-contract",
       "name": "功能状态与测试覆盖契约",
       "tier": "contract",
-      "command": ["python3", "test/suites/test_feature_registry.py"],
+      "command": [
+        "python3",
+        "test/suites/test_feature_registry.py"
+      ],
       "timeout_seconds": 30
     },
     {
       "id": "quality-gate-unit",
       "name": "质量门禁自身回归测试",
       "tier": "unit",
-      "command": ["python3", "-m", "unittest", "discover", "-s", "test/suites", "-p", "test_quality_gate.py"],
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "test/suites",
+        "-p",
+        "test_quality_gate.py"
+      ],
       "timeout_seconds": 30
     },
     {
       "id": "canary-unit",
       "name": "canary 工具的破坏与还原回归测试",
       "tier": "unit",
-      "command": ["python3", "-m", "unittest", "discover", "-s", "test/suites", "-p", "test_canary.py"],
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "test/suites",
+        "-p",
+        "test_canary.py"
+      ],
       "timeout_seconds": 30
     },
     {
       "id": "content-routing-contract",
       "name": "内容编排与 GEO 路由契约",
       "tier": "contract",
-      "command": ["python3", "test/suites/test_content_routing.py"],
+      "command": [
+        "python3",
+        "test/suites/test_content_routing.py"
+      ],
       "timeout_seconds": 30
     },
     {
       "id": "creative-handoff-contract",
       "name": "CreativeJob 与 ProductionReceipt 文件契约",
       "tier": "contract",
-      "command": ["python3", "-m", "unittest", "discover", "-s", "test/suites", "-p", "test_creative_handoff.py"],
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "test/suites",
+        "-p",
+        "test_creative_handoff.py"
+      ],
       "timeout_seconds": 30
     },
     {
       "id": "content-deliverable-contract",
       "name": "文章、视频与图片创作交付契约",
       "tier": "contract",
-      "command": ["python3", "capabilities/content-production/scripts/validate_deliverables.py"],
+      "command": [
+        "python3",
+        "capabilities/content-production/scripts/validate_deliverables.py"
+      ],
       "timeout_seconds": 30
     },
     {
       "id": "content-deliverable-unit",
       "name": "视频制作简报与外部系统交接门禁",
       "tier": "unit",
-      "command": ["python3", "-m", "unittest", "discover", "-s", "capabilities/content-production/tests", "-p", "test_*.py"],
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "capabilities/content-production/tests",
+        "-p",
+        "test_*.py"
+      ],
       "timeout_seconds": 30
     },
     {
       "id": "fact-pack-contract",
       "name": "事实包目录、准入与完整性契约",
       "tier": "contract",
-      "command": ["python3", "capabilities/fact-packs/scripts/validate_fact_pack.py"],
+      "command": [
+        "python3",
+        "capabilities/fact-packs/scripts/validate_fact_pack.py"
+      ],
       "timeout_seconds": 30
     },
     {
       "id": "fact-pack-unit",
       "name": "事实准入与防遗漏门禁回归测试",
       "tier": "unit",
-      "command": ["python3", "-m", "unittest", "discover", "-s", "capabilities/fact-packs/tests", "-p", "test_*.py"],
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "capabilities/fact-packs/tests",
+        "-p",
+        "test_*.py"
+      ],
       "timeout_seconds": 30
     },
     {
       "id": "geo-pack-contract",
       "name": "GEO 能力包完整性",
       "tier": "contract",
-      "command": ["python3", "capabilities/geo/scripts/validate_pack.py"],
+      "command": [
+        "python3",
+        "capabilities/geo/scripts/validate_pack.py"
+      ],
       "timeout_seconds": 30
     },
     {
       "id": "geo-pack-unit",
       "name": "GEO 校验器回归测试",
       "tier": "unit",
-      "command": ["python3", "-m", "unittest", "discover", "-s", "capabilities/geo/tests", "-p", "test_*.py"],
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "capabilities/geo/tests",
+        "-p",
+        "test_*.py"
+      ],
       "timeout_seconds": 30
     },
     {
       "id": "content-assets-contract",
       "name": "创作策略库、风格约定与任务约定完整性",
       "tier": "contract",
-      "command": ["python3", "test/suites/test_content_assets.py"],
+      "command": [
+        "python3",
+        "test/suites/test_content_assets.py"
+      ],
       "timeout_seconds": 30
     },
     {
       "id": "task-contract",
       "name": "任务单据格式契约",
       "tier": "contract",
-      "command": ["python3", "capabilities/content-production/scripts/validate_tasks.py"],
+      "command": [
+        "python3",
+        "capabilities/content-production/scripts/validate_tasks.py"
+      ],
+      "timeout_seconds": 30
+    },
+    {
+      "id": "sourcing-contract",
+      "name": "取材能力的两条路径判据与落盘接口",
+      "tier": "contract",
+      "command": [
+        "python3",
+        "test/suites/test_sourcing.py"
+      ],
+      "timeout_seconds": 30
+    },
+    {
+      "id": "image-brief-unit",
+      "name": "图片简报校验规则与 prompt 组装",
+      "tier": "unit",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "capabilities/image-production/tests",
+        "-p",
+        "test_*.py"
+      ],
+      "timeout_seconds": 60
+    },
+    {
+      "id": "image-brief-contract",
+      "name": "项目里图片简报的合法性与风格引用",
+      "tier": "contract",
+      "command": [
+        "python3",
+        "capabilities/image-production/scripts/validate_image_brief.py"
+      ],
+      "timeout_seconds": 30
+    },
+    {
+      "id": "image-pipeline-contract",
+      "name": "图片线五站判据、契约必填项与风格库完整性",
+      "tier": "contract",
+      "command": [
+        "python3",
+        "test/suites/test_image_pipeline.py"
+      ],
+      "timeout_seconds": 30
+    },
+    {
+      "id": "keyword-research-unit",
+      "name": "关键词研究六条拦截与渠道口径回归",
+      "tier": "unit",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "capabilities/keyword-research/tests",
+        "-p",
+        "test_*.py"
+      ],
+      "timeout_seconds": 30
+    },
+    {
+      "id": "keyword-research-contract",
+      "name": "关键词研究契约、渠道接口与口径硬线",
+      "tier": "contract",
+      "command": [
+        "python3",
+        "test/suites/test_keyword_research.py"
+      ],
+      "timeout_seconds": 30
+    },
+    {
+      "id": "topic-registry-unit",
+      "name": "选题五问准入、分层拦截与 v1 迁移回归",
+      "tier": "unit",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "capabilities/topic-registry/tests",
+        "-p",
+        "test_*.py"
+      ],
+      "timeout_seconds": 30
+    },
+    {
+      "id": "topic-registry-contract",
+      "name": "选题契约字段、五问门槛与分层边界",
+      "tier": "contract",
+      "command": [
+        "python3",
+        "test/suites/test_topic_registry.py"
+      ],
       "timeout_seconds": 30
     }
   ]

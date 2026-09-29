@@ -44,9 +44,10 @@ description: HQ Content Engine 的自然对话总入口。用户只要表达一�
 |---|---|
 | `article` | `skills/article-pipeline/SKILL.md` |
 | `video` | 视频流水线尚未建立，当前用 `ProductionBrief` 契约（`capabilities/content-production/contracts/`） |
-| `image` | 图片流水线尚未建立，当前用 `ImageBrief` 契约 |
+| `image` | `skills/image-pipeline/SKILL.md` 五站（强依赖 AI 生成，不做图片编辑） |
 
-视频和图片两条线还没有命名流程，只有产物契约。用户要这两类交付时，说明当前状态，不要假装有完整流水线。
+视频线还没有命名流程，只有产物契约——生成交给外部的 Vidmix，hq-geo 只出 `CreativeJob`。
+用户要视频交付时，说明当前状态，不要假装有完整流水线。
 
 ### 核心写作逻辑（先于渠道路由）
 
@@ -97,7 +98,7 @@ description: HQ Content Engine 的自然对话总入口。用户只要表达一�
 6. 第一屏返回最多 3—5 个可判断选题，说明证据、平台适配和风险。
 7. 用户自然回复后更新同一个任务状态，不要求重来。
 8. 锁定选题后生成平台无关母内容，再选择创作策略和渠道 renderer。
-9. 根据目标载体生成实际交付物：文章走 `skills/article-pipeline/SKILL.md` 的七站流程；视频生成可交给外部制作系统的 `ProductionBrief`；图片生成 `ImageBrief`。不得停在选题或一句内容建议。
+9. 根据目标载体生成实际交付物：文章走 `skills/article-pipeline/SKILL.md` 的八站流程；图片走 `skills/image-pipeline/SKILL.md` 的五站；视频生成交给外部制作系统的 `ProductionBrief`。不得停在选题或一句内容建议。
 10. 为视频号、抖音、小红书、自有博客和已指定媒体分别生成渠道包；未知媒体规则会阻止媒体包进入发布就绪。
 11. 发布前加载当前渠道硬规则、内容风险、版权和 AI 标识要求。
 12. 可以准备草稿、上传和预览；公开发布、删除、修改已发布内容或产生广告费用前，必须获得明确授权。

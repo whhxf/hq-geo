@@ -438,6 +438,292 @@
           "replace": "两轮之后再看情况决定要不要继续"
         }
       ]
+    },
+    {
+      "name": "取材入口不再问走哪条路",
+      "test": "sourcing-contract",
+      "edits": [
+        {
+          "file": "skills/sourcing/SKILL.md",
+          "find": "**启动时问一次，不替用户选**",
+          "replace": "**按你认为合适的方式启动**"
+        }
+      ]
+    },
+    {
+      "name": "取材落盘不再先给用户过目",
+      "test": "sourcing-contract",
+      "edits": [
+        {
+          "file": "skills/sourcing/SKILL.md",
+          "find": "**写盘前先把要写的东西给用户看一遍**",
+          "replace": "**写盘后告知用户写了什么**"
+        }
+      ]
+    },
+    {
+      "name": "访谈失去「填哪一格」判据",
+      "test": "sourcing-contract",
+      "edits": [
+        {
+          "file": "capabilities/sourcing/interview-method.md",
+          "find": "**这个回答会填上哪一格？**",
+          "replace": "**这个问题有没有价值？**"
+        }
+      ]
+    },
+    {
+      "name": "访谈开始喂候选答案",
+      "test": "sourcing-contract",
+      "edits": [
+        {
+          "file": "capabilities/sourcing/interview-method.md",
+          "find": "**还不出来就保留为未知，不要提供候选答案让用户认领。**",
+          "replace": "**还不出来就给出几个候选，让用户挑一个。**"
+        }
+      ]
+    },
+    {
+      "name": "访谈收束两问被合并",
+      "test": "sourcing-contract",
+      "edits": [
+        {
+          "file": "capabilities/sourcing/interview-method.md",
+          "find": "**两问，分两轮问，不能合并**",
+          "replace": "**两问可以合成一轮问**"
+        }
+      ]
+    },
+    {
+      "name": "检索不再要求一手来源",
+      "test": "sourcing-contract",
+      "edits": [
+        {
+          "file": "capabilities/sourcing/research-method.md",
+          "find": "## 一手来源才算证据",
+          "replace": "## 找到资料就算证据"
+        }
+      ]
+    },
+    {
+      "name": "检索失去三级定级硬线",
+      "test": "sourcing-contract",
+      "edits": [
+        {
+          "file": "capabilities/sourcing/research-method.md",
+          "find": "**最后一行是硬线**",
+          "replace": "**三级的区别不大**"
+        }
+      ]
+    },
+    {
+      "name": "取材文档不再继承事实包硬线",
+      "test": "sourcing-contract",
+      "edits": [
+        {
+          "file": "capabilities/sourcing/README.md",
+          "find": "**`inference` 和 `unknown` 不能是 `verified`**",
+          "replace": "**`inference` 和 `unknown` 也可以写成 `verified`**"
+        }
+      ]
+    },
+    {
+      "name": "校验器不再拦「生成图冒充产品界面」",
+      "test": "image-brief-unit",
+      "edits": [
+        {
+          "file": "capabilities/image-production/scripts/validate_image_brief.py",
+          "find": "elif kind in REALITY_BOUND and item.get(\"synthetic\") is not False:",
+          "replace": "elif False:"
+        }
+      ]
+    },
+    {
+      "name": "出图时风格不再放 prompt 最前面",
+      "test": "image-brief-unit",
+      "edits": [
+        {
+          "file": "capabilities/image-production/scripts/generate_image.py",
+          "find": "style[\"prompt\"][\"prefix\"],",
+          "replace": "deliverable[\"subject\"],"
+        }
+      ]
+    },
+    {
+      "name": "图片线丢掉「题材决定能不能生成」这一格",
+      "test": "image-pipeline-contract",
+      "edits": [
+        {
+          "file": "skills/image-pipeline/SKILL.md",
+          "find": "**`subject_kind` 是这份简报最重要的一格。**",
+          "replace": "这一格也填一下。"
+        }
+      ]
+    },
+    {
+      "name": "图片线不再要求图上文字挂事实",
+      "test": "image-pipeline-contract",
+      "edits": [
+        {
+          "file": "skills/image-pipeline/SKILL.md",
+          "find": "**图上不要写字，除非它能挂上事实。**",
+          "replace": "图上的字尽量简短。"
+        }
+      ]
+    },
+    {
+      "name": "图片线丢掉「不做编辑」的边界",
+      "test": "image-pipeline-contract",
+      "edits": [
+        {
+          "file": "skills/image-pipeline/SKILL.md",
+          "find": "**不做图片编辑。**",
+          "replace": "**范围比较灵活。**"
+        }
+      ]
+    },
+    {
+      "name": "风格库出现重复 id",
+      "test": "image-pipeline-contract",
+      "edits": [
+        {
+          "file": "capabilities/image-production/styles/image-styles.json",
+          "find": "\"id\": \"infographic-card\"",
+          "replace": "\"id\": \"editorial-minimal\""
+        }
+      ]
+    },
+    {
+      "name": "风格库某套缺 prompt 字段",
+      "test": "image-pipeline-contract",
+      "edits": [
+        {
+          "file": "capabilities/image-production/styles/image-styles.json",
+          "find": "\"prompt\": {",
+          "replace": "\"prompt_renamed\": {"
+        }
+      ]
+    },
+    {
+      "name": "关键词研究不再拦编词",
+      "test": "keyword-research-unit",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/scripts/validate_research.py",
+          "find": "elif available and kw not in available:",
+          "replace": "elif False:"
+        }
+      ]
+    },
+    {
+      "name": "关键词研究不再拦推断词冒充代表词",
+      "test": "keyword-research-unit",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/scripts/validate_research.py",
+          "find": "if kw in inferred:",
+          "replace": "if False:"
+        }
+      ]
+    },
+    {
+      "name": "采集记录契约收紧成不允许「<100」",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/contracts/research-record.schema.json",
+          "find": "\"type\": [\"integer\", \"string\", \"null\"],",
+          "replace": "\"type\": [\"integer\", \"null\"],"
+        }
+      ]
+    },
+    {
+      "name": "渠道接口去掉「status 必须有」",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/channels/README.md",
+          "find": "### 为什么 `status` 必须有",
+          "replace": "### 关于 status"
+        }
+      ]
+    },
+    {
+      "name": "关键词研究不再拦跨平台加总",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/channels/xhs-spotlight.md",
+          "find": "**月搜索指数、竞争指数、市场出价分别保存，不做加总。**",
+          "replace": "**月搜索指数、竞争指数、市场出价可以合成一个机会分。**"
+        }
+      ]
+    },
+    {
+      "name": "关键词研究 skill 不再要求只选 verified 渠道",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "skills/keyword-research/SKILL.md",
+          "find": "**只选 verified 的。**",
+          "replace": "**按感觉选就行。**"
+        }
+      ]
+    },
+    {
+      "name": "选题校验器不再拦五问半答",
+      "test": "topic-registry-unit",
+      "edits": [
+        {
+          "file": "capabilities/topic-registry/scripts/validate_topics.py",
+          "find": "if answered and len(answered) != len(FIVE_QUESTIONS):",
+          "replace": "if False:"
+        }
+      ]
+    },
+    {
+      "name": "选题校验器不再拦混层",
+      "test": "topic-registry-unit",
+      "edits": [
+        {
+          "file": "capabilities/topic-registry/scripts/validate_topics.py",
+          "find": "if field in topic:",
+          "replace": "if False:"
+        }
+      ]
+    },
+    {
+      "name": "迁移脚本替老选题升成 selected",
+      "test": "topic-registry-unit",
+      "edits": [
+        {
+          "file": "capabilities/topic-registry/scripts/migrate_v1.py",
+          "find": "\"state\": \"candidate\",",
+          "replace": "\"state\": \"selected\","
+        }
+      ]
+    },
+    {
+      "name": "选题契约不再允许五问为空",
+      "test": "topic-registry-contract",
+      "edits": [
+        {
+          "file": "capabilities/topic-registry/contracts/topic.schema.json",
+          "find": "\"type\": [\"string\", \"null\"],\n          \"description\": \"五问之一",
+          "replace": "\"type\": [\"string\"],\n          \"description\": \"五问之一"
+        }
+      ]
+    },
+    {
+      "name": "选题记录 README 丢掉五问门槛",
+      "test": "topic-registry-contract",
+      "edits": [
+        {
+          "file": "capabilities/topic-registry/README.md",
+          "find": "**答不上第 5 问的不是选题，是想法。**",
+          "replace": "**五问是参考，填不填都行。**"
+        }
+      ]
     }
   ]
 }

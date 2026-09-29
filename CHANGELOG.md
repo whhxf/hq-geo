@@ -6,7 +6,173 @@
 
 ---
 
+## 2026-09-29
+
+### 创作链路的前端补齐：关键词研究能跑了，选题记录有了五问闸
+
+- **做了什么**：
+  - 新增 `capabilities/keyword-research/`——**渠道适配器**架构（一个渠道一个 markdown，front matter 机器读，
+    加渠道就是加文件）、两份契约（`research-record.schema.json` 一次采集、`demand-cluster.schema.json` 需求簇）、
+    第一个也是唯一 verified 的渠道 `channels/xhs-spotlight.md`、校验器 `scripts/validate_research.py`、
+    27 条单测（`tests/test_research_rules.py`）
+  - 新增 `capabilities/topic-registry/`——`contracts/topic.schema.json`（v2）、
+    校验器 `scripts/validate_topics.py`、迁移脚本 `scripts/migrate_v1.py`、25 条单测
+  - 新增 `skills/keyword-research/SKILL.md`——六站：定核心词 → 选渠道 → 采集 → 归一化成需求簇 → **和用户讨论** → 登记选题
+  - 新增两个契约套件：`test/suites/test_keyword_research.py`、`test/suites/test_topic_registry.py`
+  - 登记：`test_manifest` 18→22、`baseline` 18→22、`canary` 52→64 条
+  - 实例层（不算系统改进，一并记录）：`视频画册推广` 的 91 条选题从 v1 迁到 v2；
+    `kingsway ai 数字员工` 落了第一份真实研究产物（62 条记录 + 4 个需求簇）
+- **为什么**：审计发现**这两样东西都不存在**。`00-meta/content-engine/02-research-and-topic-system.md`
+  有 280 行完整设计，但那只是蓝图；`feature_registry` 里 `tri-platform-research` 和 `topic-validation`
+  两条都挂着 `planned`，责任路径指向一个文档目录，没有测试。
+
+  而三样容易误认为已有的东西都不是这件事：`geo-research` 问的是「AI 搜索里竞品占了哪些位置」，
+  不是「真人在搜什么词」；`sourcing` 的检索路径找的是**事实**，不是**需求**；
+  项目里那 91 条选题是**手工列的清单**，没有一条有调研链。
+
+  **关键判断：关键词研究是组合技能，不是流水线。** 同一个问题在小红书、抖音、微信里要用不同方式问，
+  拿回来的口径各不相同。所以形状是**可插拔的渠道适配器**——渠道会改版，契约不会；
+  平台改界面只改一个渠道文件，记录格式和归一化规则不动。这也是唯一能让它长到五六个渠道而不散架的形状。
+
+  **第二个判断：评估了本机三套现成资产，全部不能直接用。**
+  `evidence-first-keyword-research` 平台是 Google（方法论能借，工具层不能）；
+  `hq-mtsites/keyword-research` 的**评分公式逻辑是反的**——`搜索量×0.35 + 竞争低×0.40 + 商业价值×0.25`，
+  竞争低占最高权重，那是**建站排名**逻辑（新站打不了高 KD 词）。**内容获客要的恰恰是高竞争高意向词。**
+  照搬会把人导向「找没人搜的词」。所以抽它的 Method Plugin 架构，丢它的公式，并在 README 里写明为什么丢。
+- **影响**：
+  - `feature_registry` 里 `tri-platform-research` 和 `topic-validation` **被删除**，
+    由 `keyword-research` 和 `topic-registry` 两条 `partial` 取代。删的理由：它们登记的是蓝图，
+    责任路径是文档目录、没有测试；现在有了真实现，留着就是同一个能力挂两条
+  - 选题记录 **v1 → v2 是破坏性变更**：`stage`/`status`/`progress`/`next_action`/`updated_at`/`artifacts`
+    六个字段被移除。理由见 `AGENTS.md` 第 31 行「四层各自独立成文件」——
+    选题记录只管「做不做」，做到哪了去 `tasks/` 看。旧文件混着两件事，会让选题记录变成第二个任务表
+  - 校验器**跳过 `.bak.json`**。迁移时踩过一次：备份被 glob 命中，产生 638 处假报错
+  - `monthly_search_index` 的类型是 `["integer","string","null"]`，**故意允许字符串**——
+    平台报「<100」时照抄。换算成 100 是编数，换成 null 是丢信息。谁把它收紧成整数，就是在逼采集的人编数
+- **验证**：
+  - 门禁在两个项目上跑：`ai-employee` 与 `video-album`，均 **PASS**，22/22 测试、覆盖率 100%
+  - 新增 12 条 canary **全部变红**（编词、推断词冒充代表词、跨平台加总、只选 verified 渠道、
+    五问半答、混层、迁移替老选题升状态、契约不允许五问为空、`<100` 被收紧、`status` 判据消失、README 丢门槛）
+  - 真实数据跑通：`validate_research.py` 在 `ai-employee` 上 PASS（62 条记录、4 个需求簇）；
+    `validate_topics.py` 在三个项目上 PASS（91 / 0 / 0 条）
+
+### 图片线从名词变成流水线：ImageBrief 契约、14 套风格、一步出图
+
+- **做了什么**：
+  - 新增 `capabilities/image-production/`——`contracts/image-brief.schema.json`（图片制作接口）、
+    `styles/image-styles.json`（14 套视觉风格，从 Vidmix 搬来并标注来源）、
+    `scripts/validate_image_brief.py`（简报校验器）、
+    `scripts/generate_image.py`（组装 prompt → 调 `wan2.7-image-pro` → 存回项目根）、
+    `tests/test_image_brief.py`（16 条单测）
+  - 新增 `skills/image-pipeline/SKILL.md`——五站：读任务查事实 → 写简报 → 选风格 → 出图 → 验收
+  - 新增 `test/suites/test_image_pipeline.py`——盯五站判据在不在、契约必填项、风格库完整性
+  - 登记：`test_manifest` 15→18、`feature_registry` 新增 `image-production`、`baseline` 15→18
+- **为什么**：Conan 定的一件事和一个一直没人发现的洞。
+
+  定的是：「**图片管线和视频管线本就是独立的两套**，后续中间有没有桥后续再说。我要先走通图片创作，
+  这不是传统的编辑图片功能，而是强依赖 AI 生成，调用好的模型一步出图。」
+  ——所以图片线不做图层不做涂抹，做的是把「要什么」说清楚、组装 prompt、调模型拿图。
+
+  洞是：`ImageBrief` 在 `AGENTS.md` 里被写成「图片的最低完整交付」，在
+  `content-production/README.md` 里被列成契约，**但 `contracts/` 里根本没有它的 schema 文件**。
+  它是个占位名词，写了很久没人发现——因为它不报错，只是不存在。
+
+  图片线的核心问题也和文章线不同：文章写错一句话，读者能追问出处；**图不能**——
+  一张看起来像产品界面的生成图，读者没有任何办法知道那是模型编的。
+  所以这条纪律必须由字段强制，不能靠「写的时候注意」。
+- **影响**：
+  - `image` 类型的任务不再指向「尚未建立」，`content-orchestrator` 的路由表改指 `image-pipeline`
+  - 取材的两张分流图（`capabilities/sourcing/README.md`、`skills/sourcing/SKILL.md`）从两岔改三岔
+  - `capabilities/content-production/styles/README.md` 那句「文章、图片、视频三条流水线共用这套机制」
+    **是假的**——那套特征集是给文字写的（句长、节奏、人称、常用词），**图片没有「句长」**。
+    改成「共用机制、不共用特征集」，并指到图片线自己的视觉特征集
+  - `capabilities/creative-handoff/README.md` 写明这是**视频通道**，图片不走这里
+  - **旧行为：无。** 图片线此前不存在，没有东西被改掉
+- **验证**：
+  - 两个项目门禁 **18/18 PASS**（`视频画册推广`、`kingsway-geo`）
+  - canary 新增 7 条，全量 **53 条全部变红、还原后复跑干净**
+  - 单测另做 4 处手验 canary（去掉「生成图冒充真实题材」检查 / 去掉 `synthetic` 必填 /
+    风格不再放 prompt 最前 / 只认新版响应格式），全部变红
+  - `--dry-run` 路径不调模型、不花钱，出图前先念 prompt 给用户听
+
+### 三个外部图片仓库：评估结论是一个都不接
+
+- **做了什么**：读完 `coreyhaines31/marketingskills` 的 `skills/image`、
+  `liangdabiao/ecom-details-image`、`buluslan/gpt-image2-ecommerce`，结论写进 `BACKLOG.md`。
+- **为什么**：Conan 问「接入这个 skill 成不成」。三个都是 MIT，法律上都能用，
+  **不接的理由不是许可证，是它们解决的是「怎么出图」，而这一层不是缺口**——
+  hq-geo 缺的是「出什么图、凭什么出、出完怎么验收」。而且三个都是电商详情图导向
+  （Amazon 白底主图 / A+ 模块 / SKU 换色），和 Kingsway 的内容配图不是一回事。
+  顺带发现 `liangdabiao` 是 `buluslan` 的下游改造（它的 README 自己写了致谢），
+  真要接也只会接上游那个。
+- **影响**：不引入任何外部依赖。值得拿走的是四条做法不是代码，已记进 BACKLOG——
+  主图技术预检的思路（白底判定 / 前景占比 / OCR，确定性可测试）、Campaign Style Lock、
+  **「AI 会幻觉 UI，产品界面必须用真实截图」**、三不红线（不剥离 C2PA/SynthID、
+  不教唆规避 AI 标注、不造假实拍）。**第三条已经变成 `subject_kind` 字段的机器执行版本。**
+- **验证**：不需要——这是评估，没有改系统。结论落盘在 BACKLOG，免得下次重新查一遍。
+
+### 新增项目根：Kingsway AI 数字员工
+
+- **做了什么**：用 `init_project.py` 在 `~/kingsway/kingswaywork/05kingsway运营动作/kingsway ai 数字员工`
+  建了第三个项目根（slug `ai-employee`），`PLAYBOOK.md` 第二节和第六节同步。
+- **为什么**：AI 数字员工是另一条内容线，和前两个不是同一个产品。它也是**第一个从零开始的项目**——
+  前两个是搬迁或拆分来的，都带着存量，这个是空目录。
+- **影响**：项目数 2→3。`.hq-geo.json` 的 `output_baseline` 六项全 0，下次跑门禁开始比对。
+- **验证**：门禁在该项目上跑过，空项目该是绿的（没有产物不是错误）。
+
+---
+
 ## 2026-09-28
+
+### canary 会把路径错误伪装成「断言有效」——修掉，并让错路径当场停下
+
+- **做了什么**：`test/tools/canary.py` 在起任何子进程之前把 `--project` 转成绝对路径
+  （新函数 `resolve_project()`）；路径指向的目录若没有 `.hq-geo.json`，直接报
+  「这里不是 hq-geo 项目根」并返回 1，不再往下跑。
+- **为什么**：canary 跑测试时固定 `cwd=系统根`，相对路径会在**系统根**解析，不是在你敲命令
+  的地方。2026-09-28 在项目目录里用 `--project .` 跑全量（PLAYBOOK 速查表里写的就是这个
+  写法），所有测试都因为找不到项目而退出非零——而 canary 把「非零退出」当成「变红」，
+  于是**46 条全部显示「✓ 变红」，全是假红**；末尾复跑同样失败，报出来的是
+  「文件可能没恢复干净，去 git status 看一眼」，指向完全错误的方向，白排查了一轮。
+  **假红和假绿一样有害**：你会以为断言在守着，其实它什么都没测。
+- **影响**：`--project` 现在接受相对路径；路径错误从「一片假红 + 误导性警告」变成一句
+  明确的话。`test/suites/test_canary.py` 新增 `ResolveProjectTests`（2 条）。
+  PLAYBOOK 速查表的 canary 命令补了说明。
+- **验证**：把 `resolve_project()` 退回原样（`return raw`），新断言立刻红（1 failure），
+  还原后绿。路径守卫实测：在系统根用 `--project .` → 报错并 `rc=1`；在项目目录里用
+  `--project .` 跑全量 → **46 条全部变红、复跑干净、不再有那句警告**。
+
+### 新增取材能力：创作链路的第一环，两条路径由用户选
+
+- **做了什么**：新增 `capabilities/sourcing/`（`README.md` + `interview-method.md` +
+  `research-method.md`）和 `skills/sourcing/SKILL.md`。取材把「一个想法或一个主题」变成
+  `production-brief.json`，分两条路径——**访谈**（从用户脑子里挖，落 `owner_statement` 事实）
+  和**检索**（从外部找，落 `official_source` 事实）。入口先问用户走哪条，**不替他选**。
+- **为什么**：2026-09-28 Conan 提的——「有时候我没法表达清楚一些想法的时候，
+  你可以不断地追问我问题，通过追问的方式，完成项目的创作任务」；以及
+  「**并不是每一次都要访谈，这是可以选的**」。
+  系统原来只有**被动**的补料（站 2 按缺口清单问，第一篇文章的四个缺口全是事实型），
+  没有主动挖掘的能力。而 `content/briefs/` 和 `production-brief.schema.json` 早就在系统里，
+  项目里已经出现过填到一半的 brief，它自己的 README 写着「你的下一次回答会先进入事实包，
+  再回填 `evidence-list` 段落」——**那句话描述的正是取材，只是之前没有哪份文档规定怎么问出来。**
+- **访谈判据的来源**：借用了 `QianWenFlow/qwskill`（CC BY-NC 4.0）的提问方法，
+  **用 hq-geo 自己的语言重写，没有复制文本**。三处关键改造：
+  1. 它的「回答用途」改成 **「这个回答会填上哪一格？」**——格子是 brief 的字段、
+     事实包的 owner 四类、选题的字段，比抽象判据更可执行
+  2. 它产出知识稿，hq-geo 的取材**不写成稿**——成稿走八站和 creative-handoff
+  3. 它的「非诱导」对接 hq-geo 宪法第 5 条：`capture_fact.py` 的
+     `ALLOWED_OWNER_CATEGORIES` 和校验器的「`inference`/`unknown` 不能 `verified`」
+     是这条原则的机器执行版本
+- **影响**：
+  - 创作链路多了一环，前置于 `article-pipeline`（文章）和 `creative-handoff`（图/视频）
+  - `test_project_structure.py` 的 `SYSTEM_REQUIRED` 加 `capabilities/sourcing/interview-method.md`
+    和 `skills/sourcing/SKILL.md`；`SYSTEM_LAYER` 加 `capabilities/sourcing`
+  - 测试数 14 → 15（`sourcing-contract`），canary 用例 38 → 46，基准 `test/baseline.json` 同步
+  - `feature_registry.json` 新增 `sourcing`（`partial`）
+- **验证**：两个项目门禁 15/15 `PASS`；8 条新 canary 全部变红并干净还原。
+  **过程中结构测试抓到一次真实违规**：`README.md` 里写死了项目标识，加进 `SYSTEM_LAYER`
+  之后立刻被拦下（`FAIL project structure - 系统层写死了项目标识`）——
+  这正是分根边界该起的作用，也说明新能力确实被约束住了。
 
 ### 读者审计的停止条件修了两处：加轮次上限、判红要区分「真退出」和「最想跳过」
 
@@ -104,6 +270,29 @@
 - **为什么复用定位卡而不是新造「受众卡」**：`positioning.json` 的 schema、校验器、测试**早就存在**，只是文章流水线从未接入。再建一套会产生两个真源——Agent 读哪个都能自圆其说。宪法第 3 条：不许建立第二套事实。
 - **影响**：站 1、3、5、6、7 的产出物变了，任务单据的 `## 交付` 区块要多记三项。旧任务不受影响，但下次推进时会多问受众坐标。`PLAYBOOK.md` 第三节八站表、第五节 dbs 表同步更新。
 - **验证**：门禁 14/14 `PASS`，在 `ksw-geo` 和 `video-album` 两个项目上各跑一次。
+
+### 定位卡复核补三处硬校验：登记了不等于核过了
+
+- **做了什么**：`capabilities/geo/scripts/validate_positioning.py` 的 `applications` 校验改了三处：
+  1. **按产物路径去重，不再按渠道**——原来同一个 `channel` 只能登记一篇成稿，同渠道发第二篇会被判重复；
+     现在唯一键是 `artifact_path`，重复的**产物**才拒绝。
+  2. **复核绑定实际文件的 SHA-256**——`review.artifact_sha256` 必须等于当前文件算出来的哈希，
+     正文改一个字，复核结论立刻失效，要重审。
+  3. **证据类型走显式白名单**——`evidence_type` 必须在 `EVIDENCE_TYPES` 里；缺 `source_id` /
+     `source_locator` / `verified_at` 的、以及越界的 `owner_statement`（`category` 不在四类 owner 里）
+     都进不了 `ready`。
+- **为什么**：独立检查发现的三个漏洞，共同点是**校验器把「登记了」当成了「核过了」**。
+  按渠道去重直接**阻止同渠道多篇创作**——一个渠道本来就该能有多篇不同产物，这是把数据模型写窄了；
+  复核只记 status / reviewer / note，**和实际文件没有任何绑定**，改完正文旧复核照样放行；
+  证据类型没有任何校验，写个不存在的类型也算数。三条都会让「已复核」这个状态失去意义。
+- **影响**：`validate_positioning.py` + `capabilities/geo/tests/test_positioning.py`（新增 4 条：
+  同渠道多篇、正文变化使复核失效、未知证据类型与缺来源定位、`owner_statement` 越界）。
+  定位卡的 `applications[]` 现在要求 `artifact_path` 指向项目内已存在的文件。
+  **草案行为不变**：不带 `--require-ready` 时缺 `artifact_path` 只算 unresolved，草案照样能存。
+  `00-meta/content-engine/spec-positioning-writing.md` 状态从 `in-review` 改成 `done`。
+- **验证**：29 项 GEO 单测全过；两个项目门禁 15/15 `PASS`。两张存量定位卡实测——
+  `ksw-geo` 那张 `--require-ready` 仍通过；`video-album` 那张是 `draft` + 复核 `pending`，
+  不带 `--require-ready` 时 `errors: []`（草案可保存），带 `--require-ready` 被正确拦下。
 
 ### canary 工具：把「测试必须能失败」从人工手敲变成可重跑
 

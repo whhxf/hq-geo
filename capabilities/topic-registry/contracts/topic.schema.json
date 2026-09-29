@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hq-geo.local/contracts/topic.schema.json",
+  "title": "TopicRegistry",
+  "description": "一个创意的选题记录。落盘在项目根 topics/<idea>/topics.json。选题不是想法——想法进 data/ideas/，选题必须能回答五问。",
+  "type": "object",
+  "required": ["schema_version", "idea_id", "topics"],
+  "properties": {
+    "schema_version": { "const": 2 },
+    "idea_id": {
+      "type": "string",
+      "description": "这个选题记录属于哪个创意。对应 data/ideas/<idea_id>.json。"
+    },
+    "selected_topic_id": {
+      "type": ["string", "null"],
+      "description": "当前选定要做的那一条。没有就留空——不选也是合法状态。"
+    },
+    "topics": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/topic" }
+    }
+  },
+  "$defs": {
+    "topic": {
+      "type": "object",
+      "required": ["id", "title", "source", "state"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$" },
+        "title": { "type": "string", "minLength": 1 },
+
+        "source": {
+          "type": "object",
+          "required": ["kind"],
+          "description": "这条选题从哪来。三种来源的准入要求不同。",
+          "properties": {
+            "kind": {
+              "enum": ["research", "direct", "imported"],
+              "description": "research=经过关键词调研；direct=你直接定的；imported=历史导入，没经过调研和讨论。"
+            },
+            "research_ref": {
+              "type": ["string", "null"],
+              "description": "kind=research 必填。指向 research/normalized/ 下的需求簇文件。校验器会查文件存在。"
+            },
+            "cluster_ref": {
+              "type": ["string", "null"],
+              "description": "kind=research 必填。指向需求簇文件里的某个 cluster_id。"
+            },
+            "confirmed_at": {
+              "type": ["string", "null"],
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "description": "kind=direct 必填。你拍板定下这条的日期。"
+            },
+            "imported_from": {
+              "type": ["string", "null"],
+              "description": "kind=imported 必填。从哪个文件导入的。"
+            },
+            "imported_at": {
+              "type": ["string", "null"],
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "description": "kind=imported 必填。导入日期。"
+            }
+          }
+        },
+
+        "audience_and_scene": {
+          "type": ["string", "null"],
+          "description": "五问之一：谁在什么场景下遇到什么问题？"
+        },
+        "failing_explanation": {
+          "type": ["string", "null"],
+          "description": "五问之二：现有解释或做法哪里失效？"
+        },
+        "own_judgment": {
+          "type": ["string", "null"],
+          "description": "五问之三：你有什么不同判断或可展示证据？这一问别人答不了。"
+        },
+        "content_promise": {
+          "type": ["string", "null"],
+          "description": "五问之四：内容承诺是什么，看完能得到什么？"
+        },
+        "falsification": {
+          "type": ["string", "null"],
+          "description": "五问之五：这个承诺如何被证伪？答不上这一问的不是选题，是想法。"
+        },
+
+        "pillar": { "type": ["string", "null"] },
+        "angle": { "type": ["string", "null"] },
+        "proof": { "type": ["string", "null"] },
+        "collection": { "type": ["string", "null"], "description": "分组，如「长期选题」「广交会专题」。" },
+
+        "platforms": {
+          "type": "array",
+          "description": "适配的平台。不确定就留空数组，不写「全平台」——那等于没判断。",
+          "items": { "type": "string" }
+        },
+        "evidence_refs": {
+          "type": "array",
+          "description": "链回证据。kind=research 或 direct 时必须非空。",
+          "items": { "type": "string" }
+        },
+
+        "state": {
+          "enum": ["candidate", "selected", "dropped"],
+          "description": "candidate=备选；selected=选定要做；dropped=放弃。只到这里——生产进度来自 tasks/，不写在这里。"
+        },
+        "note": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

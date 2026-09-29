@@ -40,7 +40,9 @@ SYSTEM_REQUIRED = [
     "capabilities/fact-packs/scripts/validate_fact_pack.py",
     "capabilities/fact-packs/schemas/README.md",
     "capabilities/project-scaffold/scripts/init_project.py",
+    "capabilities/sourcing/interview-method.md",
     "skills/content-orchestrator/SKILL.md",
+    "skills/sourcing/SKILL.md",
     "test/run_quality_gate.py",
 ]
 
@@ -79,6 +81,7 @@ SYSTEM_LAYER = [
     "capabilities/creative-handoff",
     "capabilities/fact-packs",
     "capabilities/project-scaffold",
+    "capabilities/sourcing",
     "skills",
     "test",
 ]

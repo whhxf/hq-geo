@@ -27,15 +27,17 @@
 | **系统根** | 方法、流程、校验器、门禁。所有项目共用一套 | `/Users/conan/project/hq-geo`，不动 |
 | **项目根** | 某个项目的事实、选题、稿子、学习记录 | 你自己定，放哪都行 |
 
-现在有**两个**项目，都住在 Kingsway 的工作区里，和运营资料放一起——项目根放哪都行，这就是分根的好处。
+现在有**三个**项目，都住在 Kingsway 的工作区里，和运营资料放一起——项目根放哪都行，这就是分根的好处。
 
 | 项目 | 做什么 | 位置 | slug |
 |---|---|---|---|
 | **视频画册推广** | 视频号 / 抖音 / 小红书的社媒视频 | `~/kingsway/kingswaywork/05kingsway运营动作/视频画册推广` | `video-album` |
 | **Kingsway GEO 内容** | 给豆包 / DeepSeek 写能被引用的长文 | `~/kingsway/kingswaywork/05kingsway运营动作/kingsway-geo` | `ksw-geo` |
+| **Kingsway AI 数字员工** | AI 数字员工这条线的内容（2026-09-29 新建，还没有产物） | `~/kingsway/kingswaywork/05kingsway运营动作/kingsway ai 数字员工` | `ai-employee` |
 
-两个项目互不相干：各有各的事实包、选题和产出基准。**同一个产品，两种内容任务**——
-所以拿它们对照，测的正是「同一套八站换个项目还灵不灵」。
+三个项目互不相干：各有各的事实包、选题和产出基准。前两个是**同一个产品的两种内容任务**——
+拿它们对照，测的正是「同一套八站换个项目还灵不灵」；第三个是**另一条内容线**，
+第一次跑的是「取材」而不是八站。
 
 ### 为什么要分开
 
@@ -82,13 +84,63 @@ python3 capabilities/project-scaffold/scripts/init_project.py <你想要的目�
 
 ## 三、三个入口
 
-### 入口 1 · 发布任务
+### 入口 1 · 从想法到 brief
+
+**先问自己一句：这个方向我确定要做吗？**
+
+不确定，就先走**关键词研究**——它回答的是「真人在用什么话搜这件事，有多少人在搜，竞争多激烈」。
+
+> 我有个想法：……帮我看看这个方向有没有人关心
+
+系统会去渠道里采集真实信号（现在跑通的只有**小红书聚光关键词规划工具**一个渠道），
+按「用户要完成什么任务」聚成需求簇，然后给你看三样：需求簇、**排除项**（看过但排除的，写清为什么）、
+以及它自己的判断。接着问你**一个问题**：
+
+> 「这几条里，哪一条你手上有别人没有的东西可说？」
+
+这一问是分水岭。答得上来的才可能变成真选题，答不上来的做出来也是同质化内容。
+
+| 它产出什么 | 落在哪 |
+|---|---|
+| 原始采集记录（平台给什么记什么，不改写） | 项目根 `research/raw/` |
+| 需求簇 + 推断词 + 证据账本 | 项目根 `research/normalized/` |
+| 备选选题（**要能答五问**） | 项目根 `topics/<idea>/topics.json` |
+
+**选题和想法是两回事。** 选题必须答上五问——谁在什么场景遇到什么问题、现有解释哪里失效、
+你有什么不同判断、内容承诺是什么、**以及这个承诺如何被证伪**。
+答不上第 5 问的留在 `data/ideas/`，不进选题记录。**五问要么全答要么全空，答一半会被校验器拦下。**
+
+**它不产出事实。** 平台信号是需求证据，要事实走下面方式 A 的检索路径。
+
+确定了要做，再往下走——
 
 **方式 A（推荐）**：直接说
 
 > 我有个想法：……
 
-系统会追问，直到弄明白，然后落成**项目根**的 `tasks/<名字>.md`。
+系统先问你一句：
+
+> 这个主题，你手上有独家经验或判断要讲（访谈），还是让我去找线上资料和第三方证据（检索）？
+
+| 你选 | 系统怎么做 |
+|---|---|
+| 有独家材料 | **访谈**——一次一个问题；你说不清时它换四种问法（还原事件 / 问当时的信号和动作 / 比正反案例 / 问什么条件下不成立）；**答不出来就记未知，不给候选答案让你认领** |
+| 通用主题 | **检索**——一手来源优先，查到的事实分三级落盘，推断出来的不算事实 |
+| 说不清 | 两条并用，**同一个 brief，两路填不同的格** |
+
+追问填的是三处格子：`production-brief.json` 的字段、事实包的 owner 四类、选题的字段。
+**每一问都要能回答「这个回答会填上哪一格」**——填不上的不问。
+
+挖到的东西分四路落盘：
+
+| 挖到什么 | 落到哪 |
+|---|---|
+| brief 的字段 | `content/briefs/<idea>/<topic>/production-brief.json` |
+| 你说的判断、亲历、内部流程、产品意图 | 事实包（**写盘前会先给你过目**）|
+| 你的原话 | `research/interviews/`——逐字保存，以后能回指 |
+| 选题 | `topics/<idea>/topics.json` |
+
+**填不满就是填不满**：格子空着标 `draft`，有硬缺口标 `blocked`，不会为了往下走就标成能开工。
 
 **方式 B**：自己写文件
 
@@ -117,6 +169,20 @@ python3 capabilities/project-scaffold/scripts/init_project.py <你想要的目�
 | 6 | **三道检查**：作者化检查（像不像 AI）→ 受众复核（有没有越界）→ **读者审计**（读不读得下去、拿不拿得走） | ● 逐条决定留还是改，并选标题 |
 | 7 | 写回任务，标记 `delivered` | |
 | 8 | 写一条学习记录进 `LEARNING.md` | |
+
+**要的是图片，走的是另一条线**（2026-09-29 建）：图片流水线五站——
+
+| 站 | 做什么 | 停下来等你 |
+|---|---|---|
+| 1 | 读任务、查事实，定平台和用途 | |
+| 2 | 写图片简报——每张图是什么、**这张图能不能由模型生成** | ● 一次问一个问题 |
+| 3 | 选风格：3 个候选，每个配一张真实样张 | ● 你选风格 |
+| 4 | 组装 prompt → **念给你听** → 调模型一步出图 | ● 你确认后才花钱 |
+| 5 | 验收：机器查尺寸和事实引用 + **你自己看图** | ● 你点头才算完 |
+
+图片线**不做图片编辑**——要改一张已有的图（局部修改、换背景），这条线不干这个。
+**视频线外发**：hq-geo 出 `CreativeJob`，Vidmix 做，回 `ProductionReceipt`。
+三条线中间**没有桥**，图生视频首帧这类事以后再说。
 
 **然后停下。** 分发是你的事——发完之后回来填 `## 分发登记`，那才是下半圈真正开始的地方。
 
@@ -182,7 +248,7 @@ python3 /Users/conan/project/hq-geo/test/run_quality_gate.py --project .
 ```
 
 - **改进** → 每次改动写进 `CHANGELOG.md`
-- **测试** → 14 个测试跑一遍，`PASS` 才算改完
+- **测试** → 22 个测试跑一遍，`PASS` 才算改完
 - **基准** → 测试数看系统的 `test/baseline.json`，产出数看**项目自己的** `.hq-geo.json`。产出少了直接判 FAIL
 
 这个循环的作用是**防止退步**。它每次都能回答"我是不是把东西改坏了"。
@@ -195,7 +261,9 @@ python3 test/tools/canary.py --project <项目根>
 
 **这个工具第一次跑就抓到了 5 条空转的断言**（2026-09-28）——全是「查关键词是否出现」，而关键词在那一节里出现了两次，删掉定义行还剩一次。它现在也是门禁里的一条测试（`canary-unit`），守着它自己的核心逻辑。
 
-用例存在 `test/canary.json`，现在有 **38 条**。**每次给规则加断言，就同时加一条 canary 用例**——不然新断言是真空转还是真守着，没人知道。
+用例存在 `test/canary.json`，现在有 **64 条**。**每次给规则加断言，就同时加一条 canary 用例**——不然新断言是真空转还是真守着，没人知道。
+
+`--project` 给相对路径也行（内部先转绝对）。**给错路径会当场停下报「这里不是 hq-geo 项目根」**，而不是跑出一片红——canary 把「测试非零退出」当成「断言有效」，路径错了每一条都会是假红，那比没有更误导（2026-09-28 修）。
 
 这条纪律还顺带验证过一次自己：2026-09-28 改 `reader-audit.md` 的规则文本时，旧断言立刻变红（`content-assets-contract` FAIL）——**测试真的在守着规则，不是摆设**。
 
@@ -297,10 +365,12 @@ python3 test/tools/canary.py --project <项目根>
 | 已有产物 | 3 条（G1-02、P1-06、P1-01），都是任务机制建立**之前**做的 |
 | 任务机制 | 建好，0 次使用 |
 | 事实包 | 1 个，7 个必需槽位里 3 个完整、2 个部分、2 个缺失 |
-| 选题库 | 91 个，大多 `ready` |
+| 选题库 | 91 条，**全部 `candidate`**。2026-09-29 从 v1 迁到 v2：来源标 `imported`，五问一条都没答——包括那 2 条已经产出母脚本的。**推进得深不等于验证过**，要提升状态得补答五问 |
+| 关键词研究 | 0 次。这个项目的 91 条是手工列的清单，没有调研链 |
 | 文章流水线 | 八站建好，从未跑过真实任务 |
 | 学习库 | 建好，0 条记录 |
-| 图片 / 视频流水线 | 只有产物契约，没有流程 |
+| 图片流水线 | 五站建好（2026-09-29），从未跑过真实任务 |
+| 视频流水线 | 外发——只有交接协议，生成在 Vidmix |
 
 已有产物的清单见 `README.md`「当前真实进度」。
 
@@ -326,9 +396,28 @@ python3 test/tools/canary.py --project <项目根>
 **为什么那 28 篇不算产物：** 它们不是这套八站跑出来的。混进 `content/packages/`
 会污染 `output_baseline`，而那个基准正是用来量「同一套系统在不同项目上表现如何」的。
 
+### 项目：`Kingsway AI 数字员工`（slug `ai-employee`）
+
+位置：`~/kingsway/kingswaywork/05kingsway运营动作/kingsway ai 数字员工`
+2026-09-29 新建。**第一个从零开始的项目**——前两个是搬迁或拆分来的，都带着存量，这个是空目录。
+
+| | 状态 |
+|---|---|
+| 已有产物 | 0（产出基准已建立，下次跑门禁开始比对） |
+| 任务机制 / 事实包 / 选题库 | 建好，都是空的 |
+| 取材 | 第一次真跑就在这个项目上——材料在 Conan 脑子里，不在系统里 |
+| 关键词研究 | **第一次真跑**：`AI数字员工` 词找词，62 条记录 + 4 个需求簇。**8 个推断词是推出来的，平台上没有数据**——用的时候要记得这一层 |
+
+**这个项目的关键词研究暴露了两件事**，都记在 `research/normalized/` 里而不是文档里：
+
+- 平台上「AI数字员工」只有 370 次月搜索，**精确词规模很小**；真正大的是 `geo`（56,839）
+  和 `ai数字人`（9,062）——但它们**不是同一个任务**。指数高不等于相关，这是最容易犯的错
+- **产品事实包是空的**，所以闸门 F（可实现性）只能给 `unknown`。研究能做，但「Kingsway 到底能交付什么」
+  这一步卡在事实层——**关键词研究不产出事实**，那条路要走取材
+
 ---
 
-**系统：** 门禁 14/14 `PASS`，在 `视频画册推广`、`Kingsway GEO 内容` 和空项目上都跑过。
+**系统：** 门禁 15/15 `PASS`，在 `视频画册推广`、`Kingsway GEO 内容`、`Kingsway AI 数字员工` 和空项目上都跑过。
 **分根之后第一次在第二个真实项目上跑通了**——这正是分根要测的那件事。
 
 ---
@@ -392,6 +481,10 @@ python3 test/tools/canary.py --project <项目根>
 
 **`video-album` 项目还没跑过第一次。** 那才是「同一套系统在两个不同项目上都灵」的证明——现在只在一个项目上验证过。
 
+**图片线还没出过一张真实的图。** 五站建好了、契约绑上测试了、14 套风格搬进来了，
+但**从简报走到出图这一步没有跑过**。它需要两样东西才能跑：一个真实的图片任务，
+和一个 API Key（放 `~/.config/hq-geo/image.json` 或环境变量 `HQ_GEO_IMAGE_API_KEY`，不进代码）。
+
 ### 预期会撞上的
 
 事实包有 2 个槽位 `missing`。如果选题正好需要，站 2 会停机问你。**这是设计好的行为，不是故障**——宪法第 5 条：缺料停机，不许模型代填。
@@ -437,6 +530,22 @@ python3 /Users/conan/project/hq-geo/capabilities/content-production/scripts/chec
 # 校验定位卡（站 1）
 python3 /Users/conan/project/hq-geo/capabilities/geo/scripts/validate_positioning.py <定位卡路径>
 
+# 校验关键词研究产物（原始记录 + 需求簇）
+python3 /Users/conan/project/hq-geo/capabilities/keyword-research/scripts/validate_research.py --project .
+
+# 校验选题记录（五问准入、分层边界）
+python3 /Users/conan/project/hq-geo/capabilities/topic-registry/scripts/validate_topics.py --project .
+
+# 把 v1 选题记录迁到 v2（默认只看，加 --yes 才写盘）
+python3 /Users/conan/project/hq-geo/capabilities/topic-registry/scripts/migrate_v1.py --project .
+
+# 校验图片简报（图片线站 5）
+python3 /Users/conan/project/hq-geo/capabilities/image-production/scripts/validate_image_brief.py
+
+# 出图前先看 prompt（不花钱）
+python3 /Users/conan/project/hq-geo/capabilities/image-production/scripts/generate_image.py \
+  --brief <图片简报路径> --dry-run
+
 # Canary：确认断言不是空转的（改了测试之后跑，不进日常门禁）
 python3 /Users/conan/project/hq-geo/test/tools/canary.py --project .
 ```
@@ -459,5 +568,7 @@ export HQGEO=/Users/conan/project/hq-geo
 | 这个项目的产出基准 | 项目根 `.hq-geo.json` 的 `output_baseline` |
 | 项目规则 | `AGENTS.md` |
 | 创作方法 | `capabilities/content-production/` |
-| 风格约定 | `capabilities/content-production/styles/README.md` |
+| 文章风格约定 | `capabilities/content-production/styles/README.md` |
+| 图片线的契约、风格与出图 | `capabilities/image-production/` |
+| 图片线怎么走 | `skills/image-pipeline/SKILL.md` |
 | 什么时候能借 dbs | `capabilities/content-production/external-advisors.md` |

@@ -68,5 +68,24 @@ class StaleEditsTests(unittest.TestCase):
         self.assertEqual(CANARY.stale_edits(originals, edits), [])
 
 
+class ResolveProjectTests(unittest.TestCase):
+    """守的是「假红」——canary 会把它造出来的失败当成断言有效。
+
+    2026-09-28 踩过：在项目目录里用 `--project .` 跑全量，测试固定以
+    cwd=系统根 运行，相对路径在系统根解析，找不到项目就全部报错退出。
+    canary 看到非零退出码，报的是「✓ 变红」——46 条全是假的。
+    """
+
+    def test_relative_path_is_resolved_before_any_subprocess(self):
+        """相对路径必须在这里就转成绝对，否则会在系统根解析。"""
+        self.assertEqual(CANARY.resolve_project("."), str(Path.cwd()))
+        self.assertTrue(Path(CANARY.resolve_project(".")).is_absolute())
+
+    def test_absolute_path_is_unchanged(self):
+        """已经是绝对的，原样返回——不能把它当成相对路径再拼一次。"""
+        absolute = str(ROOT / "test")
+        self.assertEqual(CANARY.resolve_project(absolute), absolute)
+
+
 if __name__ == "__main__":
     unittest.main()

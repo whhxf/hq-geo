@@ -1,0 +1,1059 @@
+{
+  "schema_version": 1,
+  "kind": "image",
+  "origin": {
+    "moved_from": "hq-vidmix 的 generate_image skill（references/styles.json）",
+    "moved_at": "2026-09-29",
+    "reason": "2026-09-29 定：图片线由 hq-geo 自建，Vidmix 收窄为视频创作。两条线独立，各自持有风格库。",
+    "note": "搬过来后归 hq-geo 所有。Vidmix 那边自己留一份给视频用，两边不自动同步——要改就两边都改，或者以后再说桥。"
+  },
+  "styles": [
+    {
+      "id": "editorial-minimal",
+      "name": "极简编辑卡片",
+      "summary": "米白纸感底 + 炭黑大号中文标题 + 单一信号色点缀，杂志编辑排版",
+      "platforms": [
+        "xhs",
+        "channels",
+        "blog"
+      ],
+      "best_for": "知识科普、观点输出、方法论拆解、干货清单",
+      "tokens": {
+        "palette": [
+          {
+            "role": "background",
+            "hex": "#FAF8F3",
+            "oklch": "0.979 0.007 88.6"
+          },
+          {
+            "role": "surface",
+            "hex": "#F0EDE6",
+            "oklch": "0.946 0.010 87.5"
+          },
+          {
+            "role": "text",
+            "hex": "#2B2926",
+            "oklch": "0.282 0.006 78.2"
+          },
+          {
+            "role": "primary",
+            "hex": "#1F1D1B",
+            "oklch": "0.232 0.005 67.6"
+          },
+          {
+            "role": "accent",
+            "hex": "#E2603A",
+            "oklch": "0.647 0.171 36.9"
+          },
+          {
+            "role": "muted",
+            "hex": "#8C8781",
+            "oklch": "0.626 0.011 72.6"
+          }
+        ],
+        "typography": {
+          "display": "思源黑体 Heavy / 苹方 Semibold",
+          "body": "思源黑体 Regular",
+          "font_class": "sans",
+          "scale": [
+            40,
+            26,
+            17,
+            13
+          ]
+        },
+        "composition": "米白底整幅铺满，顶部一条 3px 信号色细线，标题占画面上三分之一居中偏左，中部留大片负空间，右下角一行 13px 编号或出处",
+        "density": "low"
+      },
+      "prompt": {
+        "prefix": "极简杂志编辑排版风格，米白色纸感背景，炭黑色大号中文无衬线标题，标题下方一条细的橙红色信号色横线，大量克制留白，构图居中偏左，扁平矢量，柔和纸质颗粒质感，高级杂志封面感，画面干净只有文字与少量几何色块",
+        "negative": "复杂背景、超过两种有彩色、照片级写实人物、渐变光晕、立体投影、水印、logo、杂乱元素"
+      },
+      "image_style_enum": "flat-illustration",
+      "anti_patterns": [
+        "避免出现真实人物照片",
+        "避免使用超过一个点缀色",
+        "避免把画面填满——留白是这个风格的主体"
+      ],
+      "sample": {
+        "scene": "俯拍的米白色桌面，一本摊开的空白笔记本、一支黑色钢笔、一杯黑咖啡、一枚橙红色小夹子，物件克制地散落在画面左侧，大面积留白，柔和的高角度自然侧光，浅阴影，哑光纸质质感，极简杂志编辑摄影，安静理性的氛围，画面中没有任何文字",
+        "headline": "内容创作的 3 个底层逻辑",
+        "kicker": "METHOD",
+        "meta": "01 — 方法论",
+        "layout": "top-left"
+      }
+    },
+    {
+      "id": "magazine-collage",
+      "name": "粉杂志拼贴",
+      "summary": "粉色系多图拼贴 + 撕纸边缘 + 贴纸标签，年轻女性向生活方式感",
+      "platforms": [
+        "xhs"
+      ],
+      "best_for": "生活方式、穿搭、探店、好物分享、女性向种草",
+      "tokens": {
+        "palette": [
+          {
+            "role": "background",
+            "hex": "#FDF2F4",
+            "oklch": "0.970 0.012 4.7"
+          },
+          {
+            "role": "surface",
+            "hex": "#FBE3E8",
+            "oklch": "0.937 0.027 3.4"
+          },
+          {
+            "role": "text",
+            "hex": "#3A2430",
+            "oklch": "0.292 0.039 345.9"
+          },
+          {
+            "role": "primary",
+            "hex": "#E8577F",
+            "oklch": "0.658 0.182 6.6"
+          },
+          {
+            "role": "accent",
+            "hex": "#7B5EA7",
+            "oklch": "0.542 0.114 301.0"
+          },
+          {
+            "role": "muted",
+            "hex": "#A8838F",
+            "oklch": "0.649 0.048 357.2"
+          }
+        ],
+        "typography": {
+          "display": "站酷快乐体 / 思源黑体 Bold",
+          "body": "思源黑体 Regular",
+          "font_class": "hand",
+          "scale": [
+            34,
+            24,
+            16,
+            12
+          ]
+        },
+        "composition": "多张不规则照片块错落拼贴占满画面，照片边缘有白色撕纸毛边与轻微旋转，粉色背景从缝隙透出，角落散布圆形贴纸与手写标签，标题压在拼贴上做描边",
+        "density": "high"
+      },
+      "prompt": {
+        "prefix": "粉色系杂志拼贴风格，多张不规则照片块错落排布并轻微旋转，照片带白色撕纸毛边和细白描边，浅粉色背景从缝隙中透出，散布圆形贴纸、胶带与手写标签元素，暖粉与紫调点缀，柔和均匀的无影棚光，女性向生活方式杂志感，画面丰富有手工感",
+        "negative": "深色背景、冷蓝调、恐怖诡异、写实血照、水印、logo、像素化、低分辨率"
+      },
+      "image_style_enum": "flat-illustration",
+      "anti_patterns": [
+        "避免冷色调与深色背景",
+        "避免拼贴块之间对齐成规整网格",
+        "避免出现真实品牌 logo"
+      ],
+      "sample": {
+        "scene": "俯拍的粉色拼贴静物，拍立得相纸、干花、口红、杂志撕页、格纹胶带与圆形贴纸错落交叠，边缘带白色撕纸毛边和细白描边，浅粉背景从缝隙透出，柔和均匀的无影棚光，暖粉与紫调，年轻女性向生活方式杂志感，画面丰富有手工感，画面中没有任何文字",
+        "headline": "春日好物清单",
+        "kicker": "SPRING PICKS",
+        "meta": "8 件 · 亲测",
+        "layout": "bottom-left"
+      }
+    },
+    {
+      "id": "dark-tech",
+      "name": "深色科技",
+      "summary": "深空蓝黑底 + 霓虹蓝青渐变 + 网格光效，前沿科技质感",
+      "platforms": [
+        "douyin",
+        "channels",
+        "blog"
+      ],
+      "best_for": "AI、科技、数码测评、SaaS 产品、开发者内容",
+      "tokens": {
+        "palette": [
+          {
+            "role": "background",
+            "hex": "#0B0F1A",
+            "oklch": "0.170 0.024 268.5"
+          },
+          {
+            "role": "surface",
+            "hex": "#141B2D",
+            "oklch": "0.225 0.037 267.2"
+          },
+          {
+            "role": "text",
+            "hex": "#E8EDF7",
+            "oklch": "0.945 0.014 264.5"
+          },
+          {
+            "role": "primary",
+            "hex": "#4C8DFF",
+            "oklch": "0.658 0.182 260.7"
+          },
+          {
+            "role": "accent",
+            "hex": "#22D3EE",
+            "oklch": "0.797 0.134 211.5"
+          },
+          {
+            "role": "muted",
+            "hex": "#7B8AA6",
+            "oklch": "0.631 0.046 262.9"
+          }
+        ],
+        "typography": {
+          "display": "思源黑体 Heavy / Inter Tight Bold",
+          "body": "思源黑体 Regular / JetBrains Mono",
+          "font_class": "sans",
+          "scale": [
+            38,
+            24,
+            16,
+            12
+          ]
+        },
+        "composition": "深空底色铺满，中央或偏左放发光主体，背景叠加细网格与斜向光带，蓝青渐变作为高光勾边，底部一行等宽字体的小号参数或标签",
+        "density": "medium"
+      },
+      "prompt": {
+        "prefix": "深色科技感主视觉，深空蓝黑色背景，青蓝色霓虹渐变高光，背景覆盖细腻网格线与斜向光束，主体带柔和体积光与边缘辉光，冷调高对比，未来感与精密感，画面克制、材质干净，无杂乱元素",
+        "negative": "暖色调、日光、自然风景、卡通、手绘、纸质纹理、模糊、噪点、水印、logo"
+      },
+      "image_style_enum": "3d-art",
+      "anti_patterns": [
+        "避免暖色光源",
+        "避免霓虹过曝到看不清主体",
+        "避免出现可识别的真实品牌 UI"
+      ],
+      "sample": {
+        "scene": "深空蓝黑背景中的抽象科技主视觉，一枚悬浮的发光芯片结构，青蓝色霓虹渐变沿边缘勾出高光，背景覆盖细腻网格线与斜向光束，柔和的体积光与边缘辉光，冷调高对比，精密未来感，材质干净克制，画面中没有任何文字",
+        "headline": "AI Agent 的 2026",
+        "kicker": "TECH DEEP DIVE",
+        "meta": "深度拆解",
+        "layout": "bottom-left"
+      }
+    },
+    {
+      "id": "warm-handdrawn",
+      "name": "温暖手绘插画",
+      "summary": "米黄纸底 + 水彩/彩铅笔触 + 圆润造型，情绪柔软",
+      "platforms": [
+        "xhs",
+        "channels",
+        "blog"
+      ],
+      "best_for": "情感、成长、心理、育儿、治愈系内容",
+      "tokens": {
+        "palette": [
+          {
+            "role": "background",
+            "hex": "#FBF3E4",
+            "oklch": "0.966 0.022 83.3"
+          },
+          {
+            "role": "surface",
+            "hex": "#F5E6CE",
+            "oklch": "0.931 0.036 79.7"
+          },
+          {
+            "role": "text",
+            "hex": "#3D3226",
+            "oklch": "0.325 0.026 69.2"
+          },
+          {
+            "role": "primary",
+            "hex": "#C4622D",
+            "oklch": "0.604 0.141 46.3"
+          },
+          {
+            "role": "accent",
+            "hex": "#6B9E78",
+            "oklch": "0.652 0.079 151.8"
+          },
+          {
+            "role": "muted",
+            "hex": "#9C8B72",
+            "oklch": "0.645 0.041 77.4"
+          }
+        ],
+        "typography": {
+          "display": "手写体 / 思源宋体 Bold",
+          "body": "思源宋体 Regular",
+          "font_class": "hand",
+          "scale": [
+            32,
+            22,
+            16,
+            12
+          ]
+        },
+        "composition": "米黄纸张底铺满并带纤维纹理，主体插画居中占画面六成，周围留出呼吸空间，暖橙与苔绿作为主色与点缀，标题用手写体压在画面下方或一侧",
+        "density": "medium"
+      },
+      "prompt": {
+        "prefix": "温暖手绘插画风格，米黄色纸张背景带细微纤维纹理，水彩晕染结合彩铅笔触，线条柔和略带手抖感，造型圆润简化无锐角，暖橙与苔绿低饱和配色，柔和散射的自然光，安静治愈的氛围，画面有温度不冰冷",
+        "negative": "光滑 3D 渲染、硬边矢量、冷蓝调、高饱和荧光色、机械精密感、水印、logo、恐怖元素"
+      },
+      "image_style_enum": "watercolor",
+      "anti_patterns": [
+        "避免纯黑描边",
+        "避免高饱和撞色",
+        "避免画面过于满——人物要留呼吸空间"
+      ],
+      "sample": {
+        "scene": "温暖的手绘水彩插画，一个人坐在窗边抱着猫望向窗外，窗台上有一盆绿植，米黄色纸张背景带细微纤维纹理，水彩晕染结合彩铅笔触，线条柔和略带手抖感，造型圆润简化无锐角，暖橙与苔绿低饱和配色，柔和散射的自然光，安静治愈的氛围，画面中没有任何文字",
+        "headline": "允许自己慢下来",
+        "kicker": "治愈手记",
+        "meta": "写给焦虑的你",
+        "layout": "bottom-center"
+      }
+    },
+    {
+      "id": "crayon-qa",
+      "name": "Q版手绘蜡笔",
+      "summary": "明亮蜡笔质感 + Q版角色 + 手写标注箭头，干货拆解感",
+      "platforms": [
+        "xhs",
+        "douyin"
+      ],
+      "best_for": "教程、干货拆解、步骤说明、工具推荐",
+      "tokens": {
+        "palette": [
+          {
+            "role": "background",
+            "hex": "#FFFDF5",
+            "oklch": "0.993 0.011 95.2"
+          },
+          {
+            "role": "surface",
+            "hex": "#FFF3D6",
+            "oklch": "0.966 0.040 88.2"
+          },
+          {
+            "role": "text",
+            "hex": "#2E2A3B",
+            "oklch": "0.297 0.031 295.2"
+          },
+          {
+            "role": "primary",
+            "hex": "#FF8A3D",
+            "oklch": "0.750 0.167 50.5"
+          },
+          {
+            "role": "accent",
+            "hex": "#3FA9F5",
+            "oklch": "0.708 0.147 244.1"
+          },
+          {
+            "role": "muted",
+            "hex": "#9A93A8",
+            "oklch": "0.676 0.032 300.7"
+          }
+        ],
+        "typography": {
+          "display": "站酷快乐体 / 手写马克笔",
+          "body": "思源黑体 Medium",
+          "font_class": "hand",
+          "scale": [
+            32,
+            22,
+            15,
+            12
+          ]
+        },
+        "composition": "奶白底，中央一个 Q 版角色做讲解动作，周围用手写箭头与序号圈标注要点，橙蓝撞色区分主次，标题在顶部用粗手写体，整体像一页生动的笔记",
+        "density": "high"
+      },
+      "prompt": {
+        "prefix": "Q版手绘蜡笔风格，奶白色背景，明亮橙蓝撞色的蜡笔质感笔触，中央一个圆头圆身的可爱 Q 版角色正在讲解，周围散布手写箭头、圆圈、序号标注要点，粗马克笔手写标题，线条活泼有颗粒感，明快轻松的干货笔记氛围",
+        "negative": "写实人物、恐怖、阴暗、低饱和、照片纹理、复杂 3D 渲染、水印、logo、成人向内容"
+      },
+      "image_style_enum": "sketch",
+      "anti_patterns": [
+        "避免写实比例人物",
+        "避免画面出现超过 3 个并列要点",
+        "避免角色表情严肃"
+      ],
+      "sample": {
+        "scene": "Q 版手绘蜡笔插画，一个圆头圆身的可爱角色站在一块小白板前做讲解动作，周围漂浮着几张空白便签纸和一支铅笔，奶白色背景，明亮橙蓝撞色的蜡笔质感笔触，线条活泼有颗粒感，明快轻松的氛围，画面中没有任何文字",
+        "headline": "3 步搞定选题",
+        "kicker": "新手教程",
+        "meta": "一看就会",
+        "layout": "top-center"
+      }
+    },
+    {
+      "id": "black-gold-manifesto",
+      "name": "黑金宣言",
+      "summary": "纯黑底 + 金色衬线大字 + 宣言式排版，高端商务感",
+      "platforms": [
+        "channels",
+        "blog",
+        "xhs"
+      ],
+      "best_for": "商业、品牌、高端服务、创始人观点、年度总结",
+      "tokens": {
+        "palette": [
+          {
+            "role": "background",
+            "hex": "#0A0A0A",
+            "oklch": "0.145 0 0"
+          },
+          {
+            "role": "surface",
+            "hex": "#171512",
+            "oklch": "0.197 0.007 78.2"
+          },
+          {
+            "role": "text",
+            "hex": "#F5F0E6",
+            "oklch": "0.956 0.014 84.6"
+          },
+          {
+            "role": "primary",
+            "hex": "#C9A227",
+            "oklch": "0.728 0.138 89.7"
+          },
+          {
+            "role": "accent",
+            "hex": "#EFE3C2",
+            "oklch": "0.917 0.045 90.4"
+          },
+          {
+            "role": "muted",
+            "hex": "#8C8474",
+            "oklch": "0.616 0.025 84.6"
+          }
+        ],
+        "typography": {
+          "display": "思源宋体 Heavy / 方正清刻本悦宋",
+          "body": "思源宋体 Regular",
+          "font_class": "serif",
+          "scale": [
+            44,
+            26,
+            16,
+            12
+          ]
+        },
+        "composition": "纯黑底铺满，金色衬线大字居中或竖向排布，字与字之间留出宽阔行距，仅用一条极细金线做分隔，四角克制留白，整体像一张宣言海报",
+        "density": "low"
+      },
+      "prompt": {
+        "prefix": "黑金高端宣言海报风格，纯黑色背景，金色衬线中文大字居中排布，字距宽阔，用一条极细金色横线做分隔，深金与暖白两色为主，哑光金属质感，克制庄重，画面极简只剩文字与金线，像一张商业宣言海报",
+        "negative": "彩色、卡通、手绘、明亮背景、渐变彩虹、照片、杂乱装饰、水印、logo、立体字效"
+      },
+      "image_style_enum": "flat-illustration",
+      "anti_patterns": [
+        "避免出现除金色外的任何有彩色",
+        "避免使用综艺感立体字",
+        "避免字号变化超过两档"
+      ],
+      "sample": {
+        "scene": "纯黑色背景的高端商业静物，一块深色大理石材质的台面，上面只有一个极简的金色几何摆件，一束暖金色光从右上斜射形成清晰的明暗分界，哑光金属质感，大面积暗部负空间，克制庄重，画面中没有任何文字",
+        "headline": "长期主义",
+        "kicker": "MANIFESTO",
+        "meta": "2026 · 年度思考",
+        "layout": "center"
+      }
+    },
+    {
+      "id": "lifestyle-real",
+      "name": "生活实拍",
+      "summary": "自然光日常场景 + 真实使用痕迹 + 抓拍感，温暖有人味",
+      "platforms": [
+        "xhs",
+        "channels",
+        "blog"
+      ],
+      "best_for": "生活方式、日常分享、Vlog 封面、好物真实体验",
+      "tokens": {
+        "palette": [
+          {
+            "role": "background",
+            "hex": "#F2EDE7",
+            "oklch": "0.948 0.010 72.7"
+          },
+          {
+            "role": "surface",
+            "hex": "#E3DAD0",
+            "oklch": "0.893 0.017 70.5"
+          },
+          {
+            "role": "text",
+            "hex": "#2A2724",
+            "oklch": "0.275 0.007 67.5"
+          },
+          {
+            "role": "primary",
+            "hex": "#C4703E",
+            "oklch": "0.629 0.124 49.7"
+          },
+          {
+            "role": "accent",
+            "hex": "#6B8E5A",
+            "oklch": "0.607 0.085 135.8"
+          },
+          {
+            "role": "muted",
+            "hex": "#9A9188",
+            "oklch": "0.662 0.017 67.5"
+          }
+        ],
+        "typography": {
+          "display": "思源黑体 Bold / 苹方 Medium",
+          "body": "思源黑体 Regular",
+          "font_class": "sans",
+          "scale": [
+            34,
+            22,
+            16,
+            12
+          ]
+        },
+        "composition": "真实场景铺满画面不刻意摆布，主体在日常环境中处于自然位置，前中后景都有生活痕迹，标题压在画面下方或侧边的暗部，字号克制不抢戏",
+        "density": "medium"
+      },
+      "prompt": {
+        "prefix": "真实生活纪实摄影，自然光下的日常场景，真实的使用痕迹与生活气息，抓拍视角，人物动作自然不做作，暖调低饱和，浅景深，胶片般柔和颗粒，画面有温度不冰冷，像朋友随手拍下的瞬间",
+        "negative": "影棚摆拍、塑料感、过度磨皮、HDR 过曝、冷调、卡通、插画、3D 渲染、水印、logo、文字"
+      },
+      "image_style_enum": "photography",
+      "anti_patterns": [
+        "避免影棚式完美布光",
+        "避免画面过度磨皮失去皮肤质感",
+        "避免摆拍痕迹重的对称构图"
+      ],
+      "sample": {
+        "scene": "清晨的家庭厨房，木质台面上放着一只刚用过的白色马克杯和半块面包，窗外自然光斜射进来，台面上留有使用过的痕迹，一只手的局部正要拿起杯子，真实的生活气息，暖调低饱和，浅景深，柔和颗粒，画面中没有任何文字",
+        "headline": "我的晨间 30 分钟",
+        "kicker": "MORNING ROUTINE",
+        "meta": "真实记录",
+        "layout": "bottom-left"
+      }
+    },
+    {
+      "id": "minimal-product",
+      "name": "极简静物产品实拍",
+      "summary": "纯净背景 + 单主体 + 棚拍柔光，商业级产品质感",
+      "platforms": [
+        "xhs",
+        "channels",
+        "blog"
+      ],
+      "best_for": "产品展示、详情页主图、品牌调性、开箱首图",
+      "tokens": {
+        "palette": [
+          {
+            "role": "background",
+            "hex": "#F7F7F5",
+            "oklch": "0.976 0.003 106.4"
+          },
+          {
+            "role": "surface",
+            "hex": "#EBEBE8",
+            "oklch": "0.939 0.004 106.5"
+          },
+          {
+            "role": "text",
+            "hex": "#1C1C1C",
+            "oklch": "0.226 0 0"
+          },
+          {
+            "role": "primary",
+            "hex": "#3A3A3A",
+            "oklch": "0.348 0 0"
+          },
+          {
+            "role": "accent",
+            "hex": "#B8B0A4",
+            "oklch": "0.760 0.019 78.2"
+          },
+          {
+            "role": "muted",
+            "hex": "#8A8A88",
+            "oklch": "0.633 0.003 106.5"
+          }
+        ],
+        "typography": {
+          "display": "思源黑体 Medium / Helvetica Neue",
+          "body": "思源黑体 Light",
+          "font_class": "sans",
+          "scale": [
+            30,
+            20,
+            15,
+            12
+          ]
+        },
+        "composition": "纯净无缝背景铺满，产品单一主体居中或按三分线偏置，底部留出大面积空白承载文字，标题字号克制，与产品保持足够距离，整体像一张高端品牌产品页",
+        "density": "low"
+      },
+      "prompt": {
+        "prefix": "极简产品静物摄影，纯净无杂物背景，单一主体，棚拍均匀柔光，柔和接触阴影，材质质感清晰可辨，中长焦微距，浅景深背景柔和过渡，高清晰度商业摄影，画面干净克制只有产品本身",
+        "negative": "杂乱背景、多个主体、道具堆砌、强烈阴影、反光过曝、卡通、插画、水印、logo、文字"
+      },
+      "image_style_enum": "photography",
+      "anti_patterns": [
+        "避免背景出现任何杂物或第二主体",
+        "避免硬光造成的浓重投影",
+        "避免文案压在产品上"
+      ],
+      "sample": {
+        "scene": "极简产品静物摄影，一只无标识的白色哑光陶瓷杯单独放在浅灰色无缝背景前，柔光从左上方均匀打来形成柔和的接触阴影，中长焦微距，浅景深背景柔和过渡，材质哑光细腻，画面干净克制只有这只杯子，画面中没有任何文字",
+        "headline": "哑光陶瓷杯",
+        "kicker": "PRODUCT",
+        "meta": "材质 · 手感",
+        "layout": "bottom-center"
+      }
+    },
+    {
+      "id": "moody-portrait",
+      "name": "氛围人像",
+      "summary": "暗调 + 侧逆光轮廓 + 电影级肤色，情绪内敛有故事",
+      "platforms": [
+        "xhs",
+        "channels",
+        "blog"
+      ],
+      "best_for": "人物故事、情感表达、创始人形象、访谈封面",
+      "tokens": {
+        "palette": [
+          {
+            "role": "background",
+            "hex": "#1A1614",
+            "oklch": "0.204 0.008 48.3"
+          },
+          {
+            "role": "surface",
+            "hex": "#262019",
+            "oklch": "0.248 0.016 71.3"
+          },
+          {
+            "role": "text",
+            "hex": "#F0E6DA",
+            "oklch": "0.930 0.019 72.6"
+          },
+          {
+            "role": "primary",
+            "hex": "#C98B5E",
+            "oklch": "0.689 0.097 56.3"
+          },
+          {
+            "role": "accent",
+            "hex": "#6E7F8D",
+            "oklch": "0.588 0.029 243.1"
+          },
+          {
+            "role": "muted",
+            "hex": "#8A7A6C",
+            "oklch": "0.590 0.029 63.4"
+          }
+        ],
+        "typography": {
+          "display": "思源宋体 Bold / 方正清刻本悦宋",
+          "body": "思源宋体 Regular",
+          "font_class": "serif",
+          "scale": [
+            36,
+            22,
+            16,
+            12
+          ]
+        },
+        "composition": "暗调环境铺满，人物偏置于画面一侧并留出大面积暗部负空间，轮廓光勾出人物边缘，标题压在暗部负空间上，衬线字体，字号大气克制，整体像一张电影剧照",
+        "density": "low"
+      },
+      "prompt": {
+        "prefix": "氛围感人像摄影，暗调环境，侧逆光勾勒人物轮廓形成边缘光，面部大面积处于柔和阴影中，电影级肤色，背景压暗虚化，情绪克制内敛，冷暖对比的微妙层次，胶片质感，浅景深",
+        "negative": "正面平光、死白过曝、塑料皮肤、过度磨皮、摆拍笑容、卡通、插画、水印、logo、文字"
+      },
+      "image_style_enum": "portrait",
+      "anti_patterns": [
+        "避免正面平光把面部打亮",
+        "避免过度磨皮失去皮肤纹理",
+        "避免人物直视镜头的摆拍感"
+      ],
+      "sample": {
+        "scene": "氛围感人像摄影，一位年轻女性侧身站在昏暗的室内窗边，侧逆光从右后方勾出她的头发与肩膀轮廓，面部大部分处于柔和阴影中只留下一点光的痕迹，背景深度虚化压暗，冷蓝与暖肤的微妙对比，电影级色调，情绪安静克制，浅景深，画面中没有任何文字",
+        "headline": "按下暂停的那一年",
+        "kicker": "A PAUSE",
+        "meta": "人物 · 故事",
+        "layout": "bottom-left"
+      }
+    },
+    {
+      "id": "food-closeup",
+      "name": "美食特写",
+      "summary": "45 度近景 + 浅景深 + 油亮热气，商业美食摄影",
+      "platforms": [
+        "xhs",
+        "douyin",
+        "channels"
+      ],
+      "best_for": "餐饮、食材、探店、食谱、食品带货",
+      "tokens": {
+        "palette": [
+          {
+            "role": "background",
+            "hex": "#2B211A",
+            "oklch": "0.257 0.020 56.7"
+          },
+          {
+            "role": "surface",
+            "hex": "#3D2E23",
+            "oklch": "0.315 0.029 57.7"
+          },
+          {
+            "role": "text",
+            "hex": "#F5EDE3",
+            "oklch": "0.950 0.016 73.7"
+          },
+          {
+            "role": "primary",
+            "hex": "#D4763A",
+            "oklch": "0.660 0.139 50.6"
+          },
+          {
+            "role": "accent",
+            "hex": "#7A9B4E",
+            "oklch": "0.647 0.111 128.3"
+          },
+          {
+            "role": "muted",
+            "hex": "#A08A76",
+            "oklch": "0.648 0.039 64.3"
+          }
+        ],
+        "typography": {
+          "display": "思源宋体 Heavy / 方正粗宋",
+          "body": "思源黑体 Regular",
+          "font_class": "serif",
+          "scale": [
+            38,
+            24,
+            16,
+            12
+          ]
+        },
+        "composition": "食物占据画面主体并靠近镜头，深色台面在四周形成暗部包裹，配料与餐具作为陪衬散落，标题压在下方暗部，暖色衬线大字，整体像一张餐厅主推菜品的商业照",
+        "density": "medium"
+      },
+      "prompt": {
+        "prefix": "美食特写摄影，45 度俯拍近景，浅景深聚焦主体，食物表面油亮有光泽并带热气，深色木质或石材台面，侧逆光勾勒食物质感，暖调高饱和但不过曝，酱汁与配料的细节清晰，令人垂涎的商业美食摄影",
+        "negative": "平光无层次、食物干瘪、塑料感、冷调、杂乱餐具、卡通、插画、水印、logo、文字"
+      },
+      "image_style_enum": "photography",
+      "anti_patterns": [
+        "避免无层次的正面平光",
+        "避免冷色调",
+        "避免把画面填满到没有呼吸空间"
+      ],
+      "sample": {
+        "scene": "美食特写摄影，一只深色陶碗里盛着刚出锅的汤面，表面浮着油光和热气，旁边散落几片香草叶，45 度俯拍近景，浅景深聚焦面碗中央，侧逆光从左上方勾勒出热气和油亮质感，深色木质台面，暖调，细节清晰，令人垂涎，画面中没有任何文字",
+        "headline": "一碗面的功夫",
+        "kicker": "RECIPE",
+        "meta": "15 分钟 · 一人食",
+        "layout": "bottom-left"
+      }
+    },
+    {
+      "id": "film-retro",
+      "name": "胶片复古",
+      "summary": "颗粒噪点 + 褪色偏色 + 暗角，90 年代相册质感",
+      "platforms": [
+        "xhs",
+        "channels",
+        "blog"
+      ],
+      "best_for": "怀旧主题、复古好物、城市记录、情绪化内容",
+      "tokens": {
+        "palette": [
+          {
+            "role": "background",
+            "hex": "#E8DFD0",
+            "oklch": "0.907 0.022 80.7"
+          },
+          {
+            "role": "surface",
+            "hex": "#D8CBB8",
+            "oklch": "0.848 0.030 77.5"
+          },
+          {
+            "role": "text",
+            "hex": "#3A322A",
+            "oklch": "0.323 0.018 67.1"
+          },
+          {
+            "role": "primary",
+            "hex": "#B5694A",
+            "oklch": "0.599 0.107 42.6"
+          },
+          {
+            "role": "accent",
+            "hex": "#8A9A7B",
+            "oklch": "0.665 0.048 129.9"
+          },
+          {
+            "role": "muted",
+            "hex": "#A2968A",
+            "oklch": "0.680 0.022 67.4"
+          }
+        ],
+        "typography": {
+          "display": "思源宋体 Bold / 方正清刻本悦宋",
+          "body": "思源宋体 Regular",
+          "font_class": "serif",
+          "scale": [
+            34,
+            22,
+            16,
+            12
+          ]
+        },
+        "composition": "画面带轻微暗角与褪色边缘，主体处于中景，标题压在下方偏左，衬线字体带一点旧印刷感，整体像一张从旧相册里翻出来的照片",
+        "density": "medium"
+      },
+      "prompt": {
+        "prefix": "胶片复古摄影，明显的胶片颗粒与轻微噪点，高光柔和溢出，暗部褪色发灰不纯黑，色彩低饱和偏黄绿，轻微偏色与色晕，边缘轻微暗角，老胶片扫描质感，怀旧温暖，画面像来自九十年代的相册",
+        "negative": "数码锐利感、高饱和、纯黑纯白、HDR、现代感、卡通、插画、水印、logo、文字"
+      },
+      "image_style_enum": "photography",
+      "anti_patterns": [
+        "避免数码式的锐利清晰",
+        "避免纯黑与纯白的极端影调",
+        "避免高饱和的现代色彩"
+      ],
+      "sample": {
+        "scene": "胶片复古摄影，一张老式木质餐桌上放着一台旧胶片相机、一串黄铜钥匙和一个搪瓷杯，午后阳光从窗格斜射进来在桌面留下光斑，明显的胶片颗粒与轻微噪点，高光柔和溢出，暗部褪色发灰，色彩低饱和偏黄绿，边缘轻微暗角，怀旧温暖，画面中没有任何文字",
+        "headline": "旧物里的时间",
+        "kicker": "OLD THINGS",
+        "meta": "1990s · 记忆",
+        "layout": "bottom-left"
+      }
+    },
+    {
+      "id": "cinematic-teal-orange",
+      "name": "暗调电影感青橙",
+      "summary": "暗部青 + 高光橙 + 高对比，好莱坞式戏剧张力",
+      "platforms": [
+        "douyin",
+        "channels",
+        "blog"
+      ],
+      "best_for": "剧情短片、品牌故事、科技叙事、城市夜景",
+      "tokens": {
+        "palette": [
+          {
+            "role": "background",
+            "hex": "#10161A",
+            "oklch": "0.196 0.012 237.4"
+          },
+          {
+            "role": "surface",
+            "hex": "#1A2429",
+            "oklch": "0.253 0.017 229.9"
+          },
+          {
+            "role": "text",
+            "hex": "#EDE6DC",
+            "oklch": "0.928 0.015 77.1"
+          },
+          {
+            "role": "primary",
+            "hex": "#E08A3C",
+            "oklch": "0.710 0.139 59.4"
+          },
+          {
+            "role": "accent",
+            "hex": "#2E8B8B",
+            "oklch": "0.584 0.085 195.1"
+          },
+          {
+            "role": "muted",
+            "hex": "#7A8A8D",
+            "oklch": "0.622 0.019 210.2"
+          }
+        ],
+        "typography": {
+          "display": "思源黑体 Heavy / Inter Tight Bold",
+          "body": "思源黑体 Regular",
+          "font_class": "sans",
+          "scale": [
+            40,
+            24,
+            16,
+            12
+          ]
+        },
+        "composition": "宽银幕比例构图，主体偏置一侧，大片暗部占据画面，光源形成明确的亮部区域，标题压在暗部上用高亮字色，字号大但克制，整体像一张电影海报",
+        "density": "medium"
+      },
+      "prompt": {
+        "prefix": "暗调电影感摄影，青橙对撞的电影级调色，暗部与阴影偏青蓝，高光与肤色偏橙，高对比度，中间调压暗，柔和光晕与轻微镜头眩光，宽银幕构图，暗调氛围，画面有强烈的戏剧张力与故事感",
+        "negative": "平光、低对比、整体偏黄、过曝、塑料感、卡通、插画、水印、logo、文字"
+      },
+      "image_style_enum": "photography",
+      "anti_patterns": [
+        "避免平光导致失去明暗层次",
+        "避免整体偏暖黄失去青橙对撞",
+        "避免中间调过亮"
+      ],
+      "sample": {
+        "scene": "暗调电影感摄影，雨夜的都市街头，湿漉漉的柏油路反射着霓虹灯光，远处有模糊的车灯与招牌光晕，近处一个撑伞的人影剪影，暗部偏青蓝、高光偏橙的强烈青橙调色，高对比，宽银幕构图，柔和镜头眩光，戏剧张力，画面中没有任何文字",
+        "headline": "夜行的人",
+        "kicker": "CINEMATIC",
+        "meta": "城市 · 叙事",
+        "layout": "bottom-left"
+      }
+    },
+    {
+      "id": "japanese-fresh",
+      "name": "日系清透",
+      "summary": "高调通透 + 极低饱和 + 漫射光，空气感与呼吸感",
+      "platforms": [
+        "xhs",
+        "channels",
+        "blog"
+      ],
+      "best_for": "极简生活、日系好物、清新日常、治愈系内容",
+      "tokens": {
+        "palette": [
+          {
+            "role": "background",
+            "hex": "#FBFBF8",
+            "oklch": "0.987 0.004 106.5"
+          },
+          {
+            "role": "surface",
+            "hex": "#EFF2EC",
+            "oklch": "0.957 0.009 128.6"
+          },
+          {
+            "role": "text",
+            "hex": "#3D3D3A",
+            "oklch": "0.359 0.005 106.7"
+          },
+          {
+            "role": "primary",
+            "hex": "#A8C0A0",
+            "oklch": "0.781 0.052 137.9"
+          },
+          {
+            "role": "accent",
+            "hex": "#C9D6E0",
+            "oklch": "0.869 0.020 240.8"
+          },
+          {
+            "role": "muted",
+            "hex": "#9DA39A",
+            "oklch": "0.708 0.015 134.9"
+          }
+        ],
+        "typography": {
+          "display": "思源宋体 Light / 苹方 Light",
+          "body": "思源宋体 Regular",
+          "font_class": "serif",
+          "scale": [
+            30,
+            20,
+            15,
+            12
+          ]
+        },
+        "composition": "画面明亮通透并保留大量浅色负空间，主体居于画面一侧或下方三分之一，标题用极细的衬线字压在浅色区域，字号偏小，整体像一页日系杂志内页",
+        "density": "low"
+      },
+      "prompt": {
+        "prefix": "日系清透摄影，明亮通透的高调画面，整体偏亮带轻微过曝感，极低饱和柔和色彩，白与浅色占主导，柔和漫射自然光无硬阴影，空气感与呼吸感，干净空灵，轻微柔焦与光斑，像日系写真与杂志内页",
+        "negative": "暗调、高对比、浓重阴影、高饱和、艳丽色彩、硬光、卡通、插画、水印、logo、文字"
+      },
+      "image_style_enum": "photography",
+      "anti_patterns": [
+        "避免出现浓重阴影",
+        "避免任何高饱和色彩",
+        "避免把画面填满——留白是这个风格的主体"
+      ],
+      "sample": {
+        "scene": "日系清透摄影，一间简白的房间里，木质窗框和一层薄纱窗帘，晨光透过纱帘在浅色木地板上留下柔和漫射的光影，旁边放着一株绿植和一只白色陶瓷杯，极低饱和柔和色彩，明亮通透带轻微过曝感，空气感与呼吸感，干净空灵，画面中没有任何文字",
+        "headline": "把房间清空",
+        "kicker": "SIMPLE LIFE",
+        "meta": "断舍离 · 日常",
+        "layout": "bottom-left"
+      }
+    },
+    {
+      "id": "infographic-card",
+      "name": "信息图卡片",
+      "summary": "扁平矢量图形 + 图表元素 + 蓝琥珀撞色，专业图解",
+      "platforms": [
+        "xhs",
+        "channels",
+        "blog"
+      ],
+      "best_for": "干货图解、数据说明、方法论拆解、步骤流程",
+      "tokens": {
+        "palette": [
+          {
+            "role": "background",
+            "hex": "#FFFFFF",
+            "oklch": "1.000 0 0"
+          },
+          {
+            "role": "surface",
+            "hex": "#F2F4F8",
+            "oklch": "0.967 0.006 264.5"
+          },
+          {
+            "role": "text",
+            "hex": "#1E2430",
+            "oklch": "0.260 0.024 264.0"
+          },
+          {
+            "role": "primary",
+            "hex": "#3B6FE0",
+            "oklch": "0.569 0.181 263.2"
+          },
+          {
+            "role": "accent",
+            "hex": "#F5A623",
+            "oklch": "0.784 0.159 73.0"
+          },
+          {
+            "role": "muted",
+            "hex": "#7A8494",
+            "oklch": "0.611 0.027 259.8"
+          }
+        ],
+        "typography": {
+          "display": "思源黑体 Bold / Inter Tight Semibold",
+          "body": "思源黑体 Regular",
+          "font_class": "sans",
+          "scale": [
+            36,
+            22,
+            16,
+            12
+          ]
+        },
+        "composition": "纯白底上以规整网格排布图形模块，卡片块圆角统一，图表与图标对齐到网格，蓝为主色琥珀为点缀，标题在顶部占一行，模块之间留出均匀间距，整体像一页专业图解",
+        "density": "high"
+      },
+      "prompt": {
+        "prefix": "扁平信息图设计，纯白或极浅灰底，扁平矢量图形与几何色块，蓝色主色搭配琥珀色点缀，简洁图标与数据图形元素，细分隔线与圆角卡片块，元素对齐规整有秩序感，配色克制高级，画面整洁理性像一页专业图解笔记",
+        "negative": "照片、写实纹理、立体投影、复杂渐变、杂乱元素、卡通角色、水印、logo、真实品牌标识"
+      },
+      "image_style_enum": "flat-illustration",
+      "anti_patterns": [
+        "避免出现照片或写实纹理",
+        "避免立体投影与复杂渐变",
+        "避免元素不对齐网格"
+      ],
+      "sample": {
+        "scene": "扁平信息图设计，纯白背景上排布着几组抽象的几何图形：三个圆角矩形卡片块、一组由短到长排列的柱状条形、一个由线段与圆点构成的折线图形、两个简洁的几何图标符号，蓝色主色配琥珀色点缀，元素对齐规整，细分隔线，有秩序感与呼吸感，画面中没有任何文字",
+        "headline": "3 步搭建内容体系",
+        "kicker": "INFOGRAPHIC",
+        "meta": "图解 · 干货",
+        "layout": "top-left"
+      }
+    }
+  ]
+}

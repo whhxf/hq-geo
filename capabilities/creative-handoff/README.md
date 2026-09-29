@@ -2,6 +2,9 @@
 
 HQ Content Engine 与本地媒体制作系统之间的文件协议。
 
+**这是视频通道。** 2026-09-29 定：Vidmix 收窄为视频创作，图片线由 hq-geo 自建（见 `BACKLOG.md`）。
+图片不走这里——`CreativeJob` 的形状是视频的（必填含 `scenes`、`production_units`、逐镜头 `spoken`）。
+
 ## 职责
 
 - HQ 生成不可变的 `CreativeJob`，保存内容意图、事实边界、镜头和验收要求。
