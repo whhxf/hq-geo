@@ -3,7 +3,8 @@
 **状态：** 部分实现；GEO 能力包和内容路由已落地，三平台采集与物料生成待实现  
 **版本：** 0.1  
 **建立日期：** 2026-09-09  
-**适用渠道：** 视频号、抖音、小红书、自有博客、指定新闻网站或行业媒体
+**适用渠道：** 内容渠道——视频号、抖音、小红书、自有博客、指定新闻网站或行业媒体；
+交易渠道——闲鱼（契约见 `capabilities/content-production/channels/`）
 
 ## 一句话定义
 
@@ -38,6 +39,7 @@ HQ Content Engine 是一个由自然对话驱动的本地内容系统：Conan �
 - [产品定义与当前项目评估](./01-product-definition-and-assessment.md)
 - [三平台调研与选题系统](./02-research-and-topic-system.md)
 - [平台发布硬规则](./03-platform-hard-rules.md)
+- [渠道契约](../../capabilities/content-production/channels/README.md)：内容渠道与交易渠道的边界，交易渠道见同目录 `xianyu.md`
 - [创作策略模式库](./04-creative-strategy-library.md)
 - [系统架构与实施路线](./05-architecture-and-roadmap.md)
 - [本地创作工作台系统设计](./06-creator-workbench-design.md)

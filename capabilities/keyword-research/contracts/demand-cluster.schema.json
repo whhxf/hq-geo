@@ -38,6 +38,7 @@
           "priority",
           "name",
           "representative_keywords",
+          "clustering_basis",
           "user_task",
           "judgment",
           "evidence_grade",
@@ -55,7 +56,7 @@
           },
           "index_range": {
             "type": ["string", "null"],
-            "description": "指数范围。evidence_grade 为 inference 的簇必须为空——推断出来的东西没有指数。"
+            "description": "簇级量级——这一簇**加起来**多大，不是单个词多大。一个页面会同时为成百上千个词排名，按单词评估会严重低估机会。同一平台同一指标可以求和；`AGENTS.md` 第 61 行禁止的是跨指标、跨平台加总，不是同指标跨词。evidence_grade 为 inference 的簇必须为空——推断出来的东西没有指数。"
           },
           "competition_and_bid": { "type": ["string", "null"] },
           "user_task": {
@@ -72,6 +73,36 @@
             "minItems": 1,
             "description": "链回原始记录。没有引用的判断是猜的。",
             "items": { "type": "string" }
+          },
+          "clustering_basis": {
+            "enum": ["surface_norm", "serp_overlap", "task_inference"],
+            "description": "这个簇**凭什么**聚出来的。surface_norm=词面变体（大小写、空格，纯规则，可复核）；serp_overlap=搜索结果重叠（可重采复算）；task_inference=人工判断用户任务相同（不可复核，兜底用）。必填——不写依据的簇是猜的。"
+          },
+          "serp_evidence": {
+            "type": ["object", "null"],
+            "description": "SERP 采样记录。clustering_basis 为 serp_overlap 时必填。**证据支持或反对都要记**——采到反证却不写，等于只记对自己有利的。写了 serp_overlap 却没有证据，等于声称做了一个没做的测量。",
+            "properties": {
+              "channels": {
+                "type": "array",
+                "minItems": 1,
+                "description": "在哪些渠道采的样。跨平台一致时可信度更高。",
+                "items": { "type": "string" }
+              },
+              "sampled_at": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+              "min_jaccard": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "簇内词对的最低 Jaccard。低于阈值（默认 0.15）的必须说明为什么仍然合簇。"
+              },
+              "note": { "type": "string" }
+            }
+          },
+          "business_potential": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "maximum": 3,
+            "description": "0–3，来自 Ahrefs。3=我们的产品是这个问题不可替代的解法；2=有帮助但不是必需；1=只能顺带提一句；0=完全没法提。null=还没评。这一项和「量大不大」是两件事，不许合并成总分。"
           }
         }
       }

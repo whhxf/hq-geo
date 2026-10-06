@@ -67,9 +67,70 @@ def check_skill(errors: list) -> None:
             "**不做图片编辑。**",
             "边界必须有否定的用法，否则只是一句介绍",
         ),
+        (
+            "**`role` 是猜的，`hex` 和 `coverage` 是量的。**",
+            "不写这条，Agent 会把启发式 role 标签当成「这张图真有这六种角色」的证据",
+        ),
+        (
+            "**一套参考图量一次，全套图共用。**",
+            "逐张量会让同一组图各带各的色板，那是另一种风格漂移",
+        ),
+        (
+            "**量出来的色板不写进 `image-styles.json`。**",
+            "测量不是判断——不写这条，脚本会越长越像「自动加风格」，越权做宪法 7 归人的判断",
+        ),
+        (
+            "`reference_instruction` 不是可选的",
+            "万相 2.7 多图参考是生成+编辑模型，不说意图会把参考图当待编辑对象",
+        ),
+        (
+            "**它只测颜色和面积，测不了「这张图配不配得上那句话」。**",
+            "回测 PASS 不等于可发；不写这条，回测通过会被当成验收通过",
+        ),
+        (
+            "**它按最近色匹配，不按 role 匹配。**",
+            "逐 role 比会把「标签变了」误报成「颜色漂了」，假警报多了回测就白做",
+        ),
+        (
+            "**阈值还没拿真实出图校准**",
+            "校准状态是回测结论的一部分，不说清 PASS 会被当成「合格」",
+        ),
+        (
+            "**不把参考图当素材用。**",
+            "参考图多半不是自己拍的，拼进对外产物就是把别人的东西当自己的发出去",
+        ),
     ]:
         if needle not in skill:
             errors.append(f"图片线判据缺失（{reason}）: {needle}")
+
+
+def check_scripts(errors: list) -> None:
+    """参考吸收的实现锚点。
+
+    判据写在 skill 里，但真正执行的是脚本。脚本里少了这几个函数，
+    skill 说的还算数，只是没人执行——那是最难发现的一类失效。
+    """
+    scripts = SYSTEM / "capabilities/image-production/scripts"
+    for name, anchors in [
+        (
+            "measure_palette.py",
+            ["def measure(", "def consensus(", "def dashscope_palette(", "def assign_roles("],
+        ),
+        ("verify_palette.py", ["def verify(", "def load_expected(", "DEFAULT_MAX_DELTA_E"]),
+        ("color_math.py", ["def delta_e_2000(", "def format_oklch(", "def delta_e_76("]),
+        ("png_io.py", ["def read_png(", "def _expand_fast(", "def iter_rgb("]),
+        ("generate_image.py", ["def build_payload(", "def resolve_reference_images(",
+                               "def load_color_palette("]),
+        ("validate_image_brief.py", ["def _check_references(", "def _check_palette_ref("]),
+    ]:
+        path = scripts / name
+        if not path.is_file():
+            errors.append(f"参考吸收的脚本不见了：{name}")
+            continue
+        text = path.read_text(encoding="utf-8")
+        for anchor in anchors:
+            if anchor not in text:
+                errors.append(f"{name} 少了 {anchor}——skill 里的判据没有执行者")
 
 
 def check_schema(errors: list) -> None:
@@ -95,6 +156,23 @@ def check_schema(errors: list) -> None:
     )
     if set(kinds) != {"concept", "product_ui", "customer_case", "real_conversation", "real_person"}:
         errors.append(f"ImageBrief 的 subject_kind 枚举变了：{kinds}——校验器的 REALITY_BOUND 要跟着改")
+
+    # 参考吸收的三个可选字段。它们不是必填，但**必须还在 schema 里**——
+    # 从 schema 里掉出去的表现是：简报写了也没人认，而校验器不会报错。
+    properties = schema.get("properties", {}).get("deliverables_items", {}).get("properties", {})
+    for key in ("reference_images", "reference_instruction", "palette_ref"):
+        if key not in properties:
+            errors.append(
+                f"ImageBrief 交付物少了 {key}——参考吸收的字段从 schema 掉出去后，"
+                "简报里写了也不认，而且不会报错"
+            )
+
+    instruction = properties.get("reference_instruction", {})
+    if "**reference_images 非空时必填**" not in instruction.get("description", ""):
+        errors.append(
+            "reference_instruction 的「非空时必填」约束从描述里掉了——"
+            "那是校验器四条拦截里最容易被静默删掉的一条"
+        )
 
 
 def check_library(errors: list) -> None:
@@ -123,6 +201,7 @@ def main() -> int:
     check_skill(errors)
     check_schema(errors)
     check_library(errors)
+    check_scripts(errors)
 
     if errors:
         print("FAIL image-pipeline")

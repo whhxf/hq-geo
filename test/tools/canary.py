@@ -55,8 +55,13 @@ def load_commands() -> dict:
 
 
 def run_test(command: list, project: str) -> int:
-    """跑一条测试，返回退出码。非零就是变红了——那正是我们要的。"""
-    env = dict(os.environ, HQ_GEO_PROJECT=project)
+    """跑一条测试，返回退出码。非零就是变红了——那正是我们要的。
+
+    **不让这次运行写字节码。** 它跑的是被破坏过的源码，写下来的缓存
+    一旦被之后的运行当成新鲜的，整个系统就在执行被破坏的代码。
+    见 `invalidate_bytecode` 的长注释。
+    """
+    env = dict(os.environ, HQ_GEO_PROJECT=project, PYTHONDONTWRITEBYTECODE="1")
     result = subprocess.run(
         command,
         cwd=SYSTEM,
@@ -65,6 +70,50 @@ def run_test(command: list, project: str) -> int:
         stderr=subprocess.DEVNULL,
     )
     return result.returncode
+
+
+def invalidate_bytecode(relative: str) -> list:
+    """删掉 `relative` 这个源码对应的字节码缓存，返回删掉的路径。
+
+    **这是 2026-09-30 抓到的一个真 bug，两头都能骗人。**
+
+    CPython 判断 `__pycache__` 里的 `.pyc` 还能不能用，只看两个数：
+    源文件的 **mtime** 和 **字节数**。canary 的破坏方式恰好两头都能撞上：
+
+    - 破坏常常**不改长度**（`MERGE_DELTA_E = 2.5` → `= 0.0`，都是 19 字节）；
+    - 写回发生在同一个 mtime 秒内（文件系统的 mtime 精度就是秒）。
+
+    于是还原之后，缓存里那份**被破坏的**字节码仍然被判为新鲜，
+    `PYTHONDONTWRITEBYTECODE` 也拦不住——它是之前那次运行写下的。
+
+    两个方向都害人：
+
+    | 方向 | 表现 |
+    |---|---|
+    | 破坏时撞上旧缓存 | 破坏没生效，断言被误报成**空转**（假红） |
+    | 还原后撞上坏缓存 | 之后的每次测试都在跑**被破坏的代码**，门禁绿得毫无意义 |
+
+    第二种更糟：它把「这条断言守住了」变成一句谎话，而**没有任何信号**。
+    实测就是它——一次 canary 之后 `test_palette.py` 持续报错，
+    磁盘上 `MERGE_DELTA_E` 明明是 `2.5`，运行时读到的却是 `0.0`，
+    `git status` 干干净净。**只有把 `__pycache__` 里那份记录（`src_mtime` / `src_size`）
+    和源码对起来看，才知道它跑的是另一个文件。**
+
+    所以破坏前后各清一次。两次各挡一种情况，不是重复：
+    破坏前那次挡「旧缓存让破坏没生效」，还原后那次挡「被破坏的运行写下了坏缓存」。
+    """
+    # 两边都 resolve：macOS 上 `/tmp` 是 `/private/tmp` 的软链，
+    # 只 resolve 一边的话 `relative_to` 会抛 ValueError（纯字符串比较，不看软链）。
+    root = SYSTEM.resolve()
+    source = (root / relative).resolve()
+    cache = source.parent / "__pycache__"
+    if not cache.is_dir():
+        return []
+    removed = []
+    for candidate in sorted(cache.glob(f"{source.stem}.*.pyc")):
+        candidate.unlink()
+        removed.append(str(candidate.relative_to(root)))
+    return removed
 
 
 def stale_edits(originals: dict, edits: list) -> list:
@@ -134,13 +183,25 @@ def main() -> int:
             dead.append(case["name"])
             continue
 
+        # 破坏之前先清一次：如果磁盘上躺着一份**原文**的字节码，
+        # 而这次破坏又恰好没改长度、又落在同一 mtime 秒里，
+        # CPython 会拿旧字节码跑——破坏根本没生效，于是报成「空转」。
+        # 那是假红，和假绿一样害人。
         try:
+            for name in originals:
+                invalidate_bytecode(name)
+
             for name, content in apply_edits(originals, case["edits"]).items():
                 (SYSTEM / name).write_text(content, encoding="utf-8")
             code = run_test(commands[case["test"]], args.project)
         finally:
             for name, content in originals.items():
                 (SYSTEM / name).write_text(content, encoding="utf-8")
+            # 再清一次：万一上面那道 `PYTHONDONTWRITEBYTECODE` 被削弱或去掉，
+            # 被破坏的那次运行就会写下坏字节码；还原时源码通常长度不变、
+            # 又落在同一秒内，那份坏缓存会被判为新鲜——只有这里能清掉它。
+            for name in originals:
+                invalidate_bytecode(name)
 
         if code != 0:
             print(f"  ✓ {case['name']} —— 变红")

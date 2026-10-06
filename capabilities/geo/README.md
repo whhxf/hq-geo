@@ -49,7 +49,7 @@ Skill 负责决定做什么、读取什么和如何与用户交互；本目录�
 
 ## 执行边界
 
-本能力包提供方法、契约和校验器，**不提供执行器**。平台采样通过 `web-access` 人工触发；Schema 按页面实际内容手写；发布前判定只用 `ready` / `needs_revision` / `blocked` 三档，不产出数值评分。
+本能力包提供方法、契约和校验器，**不提供执行器**。平台采样通过 `ego-browser`（跑不通时退回 `web-access`）人工触发；Schema 按页面实际内容手写；发布前判定只用 `ready` / `needs_revision` / `blocked` 三档，不产出数值评分。
 
 2026-09-28 之前存在 `01-intent` 至 `07-prepublish` 七个编号模块，其中的采集、评分与 Schema 生成脚本已归档到仓库外的 `hq-geo-retired-20260928/`。需要时从归档或 git 历史取回，不在本目录重建。
 

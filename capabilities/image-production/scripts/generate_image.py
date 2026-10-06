@@ -20,9 +20,13 @@
 """
 
 import argparse
+import base64
 import json
 import os
+import shutil
+import subprocess
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.request
@@ -83,6 +87,11 @@ def assemble_prompt(deliverable: dict, style: dict) -> dict:
     ]
     if deliverable.get("intent"):
         parts.append(deliverable["intent"])
+    # 参考图的用法说明排在最后。万相 2.7 的多图参考是**生成+编辑**模型，
+    # 不说清「参考它的什么」，它可能把参考图当成待编辑对象——
+    # 于是你得到一张「改了一下的参考图」而不是「一张新图」。
+    if deliverable.get("reference_instruction"):
+        parts.append(deliverable["reference_instruction"])
     negative = style["prompt"].get("negative", "")
     if deliverable.get("avoid"):
         negative = "、".join(filter(None, [negative, deliverable["avoid"]]))
@@ -132,8 +141,13 @@ def image_urls(payload: dict) -> list:
     return urls
 
 
-def generate_one(prompt: dict, size: str, api_key: str) -> list:
-    """调一次模型，等它跑完，返回图片 URL 列表。"""
+def build_payload(prompt: dict, size: str, reference_images=(), color_palette=None) -> dict:
+    """组装请求体。**纯函数**，不发网络——这样「向后兼容」才能被测试断言。
+
+    `reference_images` / `color_palette` 缺省时，返回值与没有这个功能时
+    逐字节相同：既有简报的行为一点不变。这是本功能最容易被破坏的地方，
+    所以它必须有一条能红的测试盯着（见 `tests/test_palette.py`）。
+    """
     payload = {
         "model": MODEL,
         "input": {"messages": [{"role": "user", "content": [{"text": prompt["prompt"]}]}]},
@@ -146,6 +160,19 @@ def generate_one(prompt: dict, size: str, api_key: str) -> list:
     }
     if prompt.get("style"):
         payload["parameters"]["style"] = prompt["style"]
+    if reference_images:
+        payload["input"]["messages"][0]["content"].extend(
+            {"image": data_uri} for data_uri in reference_images
+        )
+    if color_palette:
+        payload["parameters"]["color_palette"] = color_palette
+    return payload
+
+
+def generate_one(prompt: dict, size: str, api_key: str,
+                 reference_images: tuple = (), color_palette=None) -> list:
+    """调一次模型，等它跑完，返回图片 URL 列表。"""
+    payload = build_payload(prompt, size, reference_images, color_palette)
 
     task = _post(CREATE_URL, payload, api_key)
     task_id = task.get("output", {}).get("task_id")
@@ -171,6 +198,113 @@ def download(url: str, dest: Path) -> None:
     dest.parent.mkdir(parents=True, exist_ok=True)
     with urllib.request.urlopen(url, timeout=120) as response:
         dest.write_bytes(response.read())
+
+
+# --- 参考图 ---------------------------------------------------------------
+
+# 参考图的边长下限与上限，来自 DashScope 对输入图的规定。
+MIN_REFERENCE_EDGE = 240
+MAX_REFERENCE_EDGE = 8000
+
+# 超过这个字节数就先缩一道。一张 8 MB 的图 base64 之后是 11 MB，
+# 塞进请求体大概率被拒——而那是在**花了时间之后**才发现。
+MAX_REFERENCE_BYTES = 4 * 1024 * 1024
+_DOWNSCALE_EDGE = 2048
+
+
+def _read_size_png(path: Path):
+    """只读 PNG 头拿宽高。非 PNG 返回 None（尺寸交给 sips 处理）。"""
+    try:
+        header = path.read_bytes()[:33]
+    except OSError:
+        return None
+    if len(header) < 24 or header[:8] != b"\x89PNG\r\n\x1a\n" or header[12:16] != b"IHDR":
+        return None
+    import struct
+    return struct.unpack(">II", header[16:24])
+
+
+def _downscale(path: Path) -> bytes:
+    """借 `sips` 缩图，返回缩放后的 PNG 字节。
+
+    参考图是用户随手丢进来的，尺寸和体积都不受控。**把复杂度留在系统里**：
+    用户不该为了「图太大」去自己开工具改尺寸。
+    """
+    sips = shutil.which("sips")
+    if sips is None:
+        raise SystemExit(
+            f"参考图 {path.name} 需要缩小，但本机没有 `sips`。"
+            f"请把它压到 {MAX_REFERENCE_BYTES // 1024 // 1024} MB 以内或长边 {_DOWNSCALE_EDGE} 像素以内再试。"
+        )
+    with tempfile.TemporaryDirectory() as workdir:
+        target = Path(workdir) / "scaled.png"
+        result = subprocess.run(
+            [sips, "-s", "format", "png", "-Z", str(_DOWNSCALE_EDGE), str(path), "--out", str(target)],
+            capture_output=True, text=True,
+        )
+        if result.returncode != 0 or not target.exists():
+            raise SystemExit(f"`sips` 缩小 {path.name} 失败：{(result.stderr or '').strip()[:200]}")
+        return target.read_bytes()
+
+
+def resolve_reference_images(deliverable: dict, project: Path) -> tuple:
+    """把简报里的参考图路径读成 data URI。返回 `(data_uris, notes)`。
+
+    路径按**项目根相对**解析，并且**必须在项目根之内**——参考图大概率不是
+    自己拍的，越出项目根去读任意路径既没有权利登记也说不清来源。
+    """
+    paths = deliverable.get("reference_images") or []
+    if not paths:
+        return (), []
+
+    root = project.resolve()
+    uris = []
+    notes = []
+    for raw in paths:
+        candidate = (root / raw).resolve()
+        if not candidate.is_relative_to(root):
+            raise SystemExit(f"{deliverable['id']}: 参考图 {raw} 指向项目根之外，不允许。")
+        if not candidate.is_file():
+            raise SystemExit(f"{deliverable['id']}: 参考图不存在：{raw}")
+
+        size = _read_size_png(candidate)
+        if size and (min(size) < MIN_REFERENCE_EDGE or max(size) > MAX_REFERENCE_EDGE):
+            raise SystemExit(
+                f"{deliverable['id']}: 参考图 {raw} 是 {size[0]}x{size[1]}，"
+                f"边长必须落在 {MIN_REFERENCE_EDGE}–{MAX_REFERENCE_EDGE} 之间。"
+                f"用 `sips -Z {_DOWNSCALE_EDGE} {raw} --out {raw}` 调一下。"
+            )
+
+        payload = candidate.read_bytes()
+        if len(payload) > MAX_REFERENCE_BYTES:
+            payload = _downscale(candidate)
+            notes.append(f"{candidate.name} 超过 {MAX_REFERENCE_BYTES // 1024 // 1024} MB，"
+                         f"已在发送前缩小到长边 {_DOWNSCALE_EDGE}")
+        uris.append("data:image/png;base64," + base64.b64encode(payload).decode("ascii"))
+    return tuple(uris), notes
+
+
+def load_color_palette(palette_ref: str, project: Path) -> list:
+    """从 `measure_palette.py` 的输出里取 DashScope 色板参数。
+
+    `measure_palette.py` 已经把 `dashscope_color_palette` 算好了
+    （比例用最大余数法精确合计 100.00%），这里**不重新算**——
+    重算就是又一处可能和测量结果对不上的地方。
+    """
+    path = (project.resolve() / palette_ref).resolve()
+    if not path.is_file():
+        raise SystemExit(f"palette_ref 指向的文件不存在：{palette_ref}")
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        raise SystemExit(f"palette_ref 不是合法 JSON：{palette_ref}（{error}）")
+    palette = data.get("dashscope_color_palette") if isinstance(data, dict) else None
+    if not palette:
+        raise SystemExit(
+            f"{palette_ref} 里没有 `dashscope_color_palette`（颜色少于 3 种时不会有）。"
+            "参考图量出的颜色不足 3 种，无法作为 color_palette 参数使用。"
+        )
+    return palette
 
 
 def main() -> int:
@@ -200,16 +334,35 @@ def main() -> int:
             return 1
         planned.append((item, assemble_prompt(item, styles[style_id])))
 
+    # 参考图和色板要在 dry-run 阶段就读出来并打印——**钱是在 dry-run 之后花的**，
+    # 参考图读不到、色板格式不对这类事必须在这之前暴露。
+    project = None
+    resolved = {}
+    if any(item.get("reference_images") or item.get("palette_ref") for item, _ in planned):
+        project = find_project()
+        for item, _ in planned:
+            uris, notes = resolve_reference_images(item, project)
+            palette = load_color_palette(item["palette_ref"], project) if item.get("palette_ref") else None
+            resolved[item["id"]] = (uris, notes, palette)
+
     if args.dry_run:
         for item, prompt in planned:
             print(f"=== {item['id']} · {item['role']} · {item['size']} · {item['style_id']}")
             print(prompt["prompt"])
-            print(f"--- 负面：{prompt['negative_prompt']}\n")
+            print(f"--- 负面：{prompt['negative_prompt']}")
+            uris, notes, palette = resolved.get(item["id"], ((), [], None))
+            if uris:
+                print(f"--- 参考图：{len(uris)} 张（{', '.join(item['reference_images'])}）")
+            if palette:
+                print("--- 色板：" + "  ".join(f"{c['hex']} {c['ratio']}" for c in palette))
+            for note in notes:
+                print(f"--- 注意：{note}")
+            print()
         print("以上是 dry-run，没有调用模型，没有花钱。")
         return 0
 
     api_key = resolve_api_key()
-    project = find_project()
+    project = project or find_project()
     out_dir = project / "assets" / "generated" / brief["id"]
     manifest_path = out_dir / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.is_file() else {
@@ -221,11 +374,14 @@ def main() -> int:
 
     for item, prompt in planned:
         print(f"出图 {item['id']} · {item['role']} …")
-        for index, url in enumerate(generate_one(prompt, item["size"], api_key), start=1):
+        uris, notes, palette = resolved.get(item["id"], ((), [], None))
+        for index, url in enumerate(
+            generate_one(prompt, item["size"], api_key, uris, palette), start=1
+        ):
             suffix = f"-{index}" if index > 1 else ""
             dest = out_dir / f"{item['id']}{suffix}.png"
             download(url, dest)
-            manifest["outputs"].append({
+            record = {
                 "deliverable_id": item["id"],
                 "role": item["role"],
                 "path": str(dest),
@@ -236,7 +392,18 @@ def main() -> int:
                 "negative_prompt": prompt["negative_prompt"],
                 "model": MODEL,
                 "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
-            })
+            }
+            # 只在真用了参考图/色板时才写这几个字段——**没用到的简报，
+            # 回执与改造前逐字节相同**，不会给旧产物平添噪声。
+            if item.get("reference_images"):
+                record["reference_images"] = list(item["reference_images"])
+                record["reference_instruction"] = item.get("reference_instruction", "")
+            if palette:
+                record["palette_ref"] = item["palette_ref"]
+                record["color_palette"] = palette
+            if notes:
+                record["reference_notes"] = list(notes)
+            manifest["outputs"].append(record)
             print(f"  → {dest}")
 
     out_dir.mkdir(parents=True, exist_ok=True)

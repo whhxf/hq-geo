@@ -24,6 +24,8 @@ def main() -> int:
         ("GEO manifest declares the capability package", "geo" in geo_manifest.lower()),
         ("orchestrator must offer to scaffold a project root",
          "capabilities/project-scaffold/scripts/init_project.py" in orchestrator),
+        ("orchestrator routes the marketplace channel",
+         "capabilities/content-production/channels/xianyu.md" in orchestrator),
     ]
     for label, passed in expectations:
         if not passed:
@@ -80,6 +82,12 @@ def main() -> int:
         for token in sorted(set(system_path.findall(read(entry)))):
             if not (ROOT / token).exists():
                 errors.append(f"{entry} points at a path that does not exist: {token}")
+
+    # 交易渠道契约：结构可以变，但「未知规则阻止发布」这条硬线不能在改稿时被顺手删掉——
+    # 删掉它不会报错，只会让未核验类目和资质悄悄变成可发布。
+    channel_contract = read("capabilities/content-production/channels/xianyu.md")
+    if "未知项阻止" not in channel_contract:
+        errors.append("交易渠道契约必须保留「未知项阻止发布」硬线")
 
     if errors:
         print("FAIL content routing contract")

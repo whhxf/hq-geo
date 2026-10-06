@@ -123,6 +123,18 @@
       ]
     },
     {
+      "id": "marketplace-channel",
+      "name": "交易渠道（闲鱼）：商品发布包契约、渠道分类与未知规则停机",
+      "status": "partial",
+      "owner_paths": [
+        "capabilities/content-production/channels",
+        "skills/content-orchestrator"
+      ],
+      "test_ids": [
+        "content-routing-contract"
+      ]
+    },
+    {
       "id": "fact-pack-knowledge-base",
       "name": "文件夹级多模态事实包、对话补录、准入审核与防遗漏门禁",
       "status": "partial",
@@ -298,6 +310,23 @@
         "image-pipeline-contract",
         "image-brief-unit",
         "image-brief-contract"
+      ]
+    },
+    {
+      "id": "image-reference-absorption",
+      "name": "参考吸收：从喜欢的参考图量出确定性的色板，喂出图与回测",
+      "status": "implemented",
+      "owner_paths": [
+        "capabilities/image-production/scripts/png_io.py",
+        "capabilities/image-production/scripts/color_math.py",
+        "capabilities/image-production/scripts/measure_palette.py",
+        "capabilities/image-production/scripts/verify_palette.py",
+        "capabilities/image-production/tests/test_palette.py",
+        "capabilities/image-production/PRD-reference-absorption.md"
+      ],
+      "test_ids": [
+        "image-palette-tooling",
+        "image-pipeline-contract"
       ]
     }
   ],

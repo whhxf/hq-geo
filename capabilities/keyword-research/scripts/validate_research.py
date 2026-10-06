@@ -50,17 +50,47 @@ EVIDENCE_GRADES = {
 }
 PRIORITIES = {"P0", "P1", "P2"}
 STAGES = {"keyword_to_keyword", "keyword_to_site", "complete"}
+CLUSTERING_BASES = {"surface_norm", "serp_overlap", "task_inference"}
+
+# SERP 重叠的合簇阈值。2026-09-29 实测：同词重测 0.80–0.93（这是噪声上界），
+# 无关词 0.00–0.06。阈值定在「显著高于无关基线」，不是「接近同词基线」——
+# 聚类的目的恰恰是把不同的词合起来，要求接近同词基线等于取消聚类。
+SERP_MIN_OVERLAP = 0.15
 
 # 一条记录里，除了 keyword 之外至少要有一个信号字段非空。
 # 只有词没有数的记录不是采集结果，是手打的清单。
+#
+# 不同渠道的「信号」不是同一种东西：官方商业工具给指数和出价，
+# 原生内容渠道给的是内容指纹（note_id）和互动量。两者都是信号，
+# 都能证明「这条记录是真的采回来的」。
 SIGNAL_FIELDS = (
     "monthly_search_index",
+    "monthly_click_index",
     "competition",
     "bid_cny",
     "reason",
     "upstream_downstream",
     "path_share_percent",
+    "note_id",
+    "likes",
+    "related_tabs",
 )
+
+
+def has_signal(rec: dict) -> bool:
+    """这条记录除了 keyword 之外，有没有采到真东西。
+
+    **空数组、空对象不算信号。** `[]` 既不等于 None 也不等于 ""，
+    直接比较会把它当成有信号——那等于「我采了一个空列表」也能过。
+    """
+    for field in SIGNAL_FIELDS:
+        value = rec.get(field)
+        if value is None or value == "":
+            continue
+        if isinstance(value, (list, dict)) and not value:
+            continue
+        return True
+    return False
 
 
 class Report:
@@ -105,6 +135,21 @@ def load_channels() -> dict[str, dict[str, str]]:
         cid = fm.get("channel") or path.stem
         channels[cid] = fm
     return channels
+
+
+def _normalize_surface(keyword: str) -> str:
+    """词面归一：小写、去空白、去分隔符、去话题标记。
+
+    **只做这些，不做同义替换。** `AI数字员工` 和 `ai数字员工` 归一后是同一个词形；
+    `AI数字员工` 和 `数字员工` 归一后不是——后者要合簇得靠 SERP 重叠或任务判断，
+    不能靠「看起来像」。
+
+    `#` 算标记不算词。2026-09-29 广点通实测拓出 `#AI数字员工` / `#Ai数字员工` /
+    `#ai数字员工`——同一个人搜「#ai数字员工」和搜「ai数字员工」要的是同一件事，
+    平台把话题写法当成一个独立词返回而已。不合并会凭空多出三个「不同的词」。
+    """
+    text = keyword.lower()
+    return re.sub(r"[\s\-_·、，,。.／/#]+", "", text)
 
 
 def _collect_keywords(records: list[dict]) -> set[str]:
@@ -197,10 +242,7 @@ def validate_record(path: Path, rel: str, channels: dict, rep: Report) -> None:
                 kw = rec.get("keyword")
                 if not isinstance(kw, str) or not kw.strip():
                     rep.err(where, "keyword 不能为空")
-                has_signal = any(
-                    rec.get(f) not in (None, "") for f in SIGNAL_FIELDS
-                )
-                if not has_signal:
+                if not has_signal(rec):
                     rep.err(
                         where,
                         f"记录 {kw!r} 只有关键词、没有任何信号字段。"
@@ -325,6 +367,58 @@ def validate_cluster(path: Path, rel: str, rep: Report) -> None:
                     "代表词必须有原始记录支撑，不能凭空写",
                 )
 
+        basis = cluster.get("clustering_basis")
+        if basis not in CLUSTERING_BASES:
+            rep.err(
+                where,
+                f"clustering_basis 取值非法：{basis!r}。"
+                "每个簇都要写清凭什么聚出来的——不写依据的簇是猜的",
+            )
+
+        # 词面归一只能合大小写/空格变体。把「数字员工」和「智能体搭建」
+        # 说成词面变体，是把一个没做的判断伪装成一条规则。
+        if basis == "surface_norm":
+            normed = {_normalize_surface(k) for k in keywords if isinstance(k, str)}
+            if len(normed) > 1:
+                rep.err(
+                    where,
+                    f"clustering_basis 写了 surface_norm，但代表词归一到 {len(normed)} 个不同词形："
+                    f"{sorted(normed)}。词面归一只能合大小写和空格变体；"
+                    "不同的词要合簇，得用 serp_overlap 或 task_inference",
+                )
+
+        if basis == "serp_overlap":
+            ev = cluster.get("serp_evidence")
+            if not isinstance(ev, dict):
+                rep.err(
+                    where,
+                    "clustering_basis 写了 serp_overlap，却没有 serp_evidence。"
+                    "声称做了 SERP 重叠测量却不给采样范围，等于编了一个没做的测量",
+                )
+            else:
+                chans = ev.get("channels")
+                if not isinstance(chans, list) or not chans:
+                    rep.err(where, "serp_evidence.channels 必须是非空数组——写清在哪个渠道采的")
+                sampled = ev.get("sampled_at")
+                if not isinstance(sampled, str) or not DATE_RE.match(sampled):
+                    rep.err(where, f"serp_evidence.sampled_at 必须是 YYYY-MM-DD：{sampled!r}")
+                mj = ev.get("min_jaccard")
+                if isinstance(mj, bool) or not isinstance(mj, (int, float)) or not (0 <= mj <= 1):
+                    rep.err(where, f"serp_evidence.min_jaccard 必须是 0–1 之间的数：{mj!r}")
+                elif mj < SERP_MIN_OVERLAP and not ev.get("note"):
+                    rep.err(
+                        where,
+                        f"serp_evidence.min_jaccard={mj} 低于阈值 {SERP_MIN_OVERLAP}，"
+                        "却没写 note 说明为什么仍然合簇。"
+                        "低重叠有两种原因——不同意图、或内容稀缺——不说明就是没区分",
+                    )
+
+        bp = cluster.get("business_potential")
+        if bp is not None and (
+            isinstance(bp, bool) or not isinstance(bp, int) or not (0 <= bp <= 3)
+        ):
+            rep.err(where, f"business_potential 必须是 0–3 的整数或 null：{bp!r}")
+
         # 推断出来的簇不可能有指数——没有数据就没有数
         if grade == "inference" and cluster.get("index_range"):
             rep.err(
@@ -379,6 +473,118 @@ def validate_cluster(path: Path, rel: str, rep: Report) -> None:
                 rep.err(where, "闸门必须写 note——只给分不给理由，分数会被当成结论")
 
 
+def _covers_of(entry: dict) -> set[str]:
+    return {_normalize_surface(k) for k in entry["covers"]}
+
+
+def validate_library(project: Path, rep: Report, core_keywords: list[str]) -> None:
+    """调研结论库——**建了但找不到，等于没建**。
+
+    这一节拦三件事，都发生在「库长得很好、但没人用得上」这条路径上：
+
+    1. **索引和库文件漂移** —— 有人手改了索引，或者改了库忘了重生成。
+       漂移的索引**比没有更糟**：它会让人以为「库里就这些」。
+       所以这里不是「检查索引格式」，是**按生成器重算一遍，逐字比对**。
+    2. **库文件没写 `covers`** —— 没有「覆盖的词」这一列，按词就搜不到。
+       主题名和词的对应关系不是一对一的，靠主题名猜一定会漏。
+    3. **调研做完了但没入档** —— `normalized/` 里出现过的核心词，
+       没有任何一个库文件覆盖它。**这一条直接对应「花钱采了但没留下」。**
+    """
+    library_dir = project / "research" / "library"
+    if not library_dir.is_dir():
+        # **空项目该是绿的。** 还没有东西要入档时，缺库目录不是错误——
+        # 「没有产物不是错误」是项目层的一条硬原则，这里不能破。
+        # 只有**已经有调研、却没有地方入档**时，缺目录才是真问题。
+        if core_keywords:
+            rep.err(
+                "research/library/",
+                f"做过调研（research/normalized/ 里有 {'、'.join(core_keywords)}）"
+                "但没有调研结论库目录——结论没有地方放，下一轮会从零重采。"
+                "新建项目跑 capabilities/project-scaffold",
+            )
+        return
+
+    try:
+        from library_index import (  # noqa: PLC0415
+            build_claude_block,
+            build_readme,
+            collect_entries,
+        )
+    except ImportError:  # pragma: no cover - 同目录导入失败只可能是文件被删了
+        rep.err("scripts/", "读不到 library_index.py，无法核对索引是否和库一致")
+        return
+
+    script_path = str((SYSTEM_ROOT / "capabilities/keyword-research/scripts/library_index.py"))
+    entries = collect_entries(library_dir)
+
+    for entry in entries:
+        where = f"research/library/{entry['file']}"
+        if not entry["covers"]:
+            rep.err(
+                where,
+                "没写 covers（覆盖的词）。**没有这一列，按词就搜不到这个文件**——"
+                "主题名和词的对应关系不是一对一的，靠主题名猜一定会漏。"
+                "front matter 里写 `covers: [词1, 词2]`",
+            )
+        if not entry["summary"]:
+            rep.err(
+                where,
+                "没写 summary。索引里只有主题名的话，看的人没法判断要不要翻——"
+                "一句话说清这个文件里最值钱的判断",
+            )
+        if not DATE_RE.match(entry["updated"] or ""):
+            rep.err(where, f"updated 必须是 YYYY-MM-DD：{entry['updated']!r}")
+
+    # 逐字比对，不是「检查格式」——重算一遍就知道有没有人忘了重新生成
+    # 索引**有东西可索引时才要求**。库里一条都没有的时候，索引没得可漂——
+    # 此时判红是拿脚手架的要求去罚一个还没开工的项目，那是误报。
+    # 第一条主题写进来之后，这一节立刻生效。
+    if entries:
+        readme = library_dir / "README.md"
+        wanted_readme = build_readme(entries, script_path)
+        if not readme.is_file():
+            rep.err(
+                "research/library/README.md",
+                "没有索引文件。库文件存在但没人知道该翻哪一个——"
+                "跑 capabilities/keyword-research/scripts/library_index.py 生成它",
+            )
+        elif readme.read_text(encoding="utf-8") != wanted_readme:
+            rep.err(
+                "research/library/README.md",
+                "索引和库文件不一致（改了库没重新生成，或者手改了索引）。"
+                "**漂移的索引比没有更糟**——它会让人以为「库里就这些」。"
+                "跑 capabilities/keyword-research/scripts/library_index.py 重建",
+            )
+
+        claude = project / "CLAUDE.md"
+        if not claude.is_file():
+            rep.err("CLAUDE.md", "项目根没有 CLAUDE.md，调研结论库进不了会话上下文")
+        else:
+            text = claude.read_text(encoding="utf-8")
+            wanted_block = build_claude_block(entries, script_path)
+            if wanted_block not in text:
+                rep.err(
+                    "CLAUDE.md",
+                    "索引块和库文件不一致（或标记块被删了）。这一块是**每次会话自动加载**的那一层，"
+                    "它一旦和库脱节，调研过的主题就会被重跑一遍。"
+                    "跑 capabilities/keyword-research/scripts/library_index.py 重建",
+                )
+
+    # 调研做完了但没入档——花钱采了却没留下
+    covered: set[str] = set()
+    for entry in entries:
+        covered |= _covers_of(entry)
+    for keyword in core_keywords:
+        if _normalize_surface(keyword) not in covered:
+            rep.err(
+                "research/library/",
+                f"`{keyword}` 做过调研（见 research/normalized/），但没有任何库文件覆盖它。"
+                "**调研花掉的钱和 token 只有写进库里才留得下**——"
+                "在对应主题的 front matter 的 covers 里补上，或者新建一个主题文件。"
+                "见 capabilities/keyword-research/methods/research-library.md",
+            )
+
+
 def validate_project(project: Path, rep: Report) -> None:
     channels = load_channels()
     if not channels:
@@ -393,8 +599,18 @@ def validate_project(project: Path, rep: Report) -> None:
         validate_record(path, str(path.relative_to(project)), channels, rep)
 
     norm_dir = project / "research" / "normalized"
+    core_keywords: list[str] = []
     for path in sorted(norm_dir.rglob("*.clusters.json")):
         validate_cluster(path, str(path.relative_to(project)), rep)
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            continue
+        keyword = data.get("core_keyword")
+        if isinstance(keyword, str) and keyword and keyword not in core_keywords:
+            core_keywords.append(keyword)
+
+    validate_library(project, rep, core_keywords)
 
 
 def main(argv: list[str] | None = None) -> int:

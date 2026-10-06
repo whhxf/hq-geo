@@ -20,18 +20,27 @@ import unittest
 from pathlib import Path
 
 SYSTEM = Path(__file__).resolve().parents[3]
-VALIDATOR = SYSTEM / "capabilities" / "keyword-research" / "scripts" / "validate_research.py"
+SCRIPTS = SYSTEM / "capabilities" / "keyword-research" / "scripts"
+VALIDATOR = SCRIPTS / "validate_research.py"
+INDEXER = SCRIPTS / "library_index.py"
+
+# 校验器在 `from library_index import ...` 里找同目录的生成器——
+# 脚本直跑时 sys.path[0] 就是 scripts/，但被 importlib 加载时不是。
+# 不补这一行，校验器会走进「读不到 library_index.py」的分支：
+# **所有库相关检查全部静默跳过，测试还是绿的。**
+sys.path.insert(0, str(SCRIPTS))
 
 
-def _load_validator():
-    spec = importlib.util.spec_from_file_location("validate_research", VALIDATOR)
+def _load(name: str, path: Path):
+    spec = importlib.util.spec_from_file_location(name, path)
     module = importlib.util.module_from_spec(spec)
-    sys.modules["validate_research"] = module
+    sys.modules[name] = module
     spec.loader.exec_module(module)
     return module
 
 
-vr = _load_validator()
+vr = _load("validate_research", VALIDATOR)
+indexer = _load("library_index", INDEXER)
 
 
 # --- 夹具：一份合法的记录 + 一份合法的需求簇 ---------------------------------
@@ -95,6 +104,7 @@ CLUSTERS = {
             "user_task": "先弄懂它是什么",
             "judgment": "商业意图强但规模窄",
             "evidence_grade": "direct_platform",
+            "clustering_basis": "task_inference",
             "evidence_refs": ["research/raw/2026-09-29-xhs-spotlight-ai数字员工.json#词根拓词"],
         }
     ],
@@ -121,8 +131,28 @@ CLUSTERS = {
 }
 
 
+LIBRARY = """---
+topic: AI数字员工
+covers: [AI数字员工, 数字员工]
+summary: 夹具结论：聚光有量，广点通的量几乎全空
+created: 2026-09-29
+updated: 2026-09-29
+---
+
+### 夹具结论
+
+- **数字**：370
+- **口径**：聚光月搜索指数，不跨平台比较
+- **出处**：`research/raw/2026-09-29-xhs-spotlight-ai数字员工.json`，采集于 2026-09-29
+"""
+
+
 class ProjectCase(unittest.TestCase):
-    """在临时目录里造一个项目，把夹具写进去，跑校验器看结果。"""
+    """在临时目录里造一个项目，把夹具写进去，跑校验器看结果。
+
+    **夹具必须是一份完整、合法的项目**，每条测试只破坏一处。否则报错里会混进
+    和这条测试无关的问题，`assertRejected` 照样通过，而它证明的是别的东西。
+    """
 
     record: dict
     clusters: dict
@@ -133,12 +163,24 @@ class ProjectCase(unittest.TestCase):
         (self.project / ".hq-geo.json").write_text("{}", encoding="utf-8")
         (self.project / "research" / "raw").mkdir(parents=True)
         (self.project / "research" / "normalized").mkdir(parents=True)
+        (self.project / "research" / "library").mkdir(parents=True)
+        (self.project / "CLAUDE.md").write_text("# 夹具项目\n", encoding="utf-8")
 
         self.record = copy.deepcopy(RECORD)
         self.clusters = copy.deepcopy(CLUSTERS)
 
     def tearDown(self) -> None:
         self._tmp.cleanup()
+
+    def write_library(self) -> None:
+        """写一份覆盖夹具核心词的库文件，并用**真的生成器**重建索引。"""
+        (self.project / "research/library/AI数字员工.md").write_text(
+            LIBRARY, encoding="utf-8"
+        )
+        indexer.sync(self.project, str(INDEXER))
+
+    def break_library(self) -> None:
+        """库相关测试的破坏点。默认不破坏。"""
 
     def run_validator(self) -> list[str]:
         """写盘 → 校验 → 返回错误列表。空列表就是通过。"""
@@ -148,6 +190,8 @@ class ProjectCase(unittest.TestCase):
         (self.project / "research/normalized/2026-09-29-ai数字员工.clusters.json").write_text(
             json.dumps(self.clusters, ensure_ascii=False), encoding="utf-8"
         )
+        self.write_library()
+        self.break_library()
         rep = vr.Report()
         vr.validate_project(self.project, rep)
         return rep.errors
@@ -276,9 +320,234 @@ class TestClusterRules(ProjectCase):
         self.assertRejected("cluster_id 重复")
 
 
+class TestClusteringBasisRules(ProjectCase):
+    """聚类依据（2026-09-29 加）。
+
+    这组断言守的是「这个簇是算出来的，还是想出来的」这个区别。
+    没有它，一个靠印象分的簇和一个靠 SERP 重叠算出来的簇长得一模一样，
+    下游没法判断该信到什么程度——**而两者错起来的代价完全不同**：
+    算出来的错了可以重采复算，想出来的错了只能重想。
+    """
+
+    def test_cluster_without_clustering_basis_rejected(self):
+        """不写依据的簇是猜的。"""
+        del self.clusters["clusters"][0]["clustering_basis"]
+        self.assertRejected("clustering_basis 取值非法")
+
+    def test_unknown_clustering_basis_rejected(self):
+        self.clusters["clusters"][0]["clustering_basis"] = "看起来像"
+        self.assertRejected("clustering_basis 取值非法")
+
+    def test_surface_norm_with_unrelated_keywords_rejected(self):
+        """写了「词面归一」就得真是词面变体。
+
+        这条拦的是**用最便宜的依据给自己的判断背书**——
+        词面归一是纯规则、零成本、可复核，所以它听起来最硬；
+        但如果拿它去背一个靠印象分的簇，就是把没做的判断伪装成做了的规则。
+        """
+        self.clusters["clusters"][0]["clustering_basis"] = "surface_norm"
+        self.clusters["clusters"][0]["representative_keywords"] = ["AI数字员工", "数字员工"]
+        self.assertRejected("词面归一只能合大小写和空格变体")
+
+    def test_surface_norm_with_case_variants_accepted(self):
+        """真的大小写变体该通过——不然这条规则就没法用了。
+
+        注意夹具要同时给出记录里的两个变体：代表词必须在原始记录里找得到，
+        所以「造一个变体词来测」是测不成的，得真采到过。
+        """
+        self.record["surfaces"][0]["records"].append(
+            {"keyword": "ai数字员工", "monthly_search_index": 370}
+        )
+        self.clusters["clusters"][0]["clustering_basis"] = "surface_norm"
+        self.clusters["clusters"][0]["representative_keywords"] = ["AI数字员工", "ai数字员工"]
+        self.assertAccepted()
+
+    def test_surface_norm_with_hashtag_variant_accepted(self):
+        """话题标记 `#` 是书写符号，不是词的一部分。
+
+        2026-09-29 广点通实测：以 `AI数字员工` 为种子拓出的 132 条里，
+        平台把 `#AI数字员工` / `#Ai数字员工` / `#ai数字员工` 当成三个独立词返回。
+        不合并的话，一次采集会凭空多出三个「不同的词」——
+        **而它们和主词要的是同一件事。**
+        """
+        self.record["surfaces"][0]["records"].append(
+            {"keyword": "#AI数字员工", "monthly_search_index": 10}
+        )
+        self.clusters["clusters"][0]["clustering_basis"] = "surface_norm"
+        self.clusters["clusters"][0]["representative_keywords"] = ["AI数字员工", "#AI数字员工"]
+        self.assertAccepted()
+
+    def test_surface_norm_does_not_merge_by_prefix(self):
+        """去 `#` 不等于去前缀——`ai智能数字员工` 不能被并进 `ai数字员工`。
+
+        这是上一条的对照组。放宽归一规则的诱惑是把「像的」都合掉，
+        这条守住边界：**加了一个字符，不代表可以把别的字符也当噪音。**
+        """
+        self.record["surfaces"][0]["records"].append(
+            {"keyword": "ai智能数字员工", "monthly_search_index": 40}
+        )
+        self.clusters["clusters"][0]["clustering_basis"] = "surface_norm"
+        self.clusters["clusters"][0]["representative_keywords"] = [
+            "AI数字员工",
+            "ai智能数字员工",
+        ]
+        self.assertRejected("词面归一只能合大小写和空格变体")
+
+    def test_serp_overlap_without_evidence_rejected(self):
+        """声称做了一个没做的测量，比不做更糟——不做会问人，声称了不会。"""
+        self.clusters["clusters"][0]["clustering_basis"] = "serp_overlap"
+        self.assertRejected("却没有 serp_evidence")
+
+    def test_serp_overlap_without_channels_rejected(self):
+        self.clusters["clusters"][0]["clustering_basis"] = "serp_overlap"
+        self.clusters["clusters"][0]["serp_evidence"] = {
+            "sampled_at": "2026-09-29",
+            "min_jaccard": 0.20,
+        }
+        self.assertRejected("channels 必须是非空数组")
+
+    def test_serp_overlap_below_threshold_without_note_rejected(self):
+        """低于阈值的重叠必须解释为什么仍然合簇。
+
+        低重叠**不是**拆簇证据（一篇内容能被多个 SERP 召回），
+        所以低重叠合簇可以是正确的——但必须说明理由，
+        否则就是把「内容稀缺」和「不同意图」混成了一件事。
+        """
+        self.clusters["clusters"][0]["clustering_basis"] = "serp_overlap"
+        self.clusters["clusters"][0]["serp_evidence"] = {
+            "channels": ["xhs-serp"],
+            "sampled_at": "2026-09-29",
+            "min_jaccard": 0.04,
+        }
+        self.assertRejected("却没写 note 说明为什么仍然合簇")
+
+    def test_serp_overlap_below_threshold_with_note_accepted(self):
+        """带说明的低重叠合簇是合法的——这是「内容稀缺」那条路径。"""
+        self.clusters["clusters"][0]["clustering_basis"] = "serp_overlap"
+        self.clusters["clusters"][0]["serp_evidence"] = {
+            "channels": ["xhs-serp"],
+            "sampled_at": "2026-09-29",
+            "min_jaccard": 0.04,
+            "note": "低重叠是内容稀缺不是不同意图：前排全是同一主题的泛化结果，平台在这个词下没有专门内容。",
+        }
+        self.assertAccepted()
+
+    def test_business_potential_out_of_range_rejected(self):
+        """0–3 量的是「我们的产品能不能解决这个问题」，不是量大不大。"""
+        self.clusters["clusters"][0]["business_potential"] = 5
+        self.assertRejected("business_potential 必须是 0–3")
+
+    def test_business_potential_in_range_accepted(self):
+        self.clusters["clusters"][0]["business_potential"] = 3
+        self.assertAccepted()
+
+    def test_boolean_business_potential_rejected(self):
+        """Python 里 True == 1，不特判的话布尔值会冒充合法评分。"""
+        self.clusters["clusters"][0]["business_potential"] = True
+        self.assertRejected("business_potential 必须是 0–3")
+
+
+class TestLibraryRules(ProjectCase):
+    """调研结论库——**建了但找不到，等于没建**。
+
+    这一组盯的不是「库文件格式对不对」，是**库能不能被找出来、结论有没有真的留下**。
+    它们的失效方式全是安静的：文件都在磁盘上，一切看起来正常，
+    只是下一轮没人翻开它，于是最贵的一步重付一次。
+    """
+
+    def test_missing_covers_rejected(self):
+        """没有「覆盖的词」这一列，按词就搜不到——主题名和词的对应不是一对一的。"""
+
+        def break_it() -> None:
+            path = self.project / "research/library/AI数字员工.md"
+            path.write_text(
+                path.read_text(encoding="utf-8").replace(
+                    "covers: [AI数字员工, 数字员工]\n", ""
+                ),
+                encoding="utf-8",
+            )
+            indexer.sync(self.project, str(INDEXER))
+
+        self.break_library = break_it
+        self.assertRejected("没写 covers")
+
+    def test_index_drift_rejected(self):
+        """改了库文件却没重建索引。
+
+        **这是整组测试里最重要的一条。** 校验器如果只「检查索引格式」，
+        这种漂移会全绿通过——索引格式完全合法，只是内容是旧的。
+        所以它必须**按生成器重算一遍逐字比对**。
+        """
+
+        def break_it() -> None:
+            path = self.project / "research/library/AI数字员工.md"
+            path.write_text(
+                path.read_text(encoding="utf-8").replace(
+                    "夹具结论：聚光有量，广点通的量几乎全空", "改过的说明"
+                ),
+                encoding="utf-8",
+            )
+            # 故意不重建索引——那正是要拦的动作
+
+        self.break_library = break_it
+        self.assertRejected("索引和库文件不一致")
+
+    def test_deleted_claude_block_rejected(self):
+        """CLAUDE.md 里的索引块被删掉。
+
+        块没了，库就退回成「等人想起来去翻目录」——**而想不起来翻，正是要解决的问题**。
+        """
+
+        def break_it() -> None:
+            claude = self.project / "CLAUDE.md"
+            text = claude.read_text(encoding="utf-8")
+            start = text.index(indexer.START)
+            end = text.index(indexer.END) + len(indexer.END)
+            claude.write_text(text[:start] + text[end:], encoding="utf-8")
+
+        self.break_library = break_it
+        self.assertRejected("索引块和库文件不一致")
+
+    def test_research_not_archived_rejected(self):
+        """调研做完了但没入档。
+
+        夹具的 normalized 里核心词是 `AI数字员工`；把库文件的 covers 换成不相干的词，
+        模拟「采了却没留下」。**这一条比不做还糟**：不做会有人问，做了没留不会。
+        """
+
+        def break_it() -> None:
+            path = self.project / "research/library/AI数字员工.md"
+            path.write_text(
+                path.read_text(encoding="utf-8").replace(
+                    "covers: [AI数字员工, 数字员工]", "covers: [视频画册, 产品视频]"
+                ),
+                encoding="utf-8",
+            )
+            indexer.sync(self.project, str(INDEXER))
+
+        self.break_library = break_it
+        self.assertRejected("没有任何库文件覆盖它")
+
+    def test_library_without_research_is_accepted(self):
+        """库里先攒了结论、这一轮还没做调研——不该被拦。
+
+        **入档和采集是两件事。** 库是长期累积的，`normalized/` 是一轮一份。
+        用「有没有 normalized」去要求「能不能有 library」，等于把两个生命周期绑死。
+        """
+        def break_it() -> None:
+            # 这一轮还没落簇——库里有存量结论，新的调研还没开始
+            (self.project / "research/normalized/2026-09-29-ai数字员工.clusters.json").unlink()
+
+        self.break_library = break_it
+        self.assertAccepted()
+
+
 class TestEmptyProject(ProjectCase):
     def test_empty_project_passes(self):
-        """空项目该是绿的——没有产物不是错误。"""
+        """空项目该是绿的——没有产物不是错误。
+
+        建了目录但还没有任何产物时，索引没得可漂，此时判红是误报。
+        """
         rep = vr.Report()
         vr.validate_project(self.project, rep)
         self.assertEqual(rep.errors, [])

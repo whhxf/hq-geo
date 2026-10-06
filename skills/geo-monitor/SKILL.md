@@ -12,12 +12,12 @@ description: 监控品牌、产品和竞品在 AI 平台回答中的出现、位
 ## 开始前
 
 1. 读取 `capabilities/geo/methods/intent-and-query-model.md`、`capabilities/geo/methods/evidence-and-entity-policy.md` 和 `capabilities/geo/methods/measurement-attribution-and-roi.md`。
-2. 问题集来源：**项目根** `topics/<idea>/` 的选题或用户指定问题。项目内没有自动采集器，采样统一通过 `web-access` 人工触发。
+2. 问题集来源：**项目根** `topics/<idea>/` 的选题或用户指定问题。项目内没有自动采集器，采样统一通过 `ego-browser` 人工触发。
 
 ## 工作流
 
 1. 固定问题集、语言、市场、目标平台和采样时间。
-2. 对需要联网或登录的 AI 平台统一使用 `web-access`；不要绕过登录、验证码或用户接管。
+2. 对需要联网或登录的 AI 平台统一优先 `ego-browser`，跑不通时退回 `web-access`；不要绕过登录、验证码或用户接管。
 3. 保存完整回答或允许保存的最小原始记录，再派生品牌/竞品出现、引用 URL、答案位置、语气和变化。
 4. 多次采样时分别保存，不只保留平均值。
 5. 把无法访问、登录失效、页面变化和无引用区分开，不能都记成“品牌未出现”。

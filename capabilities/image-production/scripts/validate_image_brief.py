@@ -40,7 +40,88 @@ def load_style_ids() -> set:
     return {item["id"] for item in library["styles"]}
 
 
-def validate(path: Path, style_ids: set) -> list:
+def find_project_root(start: Path):
+    """从简报路径往上找项目根（有 `.hq-geo.json` 的那一级）。找不到返回 None。"""
+    for candidate in [start, *start.parents]:
+        if (candidate / ".hq-geo.json").is_file():
+            return candidate
+    return None
+
+
+def _check_references(item: dict, label: str, root) -> list:
+    """参考图的三条拦截：要有说明、路径要在项目根内、文件要真的在。
+
+    这三条都是**出图前**必须过的。出图是花钱的动作，
+    路径拼错、文件没拷进来这类事必须在花钱之前就停下。
+    """
+    references = item.get("reference_images") or []
+    if not references:
+        # 没有参考图时 `reference_instruction` 是空话，不要求填（宪法 8：默认减法）。
+        return []
+
+    errors = []
+    if not (item.get("reference_instruction") or "").strip():
+        errors.append(
+            f"{label}: 有 reference_images 就必须写 reference_instruction——"
+            "万相 2.7 是多图参考的**生成+编辑**模型，不说清参考什么，"
+            "它可能把参考图当成待编辑对象，你拿到的就是「改了一下的参考图」"
+        )
+
+    if root is None:
+        return errors
+
+    resolved_root = Path(root).resolve()
+    for raw in references:
+        candidate = (resolved_root / raw).resolve()
+        if not candidate.is_relative_to(resolved_root):
+            errors.append(
+                f"{label}: 参考图 {raw!r} 指向项目根之外。"
+                "参考图大概率不是自己拍的，越出项目根既无法登记来源和权利，也说不清用途"
+            )
+        elif not candidate.is_file():
+            errors.append(f"{label}: 参考图不存在：{raw!r}（出图时才发现就白花了钱）")
+    return errors
+
+
+def _check_palette_ref(item: dict, label: str, root) -> list:
+    """色板引用要真的存在、真的是 `measure_palette.py` 的输出。
+
+    不查的话，格式不对时会**静默不出色板**——图和预期两样，但没有任何报错，
+    只能靠人肉发现。那是这类 bug 里最难查的一种。
+    """
+    palette_ref = item.get("palette_ref")
+    if not palette_ref:
+        return []
+    if root is None:
+        return []
+
+    resolved_root = Path(root).resolve()
+    candidate = (resolved_root / palette_ref).resolve()
+    if not candidate.is_relative_to(resolved_root):
+        return [f"{label}: palette_ref {palette_ref!r} 指向项目根之外"]
+    if not candidate.is_file():
+        return [f"{label}: palette_ref 指向的文件不存在：{palette_ref!r}"]
+
+    try:
+        data = json.loads(candidate.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        return [f"{label}: palette_ref 不是合法 JSON：{palette_ref!r}（{error}）"]
+
+    if not isinstance(data, dict) or "per_image" not in data or "consensus" not in data:
+        return [
+            f"{label}: palette_ref 指向的不是 measure_palette.py 的输出"
+            f"（缺 per_image / consensus 字段）：{palette_ref!r}"
+        ]
+    return []
+
+
+def validate(path: Path, style_ids: set, project: Path = None) -> list:
+    """校验一份图片简报。
+
+    `project` 是项目根，用来判断参考图路径有没有越界、文件在不在。
+    不给就**从简报路径往上找** `.hq-geo.json`——这样单测里传个临时文件
+    也能跑，不必先造一个项目。
+    """
     data = json.loads(path.read_text(encoding="utf-8"))
     errors = [f"missing {key}" for key in sorted(REQUIRED - data.keys())]
     if errors:
@@ -52,6 +133,8 @@ def validate(path: Path, style_ids: set) -> list:
     deliverables = data.get("deliverables") or []
     if not deliverables:
         errors.append("deliverables must not be empty")
+
+    root = project or find_project_root(path.parent)
 
     blocked = []
     for item in deliverables:
@@ -89,6 +172,9 @@ def validate(path: Path, style_ids: set) -> list:
                 f"{label}: style_id {style_id!r} 不在风格库里。"
                 f"拼错不会报错，只会静默地出一张没有风格的图。可选：{', '.join(sorted(style_ids))}"
             )
+
+        errors.extend(_check_references(item, label, root))
+        errors.extend(_check_palette_ref(item, label, root))
 
     if data.get("status") == "ready_for_production" and blocked:
         errors.append(f"ready brief 里还有 blocked 的图：{', '.join(blocked)}")

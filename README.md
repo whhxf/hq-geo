@@ -48,7 +48,7 @@ python3 capabilities/project-scaffold/scripts/init_project.py <目标目录>
 
 编排器 `skills/content-orchestrator/SKILL.md` 会判断走哪条流程。普通社交内容不加载完整 GEO 流程。
 
-联网搜索、网页读取和平台操作统一使用 `web-access`，通过 CDP 直连本地 Chrome，携带登录态。
+联网搜索、网页读取和平台操作**优先用 `ego-browser`**，跑不通时退回 `web-access`（CDP 直连本地 Chrome，携带登录态）。
 
 ## 目录结构
 

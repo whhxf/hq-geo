@@ -671,6 +671,61 @@
       ]
     },
     {
+      "name": "竞争程度被收紧成「高/中/低」枚举",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/contracts/research-record.schema.json",
+          "find": "\"type\": [\"string\", \"integer\", \"null\"],",
+          "replace": "\"type\": [\"string\", \"null\"],\n          \"enum\": [\"高\", \"中\", \"低\"],"
+        }
+      ]
+    },
+    {
+      "name": "竞争程度不再接受数字",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/contracts/research-record.schema.json",
+          "find": "\"type\": [\"string\", \"integer\", \"null\"],",
+          "replace": "\"type\": [\"string\", \"null\"],"
+        }
+      ]
+    },
+    {
+      "name": "采集记录契约丢掉月均点击量",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/contracts/research-record.schema.json",
+          "find": "\"monthly_click_index\": {",
+          "replace": "\"monthly_click_index_renamed\": {"
+        }
+      ]
+    },
+    {
+      "name": "广点通渠道文件丢掉「不做映射」",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/channels/gdt-bidword.md",
+          "find": "**不做映射**",
+          "replace": "**统一成高中低**"
+        }
+      ]
+    },
+    {
+      "name": "广点通渠道入口写死账户 ID",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/channels/gdt-bidword.md",
+          "find": "<账户ID>",
+          "replace": "64883507"
+        }
+      ]
+    },
+    {
       "name": "选题校验器不再拦五问半答",
       "test": "topic-registry-unit",
       "edits": [
@@ -722,6 +777,897 @@
           "file": "capabilities/topic-registry/README.md",
           "find": "**答不上第 5 问的不是选题，是想法。**",
           "replace": "**五问是参考，填不填都行。**"
+        }
+      ]
+    },
+    {
+      "name": "SERP 方法卡把方向性写反（低重叠=该拆簇）",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/methods/serp-overlap-clustering.md",
+          "find": "**高重叠是「该合簇」的证据。低重叠不是「该拆簇」的证据。**",
+          "replace": "**高重叠是「该合簇」的证据。低重叠是「该拆簇」的证据。**"
+        }
+      ]
+    },
+    {
+      "name": "SERP 方法卡删掉噪声基线数字",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/methods/serp-overlap-clustering.md",
+          "find": "0.80",
+          "replace": "0.99"
+        }
+      ]
+    },
+    {
+      "name": "SERP 方法卡删掉「内容稀缺」这个失效边界",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/methods/serp-overlap-clustering.md",
+          "find": "内容稀缺",
+          "replace": "内容不足"
+        }
+      ]
+    },
+    {
+      "name": "小红书渠道把「0 条」直接判成无内容",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/channels/xhs-serp.md",
+          "find": "**0 条不等于「这个词没有内容」。**",
+          "replace": "**0 条就是这个词没有内容。**"
+        }
+      ]
+    },
+    {
+      "name": "抖音渠道删掉「相关搜索模块不是搜索结果」的处置",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/channels/douyin-search.md",
+          "find": "相关搜索",
+          "replace": "相关词"
+        }
+      ]
+    },
+    {
+      "name": "需求簇契约把 clustering_basis 从必填里拿掉",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/contracts/demand-cluster.schema.json",
+          "find": "\"clustering_basis\",",
+          "replace": "\"clustering_basis_removed\","
+        }
+      ]
+    },
+    {
+      "name": "契约把簇定义挪回 $defs（检查会静默全通过）",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/contracts/demand-cluster.schema.json",
+          "find": "\"clusters\": {",
+          "replace": "\"clusters_moved\": {"
+        }
+      ]
+    },
+    {
+      "name": "skill 站1 退回「定核心词」",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "skills/keyword-research/SKILL.md",
+          "find": "## 站 1：定种子词表",
+          "replace": "## 站 1：定核心词"
+        }
+      ]
+    },
+    {
+      "name": "skill 删掉 clustering_basis 必填那一节",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "skills/keyword-research/SKILL.md",
+          "find": "### 必填：`clustering_basis`",
+          "replace": "### 聚类依据"
+        }
+      ]
+    },
+    {
+      "name": "词面归一不再去掉话题标记 #",
+      "test": "keyword-research-unit",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/scripts/validate_research.py",
+          "find": "[\\s\\-_·、，,。.／/#]+",
+          "replace": "[\\s\\-_·、，,。.／/]+"
+        }
+      ]
+    },
+    {
+      "name": "词面归一放宽成「像的都合」（去 # 变成去任意前缀）",
+      "test": "keyword-research-unit",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/scripts/validate_research.py",
+          "find": "return re.sub(r\"[\\s\\-_·、，,。.／/#]+\", \"\", text)",
+          "replace": "return re.sub(r\"^(ai|#)+\", \"\", re.sub(r\"[\\s\\-_·、，,。.／/]+\", \"\", text))"
+        }
+      ]
+    },
+    {
+      "name": "交叉验证方法卡删掉「各回答一半」的对照表",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/methods/cross-evidence-validation.md",
+          "find": "| **回答什么** | **这个词值不值得做** | **这两个词该不该合簇** |",
+          "replace": "| 用途 | 商业判断 | 聚类判断 |"
+        }
+      ]
+    },
+    {
+      "name": "交叉验证方法卡把「蓝海词 ≠ 内容稀缺」这条陷阱删掉",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/methods/cross-evidence-validation.md",
+          "find": "**平台的「蓝海词」标记 ≠ 内容稀缺。**",
+          "replace": "**平台的「蓝海词」标记可以参考。**"
+        }
+      ]
+    },
+    {
+      "name": "交叉验证方法卡删掉 # 缺口那条发现",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/methods/cross-evidence-validation.md",
+          "find": "一次采集凭空多出三个「不同的词」",
+          "replace": "一次采集多出几个词形"
+        }
+      ]
+    },
+    {
+      "name": "交叉验证方法卡删掉「内容稀缺要配量级」那道限定",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/methods/cross-evidence-validation.md",
+          "find": "**内容稀缺 = 现象；量级 = 这个现象值不值得行动。**",
+          "replace": "**内容稀缺就是机会。**"
+        }
+      ]
+    },
+    {
+      "name": "交叉验证方法卡把「量级相同但出价差 7 倍」这条铁证弱化",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/methods/cross-evidence-validation.md",
+          "find": "**量级几乎一样，出价差 7.1 倍。**",
+          "replace": "**两个词的量级和出价都差不多。**"
+        }
+      ]
+    },
+    {
+      "name": "交叉验证方法卡删掉「三指标一致 → 合簇」这条正面判据",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/methods/cross-evidence-validation.md",
+          "find": "**SERP 高重叠 + 商业三指标一致 → 合簇**",
+          "replace": "**SERP 高重叠 → 合簇**"
+        }
+      ]
+    },
+    {
+      "name": "交叉验证方法卡删掉「指标分化 → 商业上是两件事」这条正面判据",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/methods/cross-evidence-validation.md",
+          "find": "**SERP 高重叠 + 商业指标分化 → 内容可复用，但商业上是两件事**",
+          "replace": "**SERP 高重叠但指标分化时，读内容再定。**"
+        }
+      ]
+    },
+    {
+      "name": "交叉验证方法卡删掉「拓词结果里没看到 ≠ 没有量」这条教训",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/methods/cross-evidence-validation.md",
+          "find": "**「在 A 的拓词结果里没看到 B」≠「B 没有量」。**",
+          "replace": "**拓词结果只覆盖种子词附近。**"
+        }
+      ]
+    },
+    {
+      "name": "聚光渠道文件把「大小写被当独立词条」这条口径删掉",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/channels/xhs-spotlight.md",
+          "find": "**平台把大小写不同的写法当独立词条，各给各的指数。**",
+          "replace": "**平台对大小写不敏感。**"
+        }
+      ]
+    },
+    {
+      "name": "聚光渠道文件删掉「拓词结果里没看到 ≠ 没有量」这条硬线",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/channels/xhs-spotlight.md",
+          "find": "**「在 A 的拓词结果里没看到 B」≠「B 没有量」。**",
+          "replace": "**拓词结果只覆盖种子词附近。**"
+        }
+      ]
+    },
+    {
+      "name": "聚光渠道文件把导出格式警告改成「按 Excel 打开」",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/channels/xhs-spotlight.md",
+          "find": "**读到 .xlsx 先验格式再解析**",
+          "replace": "**下载后按 Excel 打开**"
+        }
+      ]
+    },
+    {
+      "name": "关键词研究 skill 退回「按要不要登录推浏览器工具」",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "skills/keyword-research/SKILL.md",
+          "find": "**不要按「要不要登录」推工具**",
+          "replace": "**需要登录态的走 `web-access`**"
+        }
+      ]
+    },
+    {
+      "name": "聚光渠道文件把用户路径拓词写成一张表",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/channels/xhs-spotlight.md",
+          "find": "**每个节点一套词表，互不包含**",
+          "replace": "**路径下的词在同一张表里**"
+        }
+      ]
+    },
+    {
+      "name": "聚光渠道文件不再警告虚拟滚动会少收",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/channels/xhs-spotlight.md",
+          "find": "**「共 N 个关键词」不代表 DOM 里有 N 行。**",
+          "replace": "**表格会把所有关键词都渲染出来。**"
+        }
+      ]
+    },
+    {
+      "name": "聚光渠道文件删掉已知陷阱里的虚拟滚动条目",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/channels/xhs-spotlight.md",
+          "find": "**虚拟滚动会让采集静默少收。**",
+          "replace": "**翻页时注意顺序。**"
+        }
+      ]
+    },
+    {
+      "name": "聚光渠道文件不再说明切页签会清空种子词",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/channels/xhs-spotlight.md",
+          "find": "**切换页签会清空种子词**",
+          "replace": "**三个页签共用同一个搜索框**"
+        }
+      ]
+    },
+    {
+      "name": "skill 站2 退回「只跑一个商业工具」",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "skills/keyword-research/SKILL.md",
+          "find": "**两个都要跑**",
+          "replace": "**挑一个跑就行**"
+        }
+      ]
+    },
+    {
+      "name": "skill 不再说明只有商业工具能给量",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "skills/keyword-research/SKILL.md",
+          "find": "**只有官方商业工具能给量。**",
+          "replace": "**各平台都能给量。**"
+        }
+      ]
+    },
+    {
+      "name": "skill 拆掉「用户确认关键词」这道闸门",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "skills/keyword-research/SKILL.md",
+          "find": "### 闸门：交给用户确认",
+          "replace": "### 顺带看一眼结果"
+        }
+      ]
+    },
+    {
+      "name": "skill 说时间紧可以跳过用户确认",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "skills/keyword-research/SKILL.md",
+          "find": "**没有用户确认就去做 SERP，等于替他决定了要研究哪些词。**",
+          "replace": "**时间紧的话可以先做 SERP。**"
+        }
+      ]
+    },
+    {
+      "name": "skill 给 AI 平台另建一套记录格式",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "skills/keyword-research/SKILL.md",
+          "find": "不在这里另建一套记录格式——复用 `geo-research` 的",
+          "replace": "在这里单独定义一套 AI 平台的记录格式"
+        }
+      ]
+    },
+    {
+      "name": "skill 采集纪律不再拦 keyboard.paste",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "skills/keyword-research/SKILL.md",
+          "find": "**不要在真实网站上用 `keyboard.paste` 往表单里填文本。**",
+          "replace": "**用 keyboard.paste 填表最快。**"
+        }
+      ]
+    },
+    {
+      "name": "广点通渠道文件不再拦 keyboard.paste 填词",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/channels/gdt-bidword.md",
+          "find": "**不要用 `keyboard.paste` 填种子词。**",
+          "replace": "**填种子词用键盘输入即可。**"
+        }
+      ]
+    },
+    {
+      "name": "备查库不再说「没有口径的数字是错的」",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/methods/research-library.md",
+          "find": "**没有口径的数字是错的，不是不完整的。**",
+          "replace": "**数字要写清楚。**"
+        }
+      ]
+    },
+    {
+      "name": "备查库不再区分 library 和 LEARNING 的分工",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/methods/research-library.md",
+          "find": "**能不能直接写进一篇内容里？**",
+          "replace": "**看情况。**"
+        }
+      ]
+    },
+    {
+      "name": "备查库改成推翻就删",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/methods/research-library.md",
+          "find": "**「这个假设是错的」本身就是参考资料。**",
+          "replace": "**推翻的结论直接删掉就行。**"
+        }
+      ]
+    },
+    {
+      "name": "备查库去掉入档判断标准",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/methods/research-library.md",
+          "find": "**两条都答「是」才进：**",
+          "replace": "**值得留的就进来。**"
+        }
+      ]
+    },
+    {
+      "name": "skill 收尾不再入档",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "skills/keyword-research/SKILL.md",
+          "find": "### 入档：可复用的结论进 `research/library/`",
+          "replace": "### 收尾说明"
+        }
+      ]
+    },
+    {
+      "name": "skill 删掉站 4 回填 clustering_basis",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "skills/keyword-research/SKILL.md",
+          "find": "### 回填 `clustering_basis`",
+          "replace": "### 数据整理"
+        }
+      ]
+    },
+    {
+      "name": "脚手架不再建 research/library",
+      "test": "project-structure",
+      "edits": [
+        {
+          "file": "capabilities/project-scaffold/scripts/init_project.py",
+          "find": "    \"research/library\",\n",
+          "replace": ""
+        }
+      ]
+    },
+    {
+      "name": "索引不再写进项目 CLAUDE.md（自动加载那一半没了）",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/scripts/library_index.py",
+          "find": "CLAUDE.md",
+          "replace": "NOTES.md"
+        }
+      ]
+    },
+    {
+      "name": "索引去掉「覆盖的词」列",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/scripts/library_index.py",
+          "find": "covers",
+          "replace": "tags"
+        }
+      ]
+    },
+    {
+      "name": "校验器改成只检查索引格式（不按生成器重算）",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/scripts/validate_research.py",
+          "find": "build_readme",
+          "replace": "render_readme"
+        }
+      ]
+    },
+    {
+      "name": "校验器不再核对「采过的核心词有没有入档」",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/scripts/validate_research.py",
+          "find": "core_keywords",
+          "replace": "keywords_seen"
+        }
+      ]
+    },
+    {
+      "name": "skill 不再把读索引当成开工第一件事",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "skills/keyword-research/SKILL.md",
+          "find": "**先读 `research/library/README.md`——这是第一件事，不是可选的。**",
+          "replace": "**有空的话翻一下 `research/library/`。**"
+        }
+      ]
+    },
+    {
+      "name": "skill 入档后不重建索引",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "skills/keyword-research/SKILL.md",
+          "find": "python3 capabilities/keyword-research/scripts/library_index.py --project <项目根>",
+          "replace": "（索引下次有空再更新）"
+        }
+      ]
+    },
+    {
+      "name": "文章流水线不再查调研结论库",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "research/library/README.md",
+          "replace": "research/library/"
+        }
+      ]
+    },
+    {
+      "name": "文章流水线不再声明「库里的不是事实」",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "**库里的是平台信号，不是事实**",
+          "replace": "**库里的是调研结论**"
+        }
+      ]
+    },
+    {
+      "name": "校验器不再逐字比对索引（改成只检查格式）",
+      "test": "keyword-research-unit",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/scripts/validate_research.py",
+          "find": "elif readme.read_text(encoding=\"utf-8\") != wanted_readme:",
+          "replace": "elif False:"
+        }
+      ]
+    },
+    {
+      "name": "校验器不再拦「采过了但没入档」",
+      "test": "keyword-research-unit",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/scripts/validate_research.py",
+          "find": "if _normalize_surface(keyword) not in covered:",
+          "replace": "if False:"
+        }
+      ]
+    },
+    {
+      "name": "校验器不再拦库文件缺 covers",
+      "test": "keyword-research-unit",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/scripts/validate_research.py",
+          "find": "if not entry[\"covers\"]:",
+          "replace": "if False:"
+        }
+      ]
+    },
+    {
+      "name": "校验器不再核对 CLAUDE.md 里的索引块",
+      "test": "keyword-research-unit",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/scripts/validate_research.py",
+          "find": "if wanted_block not in text:",
+          "replace": "if False:"
+        }
+      ]
+    },
+    {
+      "name": "小红书渠道不再警告「卡片数里有广告位」",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/channels/xhs-serp.md",
+          "find": "**按卡片数采会把广告位写进记录。**",
+          "replace": "**卡片数就是笔记数。**"
+        }
+      ]
+    },
+    {
+      "name": "小红书渠道不再说 likes 可能是「赞」",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/channels/xhs-serp.md",
+          "find": "**`likes` 不一定是个数。**",
+          "replace": "**`likes` 是数字。**"
+        }
+      ]
+    },
+    {
+      "name": "抖音渠道退回固定等待（会静默采到空页面）",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/channels/douyin-search.md",
+          "find": "**必须轮询等元素出现，不要固定等待。**",
+          "replace": "**等 9 秒就够了。**"
+        }
+      ]
+    },
+    {
+      "name": "抖音渠道不再区分 related_tabs 的两个来源",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/channels/douyin-search.md",
+          "find": "**两者共用 `related_tabs` 一个字段名，区分只能靠 `surface`。**",
+          "replace": "**两者都写进 `related_tabs`，随时可以一起用。**"
+        }
+      ]
+    },
+    {
+      "name": "抖音渠道不再警告 captcha 元素会误报风控",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/channels/douyin-search.md",
+          "find": "**页面常驻一个隐藏的 `iframe#nocaptcha-container`，那不是正在被风控。**",
+          "replace": "**页面上有 captcha 元素就是被风控了。**"
+        }
+      ]
+    },
+    {
+      "name": "SERP 方法卡不再要求按 keyword 过滤（会算出方向相反的假低值）",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/methods/serp-overlap-clustering.md",
+          "find": "**构造 A 和 B 之前，必须先按记录级的 `keyword` 字段过滤。**",
+          "replace": "**直接把一个文件里的所有记录当成一个词的集合来算。**"
+        }
+      ]
+    },
+    {
+      "name": "小红书渠道把「一份文件」当成「一个词」",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/channels/xhs-serp.md",
+          "find": "**所以算重叠、做统计之前，必须先按记录级的 `keyword` 字段过滤。**",
+          "replace": "**一份文件就是一个词的数据，直接拿去算。**"
+        }
+      ]
+    },
+    {
+      "name": "抖音渠道把「一份文件」当成「一个词」",
+      "test": "keyword-research-contract",
+      "edits": [
+        {
+          "file": "capabilities/keyword-research/channels/douyin-search.md",
+          "find": "**算重叠前必须按记录级的 `keyword` 字段过滤。**",
+          "replace": "**一份文件就是一个词的数据，直接拿去算。**"
+        }
+      ]
+    },
+    {
+      "name": "参考吸收 k-means 合并阈值提到 999（等于不合并）",
+      "test": "image-palette-tooling",
+      "edits": [
+        {
+          "file": "capabilities/image-production/scripts/measure_palette.py",
+          "find": "MERGE_DELTA_E = 2.5",
+          "replace": "MERGE_DELTA_E = 999.0"
+        }
+      ]
+    },
+    {
+      "name": "参考吸收 出图请求体无条件多塞一个字段",
+      "test": "image-palette-tooling",
+      "edits": [
+        {
+          "file": "capabilities/image-production/scripts/generate_image.py",
+          "find": "            \"watermark\": False,",
+          "replace": "            \"watermark\": False,\n            \"seed\": 0,"
+        }
+      ]
+    },
+    {
+      "name": "参考吸收 参考图拦截整段失效",
+      "test": "image-palette-tooling",
+      "edits": [
+        {
+          "file": "capabilities/image-production/scripts/validate_image_brief.py",
+          "find": "    references = item.get(\"reference_images\") or []",
+          "replace": "    references = []\n    _ = item.get(\"reference_images\") or []"
+        }
+      ]
+    },
+    {
+      "name": "参考吸收 ΔE00 恒返回 0",
+      "test": "image-palette-tooling",
+      "edits": [
+        {
+          "file": "capabilities/image-production/scripts/color_math.py",
+          "find": "def _lab_f(t: float) -> float:",
+          "replace": "def _lab_f(t: float) -> float:\n    return 1.0"
+        }
+      ]
+    },
+    {
+      "name": "参考吸收 灰度的色相不再归零",
+      "test": "image-palette-tooling",
+      "edits": [
+        {
+          "file": "capabilities/image-production/scripts/color_math.py",
+          "find": "    if round(chroma, 3) == 0:\n        hue = 0.0",
+          "replace": "    if False:\n        hue = 0.0"
+        }
+      ]
+    },
+    {
+      "name": "参考吸收 回测改回逐 role 匹配（制造假警报）",
+      "test": "image-palette-tooling",
+      "edits": [
+        {
+          "file": "capabilities/image-production/scripts/verify_palette.py",
+          "find": "            match = min(unused, key=lambda candidate: (delta_e_hex(item[\"hex\"], candidate[\"hex\"]),\n                                                       candidate[\"hex\"]))",
+          "replace": "            match = min(unused, key=lambda candidate: (candidate[\"role\"] != item[\"role\"],\n                                                       candidate[\"hex\"]))"
+        }
+      ]
+    },
+    {
+      "name": "参考吸收 调色板低位深取样偏移一位",
+      "test": "image-palette-tooling",
+      "edits": [
+        {
+          "file": "capabilities/image-production/scripts/png_io.py",
+          "find": "    shift = 8 - depth * (x % per_byte + 1)",
+          "replace": "    shift = 8 - depth * (x % per_byte + 1) + 1"
+        }
+      ]
+    },
+    {
+      "name": "图片线 删掉参考色板的 role 免责说明",
+      "test": "image-pipeline-contract",
+      "edits": [
+        {
+          "file": "skills/image-pipeline/SKILL.md",
+          "find": "**`role` 是猜的，`hex` 和 `coverage` 是量的。**",
+          "replace": "**色板是从参考图里提取出来的。**"
+        }
+      ]
+    },
+    {
+      "name": "图片线 允许色板自动沉淀进风格库",
+      "test": "image-pipeline-contract",
+      "edits": [
+        {
+          "file": "skills/image-pipeline/SKILL.md",
+          "find": "**量出来的色板不写进 `image-styles.json`。**",
+          "replace": "**量出来的色板可以写进 `image-styles.json`。**"
+        }
+      ]
+    },
+    {
+      "name": "图片线 允许把参考图当素材拼进去",
+      "test": "image-pipeline-contract",
+      "edits": [
+        {
+          "file": "skills/image-pipeline/SKILL.md",
+          "find": "**不把参考图当素材用。**",
+          "replace": "**参考图可以直接拼进成品。**"
+        }
+      ]
+    },
+    {
+      "name": "图片线 从契约里删掉 palette_ref 字段",
+      "test": "image-pipeline-contract",
+      "edits": [
+        {
+          "file": "capabilities/image-production/contracts/image-brief.schema.json",
+          "find": "        \"palette_ref\": {",
+          "replace": "        \"palette_ref_removed\": {"
+        }
+      ]
+    },
+    {
+      "name": "参考吸收 ΔE 合并不再发生（阈值降到 0）",
+      "test": "image-palette-tooling",
+      "edits": [
+        {
+          "file": "capabilities/image-production/scripts/measure_palette.py",
+          "find": "MERGE_DELTA_E = 2.5",
+          "replace": "MERGE_DELTA_E = 0.0"
+        }
+      ]
+    },
+    {
+      "name": "参考吸收 共识稳定性恒为 1（不稳定的也说成 pattern）",
+      "test": "image-palette-tooling",
+      "edits": [
+        {
+          "file": "capabilities/image-production/scripts/measure_palette.py",
+          "find": "        stability = max(0.0, min(1.0, 1 - spread / _STABILITY_SCALE))",
+          "replace": "        stability = 1.0"
+        }
+      ]
+    },
+    {
+      "name": "参考吸收 共识代表色改成取平均（凭空造一个没人用过的色）",
+      "test": "image-palette-tooling",
+      "edits": [
+        {
+          "file": "capabilities/image-production/scripts/measure_palette.py",
+          "find": "        medoid = min(samples, key=lambda item: (round(total_distance(item), 6), item[\"hex\"]))",
+          "replace": "        medoid = {'hex': '#808080', 'oklch': '0.5 0 0'}"
+        }
+      ]
+    },
+    {
+      "name": "canary 清缓存变成空转（函数体第一行就返回）",
+      "test": "canary-unit",
+      "edits": [
+        {
+          "file": "test/tools/canary.py",
+          "find": "root = SYSTEM.resolve()",
+          "replace": "return []\n    root = SYSTEM.resolve()"
+        }
+      ]
+    },
+    {
+      "name": "canary 清缓存时连别的模块一起删",
+      "test": "canary-unit",
+      "edits": [
+        {
+          "file": "test/tools/canary.py",
+          "find": "cache.glob(f\"{source.stem}.*.pyc\")",
+          "replace": "cache.glob(\"*.pyc\")"
+        }
+      ]
+    },
+    {
+      "name": "canary 只 resolve 一边（macOS 软链下 relative_to 会炸）",
+      "test": "canary-unit",
+      "edits": [
+        {
+          "file": "test/tools/canary.py",
+          "find": "root = SYSTEM.resolve()",
+          "replace": "root = SYSTEM"
+        }
+      ]
+    },
+    {
+      "name": "canary 让被破坏的那次运行照常写字节码",
+      "test": "canary-unit",
+      "edits": [
+        {
+          "file": "test/tools/canary.py",
+          "find": ", PYTHONDONTWRITEBYTECODE=\"1\"",
+          "replace": ""
+        }
+      ]
+    },
+    {
+      "name": "编排器断掉交易渠道契约引用",
+      "test": "content-routing-contract",
+      "edits": [
+        {
+          "file": "skills/content-orchestrator/SKILL.md",
+          "find": "capabilities/content-production/channels/xianyu.md",
+          "replace": "某个渠道契约"
+        }
+      ]
+    },
+    {
+      "name": "交易渠道契约删掉未知停机硬线",
+      "test": "content-routing-contract",
+      "edits": [
+        {
+          "file": "capabilities/content-production/channels/xianyu.md",
+          "find": "未知项阻止 `ready_to_publish`。",
+          "replace": "未知项可以先发布。"
         }
       ]
     }

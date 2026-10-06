@@ -56,6 +56,7 @@ PROJECT_REQUIRED = [
     "facts",
     "research/raw",
     "research/normalized",
+    "research/library",
     "content/briefs",
     "content/packages",
     "content/styles",
@@ -138,6 +139,44 @@ def check_root_separation(errors: list) -> None:
             errors.append(f"项目根出现系统层路径: {name}（系统代码只有一份，在系统根）")
 
 
+# 脚手架用 write_new 写的文件，不走 DIRECTORIES 那条目录清单。
+SCAFFOLD_FILES = {MARKER, "LEARNING.md"}
+
+
+def check_scaffold_coverage(errors: list) -> None:
+    """脚手架必须建出「项目根必须有的」每一条目录。
+
+    这两份清单会各自漂移：往 `PROJECT_REQUIRED` 加一行而忘了加脚手架，
+    **当时所有测试都是绿的**——因为已存在的项目早就手工建好了那份目录。
+    症状要等到下一个新项目才出现，而那时它看起来像「新项目建错了」，
+    不像「清单漏了一行」。
+    """
+    scaffold = SYSTEM / "capabilities/project-scaffold/scripts/init_project.py"
+    if not scaffold.is_file():
+        errors.append("找不到项目脚手架，无法核对它与 PROJECT_REQUIRED 是否一致")
+        return
+
+    # 用 AST 取那份清单，不执行脚手架——它 import subprocess、会 git init。
+    created: set = set()
+    for node in ast.parse(scaffold.read_text(encoding="utf-8")).body:
+        if isinstance(node, ast.Assign) and any(
+            getattr(target, "id", None) == "DIRECTORIES" for target in node.targets
+        ):
+            created = {ast.literal_eval(element) for element in node.value.elts}
+            break
+    if not created:
+        errors.append("没能从脚手架里读出 DIRECTORIES——清单名字改了就在这里同步")
+        return
+
+    for relative in PROJECT_REQUIRED:
+        if relative in SCAFFOLD_FILES or relative in created:
+            continue
+        errors.append(
+            f"PROJECT_REQUIRED 要求 {relative}，但脚手架不建它——"
+            "新项目一建出来就过不了门禁，而现有项目不会暴露这个问题"
+        )
+
+
 def check_syntax(errors: list) -> None:
     for root in SYSTEM_PYTHON_ROOTS:
         for path in sorted((SYSTEM / root).rglob("*.py")):
@@ -177,6 +216,7 @@ def main() -> int:
 
     check_required(errors)
     check_root_separation(errors)
+    check_scaffold_coverage(errors)
 
     for name in RETIRED_MODULES:
         if (SYSTEM / name).exists():

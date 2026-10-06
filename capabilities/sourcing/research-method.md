@@ -17,7 +17,7 @@
 
 ## 一手来源才算证据
 
-用户环境的联网统一走 `web-access` skill（WebFetch/WebSearch 不可用）。
+用户环境的联网统一优先 `ego-browser`，跑不通时退回 `web-access` skill（WebFetch/WebSearch 不可用）。
 **搜索引擎和聚合平台是发现入口，不是证据本身。**
 
 | 要查什么 | 一手来源 |

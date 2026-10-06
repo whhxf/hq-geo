@@ -80,4 +80,4 @@ for (const name of ["AGENTS.md", "CLAUDE.md", "README.md", "SOURCE_OF_TRUTH.md"]
 2. **它不受控。** 它有自己的更新节奏（`/dbs-update`），本机装的版本和上游已经不一致。焊进流水线等于把别人的发版节奏变成自己的风险。
 3. **授权不允许。** 见铁律 3。
 
-**它现在的形态就是最好的形态**：全局可用，hq-geo 不依赖它，它也不知道 hq-geo 存在——和 `web-access` 一样。
+**它现在的形态就是最好的形态**：全局可用，hq-geo 不依赖它，它也不知道 hq-geo 存在——和 `ego-browser` 一样。

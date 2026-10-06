@@ -21,6 +21,13 @@ description: 从任务文件到文章成稿的完整流水线。用户说「看�
 - `capabilities/content-production/styles/README.md` — 风格示例与风格库
 - `00-meta/content-engine/03-platform-hard-rules.md` — 目标渠道的硬规则
 
+**再查一次调研结论库 `research/library/README.md`**——这个主题这个项目**已经调研过什么**。
+索引也在项目 `CLAUDE.md` 末尾（每次会话自动加载），但换设备或上下文被压缩后要自己读一次。
+**按「覆盖的词」列搜，不要按主题名猜。**
+
+**库里的是平台信号，不是事实**——它告诉你「有人在搜这个、这么问」，不告诉你「事情就是这样」。
+**定核心判断（站 3）要用它选方向，但落到稿子里的事实仍走 `skills/sourcing/` 的检索路径。**
+
 涉及品牌或产品推广时，再读 `capabilities/geo/methods/positioning-and-audience.md` 和对应事实包的 `positioning.json`。普通知识内容不强制品牌卡。
 
 ## 八站

@@ -28,6 +28,7 @@ DIRECTORIES = [
     "topics",
     "research/raw",
     "research/normalized",
+    "research/library",
     "content/briefs",
     "content/packages",
     "content/styles",
@@ -48,6 +49,14 @@ PROJECT_CLAUDE = """# {name}
 | `{system_root}/PLAYBOOK.md` | 怎么用这个系统 |
 | `{system_root}/skills/article-pipeline/SKILL.md` | 文章流水线八站 |
 
+## 动手前先看调研结论库
+
+**这个项目已经调研过什么，在文件末尾那块「调研结论库」里**——它是每次会话自动加载的，
+不用去翻目录。库里按「覆盖的词」列找，**不要按主题名猜**：主题名和词的对应不是一对一的。
+
+**已经调研过的主题不要重跑一遍。** 一次 SERP 研究是 每个词 × 每个平台 各采一次——
+重跑就是重付一次。
+
 ## 这个目录里有什么
 
 **实例层**——只有这个项目的事实、选题和产物：
@@ -57,7 +66,8 @@ PROJECT_CLAUDE = """# {name}
 - `topics/` 选题假设与测试状态
 - `content/` 制作简报、渠道发布包、风格示例
 - `data/` 创意对象与状态事件
-- `research/` 平台原始采集与清洗结果
+- `research/raw/` 平台原始采集，只追加不覆盖；`research/normalized/` 清洗与聚类结果，一轮一份
+- `research/library/` 长期累积的调研结论，一个主题一个文件，带着数字、口径和出处
 - `assets/generated/` 外部制作系统回传的成品
 
 ## 三条边界
@@ -171,6 +181,18 @@ def main() -> int:
     write_new(root / "CLAUDE.md", PROJECT_CLAUDE.format(name=name, system_root=SYSTEM_ROOT), created, skipped)
     write_new(root / "LEARNING.md", LEARNING.format(system_root=SYSTEM_ROOT), created, skipped)
     write_new(root / "content/styles/README.md", STYLES.format(system_root=SYSTEM_ROOT), created, skipped)
+
+    # 调研结论库的索引：往 CLAUDE.md 里插一块（会话启动即加载），并生成 library/README.md。
+    # 由生成器写、不由这里写死的文本——两处保持一致的办法是只有一处来源。
+    subprocess.run(
+        [
+            sys.executable,
+            str(SYSTEM_ROOT / "capabilities/keyword-research/scripts/library_index.py"),
+            "--project",
+            str(root),
+        ],
+        check=False,
+    )
 
     if not args.no_git and not (root / ".git").is_dir():
         subprocess.run(["git", "init", "-q"], cwd=root, check=False)

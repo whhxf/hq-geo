@@ -1,6 +1,6 @@
 ---
 name: image-pipeline
-description: 图片流水线——把图片简报变成真实的图。用户要生成配图、封面图、小红书图、海报、产品场景图时使用；要改一张已有的图（局部修改、换背景）时不要触发，那是编辑不是生成。
+description: 图片流水线——把图片简报变成真实的图。用户要生成配图、封面图、小红书图、海报、产品场景图时使用；用户丢来喜欢的参考图说「照这个感觉做」但说不清是什么感觉时也用（不让他描述，改从图里量出色板）。要改一张已有的图（局部修改、换背景）时不要触发，那是编辑不是生成。
 ---
 
 # 图片流水线
@@ -52,6 +52,9 @@ description: 图片流水线——把图片简报变成真实的图。用户要�
 | `synthetic` | 是不是模型生成的。**必须显式写** |
 | `source_assets` | 素材哪来的，权利状态 |
 | `claims_on_image` | 图上出现的每一句主张，逐条挂 `fact_ref` |
+| `reference_images` | 参考哪几张（用户给了喜欢的图时才有） |
+| `reference_instruction` | 参考它的什么。有 `reference_images` 就必填 |
+| `palette_ref` | 量出来的色板文件，出图和回测共用这一份 |
 | `status` | 这张图能不能出 |
 
 **`subject_kind` 是这份简报最重要的一格。** 它决定这张图能不能由模型生成：
@@ -77,6 +80,32 @@ description: 图片流水线——把图片简报变成真实的图。用户要�
 
 用户对某张图有特殊要求时，改的是 `subject` 和 `intent`，**不是换风格**。
 
+#### 用户给了参考图时
+
+用户说不清自己喜欢什么，但能给出喜欢的图。**不要让他描述**——
+让他把图放进项目根 `assets/reference/`，然后量出来：
+
+```bash
+python3 capabilities/image-production/scripts/measure_palette.py \
+  <项目根>/assets/reference/图.png -o <项目根>/assets/reference/palette.json
+```
+
+量出来的色板是**数字，不是形容词**。它同时喂两个下游：出图时的 `color_palette`
+参数，和站 5 回测时的预期色板。同一个文件，不转译——转译就是信息损失。
+
+三条判据：
+
+- **`role` 是猜的，`hex` 和 `coverage` 是量的。** 一张纯蓝渐变里没有文字色，
+  脚本仍会把某个蓝标成 `text`。**不要把 role 当成「这张图真有这六种角色」的证据**，
+  它只是让色板可读。
+- **一套参考图量一次，全套图共用。** 逐张图分别量会让同一组图各带各的色板，
+  那就是另一种风格漂移。
+- **量出来的色板不写进 `image-styles.json`。** 那是判断，不是测量——
+  要不要沉淀成新风格由人决定（宪法 7）。
+
+参考图大概率不是自己拍的，进项目根就要登记来源与权利，
+并且**只用于内部测量与出图条件，不进入任何对外产物**。
+
 ### 站 4 · 出图
 
 先 dry-run 看组装出来的 prompt：
@@ -89,8 +118,25 @@ python3 capabilities/image-production/scripts/generate_image.py \
 **把 prompt 念给用户听一遍再出图。** 出图要花钱，而 prompt 里写错一个词，
 四张图一起错——先看后做比先做后改便宜。
 
+**dry-run 会连参考图和色板一起打出来，它们也是在 dry-run 阶段读的。**
+这是有意的：参考图路径写错、色板文件格式不对，都必须在**花钱之前**暴露。
+出图时才报错，钱已经花了。
+
+用了参考图时，简报里那张图必须写两个字段：
+
+| 字段 | 要回答的问题 |
+|---|---|
+| `reference_images` | 参考哪几张（项目根相对路径，落在 `assets/reference/` 下） |
+| `reference_instruction` | **参考它的什么**。一句话 |
+
+`reference_instruction` 不是可选的：万相 2.7 的多图参考是**生成 + 编辑**模型，
+不说清参考什么，它可能把参考图当成待编辑对象——你拿到的就是「改了一下的参考图」
+而不是一张新图。写「只参考它的配色和留白」，不要写「参考这张」。
+
 确认后去掉 `--dry-run` 出图。图落在项目根 `assets/generated/<brief-id>/`，
-回执写在同目录的 `manifest.json`。
+回执写在同目录的 `manifest.json`。用了参考图/色板的图，回执里多记
+`reference_images` / `reference_instruction` / `palette_ref` / `color_palette`——
+**没用到的图回执一字不改**，不给旧产物平添噪声。
 
 ### 站 5 · 验收
 
@@ -106,6 +152,28 @@ python3 capabilities/image-production/scripts/validate_image_brief.py
 - 该标 `synthetic` 的标了没有
 - `claims_on_image` 挂上事实没有
 - 素材权利状态写全没有
+- 参考图有说明、路径在项目根内、文件真的在
+- `palette_ref` 指向的是一份能用的测量结果
+
+用了参考图的，再跑一次回测——**这是整条链上唯一能机器判否的环节**：
+
+```bash
+python3 capabilities/image-production/scripts/verify_palette.py \
+  --expected <项目根>/assets/reference/palette.json \
+  --actual <项目根>/assets/generated/<brief-id>/d1.png
+```
+
+它把出出来的图重量一遍，跟预期色板比色差（ΔE00）和面积占比，
+**配不上就红**。没有它，「像不像」只能靠人看，出十次图人就要看十次。
+
+关于回测的三条：
+
+- **它只测颜色和面积，测不了「这张图配不配得上那句话」。** 回测 PASS
+  不等于可以发，构图、质感、有没有混进不该有的东西仍然归人。
+- **它按最近色匹配，不按 role 匹配。** 所以「role 标签变了」不会被误报成
+  「颜色漂了」——假警报多了就没人看结果了。
+- **阈值还没拿真实出图校准**（输出里 `thresholds.calibrated: false`），
+  现在能说明的只有「没偏得离谱」。跑够 3–5 次真实出图后再回来收紧阈值。
 
 机器**查不了**的，必须自己看：
 
@@ -125,3 +193,7 @@ python3 capabilities/image-production/scripts/validate_image_brief.py
 - **不自动发布。** 出图和预览是内部动作，发到平台要用户明确授权。
 - **不出带文字的图去挂无法证实的主张。** 这是本线的硬线，和文章线同源。
 - **不绕过 dry-run。** 用户明确说「直接出」才跳过，跳过时说明会花几张的钱。
+- **不把参考图当素材用。** 它只喂测量和出图条件，不拼进任何对外产物——
+  参考图多半不是自己拍的，拼进去就是把别人的东西当成自己的发出去。
+- **不把量出来的色板自动写进风格库。** 测量不是判断。要不要沉淀成一套新风格，
+  由人决定，不由脚本决定。

@@ -282,6 +282,16 @@
         "test/suites/test_topic_registry.py"
       ],
       "timeout_seconds": 30
+    },
+    {
+      "id": "image-palette-tooling",
+      "name": "参考吸收：颜色数学、PNG 解码、取色、回测与参考图解析",
+      "tier": "unit",
+      "command": [
+        "python3",
+        "capabilities/image-production/tests/test_palette.py"
+      ],
+      "timeout_seconds": 60
     }
   ]
 }

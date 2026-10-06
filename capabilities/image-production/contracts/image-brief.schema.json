@@ -62,6 +62,20 @@
             "required": ["text", "fact_ref"]
           }
         },
+        "reference_images": {
+          "description": "参考图路径，项目根相对，落在 assets/reference/ 下。参考图大概率不是自己拍的，进项目根就要登记来源与权利。它只用于内部测量与出图条件，不进入任何对外产物。",
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "reference_instruction": {
+          "description": "一句话说清参考它的什么。**reference_images 非空时必填**：万相 2.7 的多图参考是生成+编辑模型，不说意图时它可能把参考图当成待编辑对象，你得到的就是「改了一下的参考图」而不是新图。",
+          "type": "string",
+          "minLength": 1
+        },
+        "palette_ref": {
+          "description": "measure_palette.py 的输出文件路径，项目根相对。指向的那份结果既提供出图的 color_palette 参数，也是站 5 回测时比对的预期色板。",
+          "type": "string"
+        },
         "status": {"enum": ["planned", "blocked", "generated", "rejected"]}
       }
     }

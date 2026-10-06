@@ -1,12 +1,12 @@
 {
   "schema_version": 2,
   "defined_at": "2026-09-28",
-  "reason": "系统与项目分成两个根之后重定义。健康基准留在系统（它是全局的），产出基准搬到各项目自己的 .hq-geo.json（产物是每个项目自己的）。2026-09-28 测试数 13→14：新增 canary-unit，canary 工具不再只靠人工手敲，它自己的破坏与还原逻辑进了门禁。2026-09-28 测试数 14→15：新增 sourcing-contract，创作链路的第一环（取材）有了判据文档，两条路径的落盘接口绑上了断言。2026-09-29 测试数 15→18：图片线建立。ImageBrief 从名词变成契约（image-brief-contract / image-brief-unit），五站判据与 14 套风格库绑上断言（image-pipeline-contract）。同一天定的：图片线由 hq-geo 自建，Vidmix 收窄为视频创作，两条线独立。2026-09-29 测试数 18→22：创作链路的前端补齐。关键词研究从「设计文档 + 目录约定」变成能跑的能力（keyword-research-unit / keyword-research-contract），选题记录有了五问准入闸（topic-registry-unit / topic-registry-contract）。原登记为 planned 的 tri-platform-research 与 topic-validation 被这两项取代——它们当时只是 00-meta 里的蓝图，没有责任路径也没有测试。",
+  "reason": "系统与项目分成两个根之后重定义。健康基准留在系统（它是全局的），产出基准搬到各项目自己的 .hq-geo.json（产物是每个项目自己的）。2026-09-28 测试数 13→14：新增 canary-unit，canary 工具不再只靠人工手敲，它自己的破坏与还原逻辑进了门禁。2026-09-28 测试数 14→15：新增 sourcing-contract，创作链路的第一环（取材）有了判据文档，两条路径的落盘接口绑上了断言。2026-09-29 测试数 15→18：图片线建立。ImageBrief 从名词变成契约（image-brief-contract / image-brief-unit），五站判据与 14 套风格库绑上断言（image-pipeline-contract）。同一天定的：图片线由 hq-geo 自建，Vidmix 收窄为视频创作，两条线独立。2026-09-29 测试数 18→22：创作链路的前端补齐。关键词研究从「设计文档 + 目录约定」变成能跑的能力（keyword-research-unit / keyword-research-contract），选题记录有了五问准入闸（topic-registry-unit / topic-registry-contract）。原登记为 planned 的 tri-platform-research 与 topic-validation 被这两项取代——它们当时只是 00-meta 里的蓝图，没有责任路径也没有测试。2026-09-30 测试数 22→23：图片线的参考吸收落地。新增 image-palette-tooling —— PNG 解码、sRGB→OKLCH、CIEDE2000、取色、回测与参考图解析第一次进出门禁。它对应登记表里新的 image-reference-absorption 功能。同一天 image-pipeline-contract 与 image-brief-unit 覆盖面变宽（新判据、新字段、新脚本锚点），但测试条数没变——加的是断言，不是新文件。",
   "health": {
-    "tests_total": 22,
-    "tests_passing": 22,
+    "tests_total": 23,
+    "tests_passing": 23,
     "feature_coverage_percent": 100.0,
-    "duration_seconds": 0.56
+    "duration_seconds": 1.18
   },
   "how_to_read": [
     "health 里的数字下降就是退步：测试变少、覆盖率掉下 100%、耗时明显变长。",

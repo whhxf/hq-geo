@@ -15,7 +15,7 @@ description: 将已确认的母内容或 GEO Content Brief 渲染为人和 AI �
    - `capabilities/geo/methods/evidence-and-entity-policy.md`
    - `capabilities/geo/methods/citability-and-content-policy.md`
 2. 读取 `geo-content-brief` 或 `CanonicalContent`。核心声明未核实时，停止渲染并返回阻断项。
-3. 如需外部补证，使用 `web-access`，先核验再写入。
+3. 如需外部补证，优先使用 `ego-browser`（跑不通时退回 `web-access`），先核验再写入。
 
 ## 渲染规则
 
