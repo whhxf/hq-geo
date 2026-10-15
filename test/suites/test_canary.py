@@ -72,6 +72,37 @@ class StaleEditsTests(unittest.TestCase):
         self.assertEqual(CANARY.stale_edits(originals, edits), [])
 
 
+class TouchesTests(unittest.TestCase):
+    """`--file` 的筛选逻辑：按**改了哪个文件**筛，不按破坏点的名字筛。
+
+    2026-10-11 实测：`--only 视频线` 选中 19 条，其中 3 条跑的是 16 秒起步的
+    单测，整轮 120 秒以上，还会被超时打断。同样一件事按文件筛只有 6 条，
+    0.9 秒跑完。
+    """
+
+    def test_matches_case_editing_a_file_under_the_prefix(self):
+        case = {"name": "x", "edits": [{"file": "capabilities/video-production/styles/style-map.json"}]}
+        self.assertTrue(CANARY.touches(case, "capabilities/video-production/styles/"))
+
+    def test_ignores_case_editing_something_else(self):
+        case = {"name": "x", "edits": [{"file": "capabilities/video-production/scripts/compose.py"}]}
+        self.assertFalse(CANARY.touches(case, "capabilities/video-production/styles/"))
+
+    def test_matches_any_edit_not_just_the_first(self):
+        """一条破坏点可以跨文件，碰到一个就算。"""
+        case = {"name": "x", "edits": [{"file": "a/x.py"}, {"file": "b/y.py"}]}
+        self.assertTrue(CANARY.touches(case, "b/"))
+
+    def test_prefix_not_substring(self):
+        """按**前缀**匹配，不是「包含」。
+
+        写成包含的话，`--file test/` 会把 `capabilities/test/x.py` 也选进来——
+        筛出来的是别人，跑的还是那条慢单测。
+        """
+        case = {"name": "x", "edits": [{"file": "capabilities/test/x.py"}]}
+        self.assertFalse(CANARY.touches(case, "test/"))
+
+
 class ResolveProjectTests(unittest.TestCase):
     """守的是「假红」——canary 会把它造出来的失败当成断言有效。
 

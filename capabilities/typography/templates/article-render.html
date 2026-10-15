@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>文章排版模板</title>
+<style>
+*{box-sizing:border-box}
+html{background:{{BG}};color-scheme:light}
+body{margin:0;font-family:{{FONT_FAMILY}};line-break:strict;text-autospace:normal;overflow-wrap:anywhere}
+main{max-width:{{PAGE_WIDTH}}px;margin:auto;padding:72px 28px 96px}
+p,li{max-width:{{MEASURE}}em}
+p{margin:0 0 {{PARA_GAP}};text-indent:{{INDENT}}}
+h1{margin:0 0 1.25em;max-width:17em}
+h2{margin:2.2em 0 .9em;padding-top:.7em;border-top:1px solid #ddd8d0}
+h3{margin:1.6em 0 .8em}
+li{margin-bottom:.6em}
+ul,ol{padding-left:1.5em;margin-bottom:2em}
+figure{margin:32px 0}img{display:block;max-width:100%;height:auto;border:1px solid #ddd8d0;border-radius:12px}
+figcaption{margin-top:.7em}a{color:#8a3a22;text-underline-offset:.2em}
+blockquote{border-left:3px solid #993c1d;margin:2em 0;padding-left:1.2em}
+{{ROLE_CSS}}
+@media(max-width:600px){main{padding:36px 20px 64px}h1{font-size:28px!important}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body><main class="tp-body">{{BODY_HTML}}</main></body>
+</html>

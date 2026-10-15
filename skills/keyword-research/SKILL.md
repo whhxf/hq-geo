@@ -21,6 +21,7 @@ description: 从一个想法出发，去小红书、抖音、微信等渠道调�
 
 完整读取：
 
+- `capabilities/keyword-research/ROUTING.md`（**路由：先看这份**。它判断这次该不该用本技能——目标平台是 Google、自有域名、Reddit 或 X 时不走本技能）
 - `capabilities/keyword-research/contracts/research-record.schema.json`
 - `capabilities/keyword-research/contracts/demand-cluster.schema.json`
 - `capabilities/keyword-research/channels/README.md`

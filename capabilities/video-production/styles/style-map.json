@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "kind": "video-style-map",
+  "note": "这是系统建议，不是硬规则。人在 gallery.html 里最终定。首选只从 execution=local-render 的风格里挑——prompt-only 的现在跑不出画面（缺外部生图模型）。被 video-styles.json 的 blocked 清单屏蔽的风格不参与映射。",
+
+  "routing": {
+    "when": "选题定稿后、写分镜脚本前（video-pipeline 站 1 与站 2 之间）。",
+    "how": "用选题的措辞匹配下面的 cues，取命中的第一条；没有命中就用 default。产出 2-3 个候选，交人确认。",
+    "output": "写进 content/videos/<task-id>/script.json 的 style 字段，附选择理由。",
+    "escalate": "候选全落在 prompt-only 或 paid-api 时，停机问人。不擅自接外部生图模型，不擅自花钱。"
+  },
+
+  "topics": [
+    {
+      "id": "tutorial-step",
+      "name": "教程 / 分步操作",
+      "cues": ["怎么做", "步骤", "教程", "教学", "上手", "操作", "设置", "配置"],
+      "primary": "wb-stream-whiteboard",
+      "secondary": ["v3-notebook", "v8-chalkboard"],
+      "reason": "分步内容要「跟着画出来」。白板按字幕顺序逐区落墨，天然对应一步一画。"
+    },
+    {
+      "id": "concept-explain",
+      "name": "概念讲解 / 原理科普",
+      "cues": ["是什么", "为什么", "原理", "讲解", "科普", "机制", "怎么理解"],
+      "primary": "g-y1-kurzgesagt",
+      "secondary": ["g-y2-vox", "g-y3-whiteboard"],
+      "reason": "讲机制与原理。Kurzgesagt 语法把抽象概念拆成分镜，一步一图，配色高饱和。"
+    },
+    {
+      "id": "opinion-hot-take",
+      "name": "观点 / 辟谣",
+      "cues": ["其实", "误区", "辟谣", "观点", "真相", "别再", "错了"],
+      "primary": "v5-comic",
+      "secondary": ["g-y5-kinetic-type", "h-31-haring"],
+      "reason": "观点要节奏快、有梗。波普漫画的贴纸拍入和爆炸字能把一句话砸实。"
+    },
+    {
+      "id": "product-demo",
+      "name": "产品演示",
+      "cues": ["产品", "功能", "演示", "界面", "工具", "软件", "上手体验"],
+      "primary": "g-t2-keynote-ui",
+      "secondary": ["v3-notebook", "h-16-2026"],
+      "reason": "产品要显克制与可信。Keynote UI 语法把界面与数字放大，注意力落在功能上。"
+    },
+    {
+      "id": "data-report",
+      "name": "数据 / 财报解读",
+      "cues": ["数据", "增长", "财报", "指标", "趋势", "营收", "统计"],
+      "primary": "g-t3-finance-chart",
+      "secondary": ["g-t1-3b1b", "h-16-2026"],
+      "reason": "图表要动起来讲。财经图表语法专为数据动画设计，数字带单位。"
+    },
+    {
+      "id": "story-case",
+      "name": "故事 / 案例",
+      "cues": ["案例", "故事", "经历", "客户", "复盘", "我们做过"],
+      "primary": "v4-paper",
+      "secondary": ["g-y4-storytime", "h-25-ghibli"],
+      "reason": "故事要温度。牛皮纸立体书让每个环节能「立起来」，翻页就是推进。"
+    },
+    {
+      "id": "tech-deep-dive",
+      "name": "技术深挖",
+      "cues": ["架构", "实现", "源码", "工程", "底层", "性能", "调试"],
+      "primary": "g-t1-3b1b",
+      "secondary": ["g-t2-keynote-ui", "g-y2-vox"],
+      "reason": "面向从业者要密度。3Blue1Brown 语法把推导一步步画出来，一步一帧。"
+    },
+    {
+      "id": "brand-flagship",
+      "name": "品牌 / 发布",
+      "cues": ["发布", "上线", "重磅", "旗舰", "品牌", "新品"],
+      "primary": "v9-clay",
+      "secondary": ["h-16-2026", "h-32-rembrandt"],
+      "reason": "发布要一次立住。黏土立体把主体做成实物，注意力压在单一物件上。"
+    },
+    {
+      "id": "beginner-analogy",
+      "name": "讲给小白 / 用比喻",
+      "cues": ["小白", "入门", "比喻", "通俗", "零基础", "外行", "怎么简单说"],
+      "primary": "v9-clay",
+      "secondary": ["v8-chalkboard", "v3-notebook"],
+      "reason": "比喻要看得见。黏土小城把每个概念配一个实物，并标出真实术语。"
+    },
+    {
+      "id": "art-tribute",
+      "name": "艺术致敬 / 风格速通",
+      "cues": ["艺术", "名画", "穿越", "致敬", "风格史", "美术"],
+      "primary": "h-09-postimp",
+      "secondary": ["h-25-ghibli", "h-13-pop", "h-31-haring"],
+      "reason": "这类片子的机制就是风格在变、场景不变。从梵高起步，质量最稳。"
+    },
+    {
+      "id": "personal-brand",
+      "name": "个人品牌 / 口播",
+      "cues": ["口播", "出镜", "个人", "分享", "我来说", "聊一聊"],
+      "primary": "g-y4-storytime",
+      "secondary": ["v3-notebook", "wb-stream-whiteboard"],
+      "reason": "两条口播专线（讲解员、数字人）已按 Conan 决定屏蔽。改用故事时间语法承载第一人称讲述。"
+    }
+  ],
+
+  "default": {
+    "primary": "wb-stream-whiteboard",
+    "secondary": ["v3-notebook", "v8-chalkboard"],
+    "reason": "兜底。白板是现在唯一完整跑通六站、且零外部 API 的风格。"
+  },
+
+  "cost_note": "全部首选都是 local-render，零 API 花费。唯一付费项 presenter-digital-human 已按 Conan 决定屏蔽。"
+}

@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "id": "cover-handdrawn",
+  "surface": "image",
+  "background": "#FDF9EE",
+  "font_family": "\"PingFang SC\",\"Hiragino Sans GB\",\"Heiti SC\",sans-serif",
+  "canvas": {
+    "width": 1080,
+    "height": 1440,
+    "margin": {
+      "top": 120,
+      "right": 108,
+      "bottom": 140,
+      "left": 108
+    },
+    "text_layout": "bottom-left"
+  },
+  "roles": {
+    "kicker": {
+      "kind": "heading",
+      "size_px": 34,
+      "line_height": 1.3,
+      "letter_spacing_em": 0.1,
+      "weight": 500,
+      "color": "#7F5846"
+    },
+    "headline": {
+      "kind": "display",
+      "size_px": 88,
+      "line_height": 1.15,
+      "letter_spacing_em": 0.06,
+      "weight": 700,
+      "color": "#993C1D"
+    },
+    "meta": {
+      "kind": "caption",
+      "size_px": 24,
+      "line_height": 1.5,
+      "letter_spacing_em": 0.04,
+      "weight": 400,
+      "color": "#7F5846"
+    }
+  },
+  "chinese": {
+    "line_break": "strict",
+    "paragraph_indent_em": 0,
+    "paragraph_spacing_em": 1.2,
+    "text_autospace": true
+  }
+}

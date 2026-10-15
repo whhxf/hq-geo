@@ -6,7 +6,7 @@
 ```
 想法 / 主题 ──取材──→ production-brief.json ──┬──→ 文章：article-pipeline 八站
                                               ├──→ 图片：image-pipeline 五站
-                                              └──→ 视频：creative-job → Vidmix
+                                              └──→ 视频：video-pipeline 六站
 ```
 
 ## 两条路径，由用户选
@@ -70,7 +70,7 @@ brief 的每一格都是空的，而用户自己也说不清要什么。
 
 ## 边界
 
-- **不写成稿**。文章走八站，视频走 creative-handoff，图片走 image-pipeline 五站。取材只管把材料取回来、把 brief 立起来。
+- **不写成稿**。文章走八站，视频走 video-pipeline 六站，图片走 image-pipeline 五站。取材只管把材料取回来、把 brief 立起来。
 - **不替用户下结论**。用户说不清的，追问；追问也说不清的，记成未知。
 - **不把外部效果升级成事实**。检索到的第三方评价要标来源和强度，不能和官方来源混为一谈。
 

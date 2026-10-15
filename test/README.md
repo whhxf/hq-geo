@@ -6,7 +6,7 @@
 python3 test/run_quality_gate.py --project <项目根>
 ```
 
-在项目根里跑时可以省掉 `--project`。全部测试一秒内跑完，所以不分档。分档只会让人挑便宜的那档跑，然后误以为通过了门禁。
+在项目根里跑时可以省掉 `--project`。全量约 **100 秒**，所以不分 quick/full/release 三档——分档只会让人挑便宜的那档跑，然后误以为通过了门禁。
 
 只验证当前改动影响到的能力：
 
@@ -14,7 +14,24 @@ python3 test/run_quality_gate.py --project <项目根>
 python3 test/run_quality_gate.py --project <项目根> --changed
 ```
 
-`--changed` 用于缩短反馈时间，不能替代完整门禁。改动落在规则文档或 `test/` 自身时，它会自动退化为全量运行——那种情况下影响面无法局部判断。
+`--changed` 用于缩短反馈时间，不能替代完整门禁。改动落在规则文档、或 `test/` 下**门禁自己会读**的文件时，它会自动退化为全量运行——那种情况下影响面无法局部判断。
+
+`test/canary.json` 与 `test/reports/` 不触发全量：前者只被 canary 工具读，后者是产物。改它们走功能映射那条路。
+
+## 反馈速度
+
+改一步就想知道对不对时，按这四档走。数字是 2026-10-11 在本机实测的。
+
+| 什么时候 | 跑什么 | 实测 |
+|---|---|---|
+| 边改边看 | 直接跑那一条 suite | 0.5 秒 |
+| 改完一个能力 | `run_quality_gate.py --changed` | 只跑命中的功能加基础门禁 |
+| 提交前 | `run_quality_gate.py`（全量） | 99.6 秒 |
+| 改了断言 | `canary.py --file <你改的目录>` | 0.9 秒（6 条） |
+
+全量那 99.6 秒里，三条慢单测占了 66 秒：`video-unit` 36.7 秒、`image-brief-unit` 15.0 秒、`geo-pack-unit` 14.6 秒。其余 23 条合计 16.3 秒。
+
+**canary 不进日常循环。** 它故意把文件改坏再还原，只在**改了断言**的时候跑。没动断言就不用跑。
 
 ## 增加或修改功能
 
@@ -35,8 +52,15 @@ python3 test/run_quality_gate.py --project <项目根> --changed
 
 ```bash
 python3 test/tools/canary.py --project <项目根>
-python3 test/tools/canary.py --project <项目根> --only 站6   # 只跑匹配的那几条
+python3 test/tools/canary.py --project <项目根> --only 站6   # 只跑名字匹配的那几条
+python3 test/tools/canary.py --file capabilities/video-production/styles/  # 只跑改到这个目录的
 ```
+
+**用 `--file`，少用 `--only`。** `--only` 按破坏点的**名字**筛，粒度太粗：`--only 视频线` 选中 19 条，其中 3 条跑的是 16 秒起步的单测，整轮 120 秒以上，还会被超时打断。同一个改动按文件筛只有 6 条，0.9 秒跑完。
+
+**被 SIGTERM 打断会留下破坏态。** 还原写在 `finally` 里，挡不住信号。跑完顺手扫一遍：某条破坏点的 `replace` 在文件里、`find` 不在，就是残留。
+
+**别和别的测试同时跑。** canary 会把文件改成破坏态再还原，并发跑另一个读同样文件的东西，它读到的就是被破坏的版本。2026-10-11 实测：和 `--changed` 的选择逻辑并发跑，选择结果被污染成「全量」。
 
 破坏点写在 `test/canary.json`：**改了断言就加一条**，否则新断言可能一出生就是空转的。一条破坏点可以跨多个文件——去掉一个概念，要在它出现的每个地方都去掉。
 

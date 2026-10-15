@@ -1,0 +1,269 @@
+{
+  "schema": "appeal-rules/v1",
+  "collected_at": "2026-10-08",
+  "note": "图文吸引力判据的真源。check_appeal.py 从这里读阈值，不在代码里另写数字——代码里的数字改了没人知道，这份文件改了有契约测试盯着。\n\n**这份文件和 typography-rules.json 的分工**：排版管「读得下去」，这份管「有人愿意点」。两边不重叠：字号、行距、行宽、避头尾一律在排版那份，这里只引用，不重写数字（一个方法只保留一个真源）。\n\n**每条规则必须能追溯到来源。** 没有来源的数值是审美，审美进不了判据。六档证据等级见 evidence_tiers。",
+  "evidence_tiers": {
+    "官方规则": "标准或规范原文。如 W3C 的 clreq、WCAG。",
+    "直接证据": "我们自己对这个产物的实测。有原始数字和量法。",
+    "强代理证据": "同行评审的实证研究，测的是同一个心理机制，但被测对象不是我们的产物。它支持机制，不支持效果承诺。",
+    "经验模式": "从业者或内部沉淀的可核验做法。有具体数值或具体做法，但没有实验支撑。",
+    "推断": "从已知规则推导出来的值。推导过程必须写进 why，让人能重算。",
+    "未知": "还没找到来源。这类值不许进判据。"
+  },
+  "sources": {
+    "measured-2026-10-08": {
+      "title": "实测：10 张被否的纯文字卡片 vs 1 张有视觉承载体的真实截图",
+      "url": "capabilities/image-appeal/README.md",
+      "evidence": "直接证据",
+      "collected_at": "2026-10-08",
+      "detail": "同一套量法：4 位/通道量化后数色数；相邻像素亮度差 > 24 记一次边缘；2 像素步长抽样。被否的 10 张纯文字卡：色数 59–63、边缘密度 0.028–0.047、主色占比 0.948–0.968。有承载体的真实截图（1600x1000 产品控制台）：色数 322、边缘密度 0.067、主色占比 0.896。两组区间不重叠。"
+    },
+    "loewenstein-1994": {
+      "title": "Loewenstein, G. (1994). The Psychology of Curiosity: A Review and Reinterpretation. Psychological Bulletin, 116(1), 75–98.",
+      "url": "https://psycnet.apa.org/record/1994-41058-001",
+      "evidence": "强代理证据",
+      "collected_at": "2026-10-08",
+      "detail": "信息缺口理论：好奇心不是对知识的普遍渴望，而是对「知道自己缺什么」这种状态的反感。缺口必须被指出来，人才想补上；缺口不明确时，好奇不会被唤起。"
+    },
+    "berger-milkman-2012": {
+      "title": "Berger, J. & Milkman, K. L. (2012). What Makes Online Content Viral? Journal of Marketing Research, 49(2), 192–205.",
+      "url": "https://journals.sagepub.com/doi/10.1509/jmr.10.0353",
+      "evidence": "强代理证据",
+      "collected_at": "2026-10-08",
+      "detail": "对纽约时报近 7000 篇文章的实测：唤起高唤醒情绪（敬畏、愤怒、焦虑）的内容更易被分享；低唤醒情绪（悲伤、满足）抑制分享。传播力由生理唤醒驱动，不由情绪的正负驱动。"
+    },
+    "kivetz-2006": {
+      "title": "Kivetz, R., Urminsky, O. & Zheng, Y. (2006). The Goal-Gradient Hypothesis Resurrected. Journal of Marketing Research, 43(1), 39–58.",
+      "url": "https://journals.sagepub.com/doi/10.1509/jmkr.43.1.39",
+      "evidence": "强代理证据",
+      "collected_at": "2026-10-08",
+      "detail": "越接近目标，投入的努力越大。把进度显示出来（第 3 张 / 共 7 张），会提高完成率。"
+    },
+    "von-restorff-1933": {
+      "title": "Von Restorff, H. (1933). 隔离效应（isolation effect）",
+      "url": "https://en.wikipedia.org/wiki/Von_Restorff_effect",
+      "evidence": "强代理证据",
+      "collected_at": "2026-10-08",
+      "detail": "序列中与众不同的那一项，记忆成绩显著高于其余项。突出可以是知觉上的（颜色、字号、字体），也可以是语义上的。"
+    },
+    "heath-succes": {
+      "title": "Chip Heath & Dan Heath, Made to Stick (2007) · SUCCESs 六原则",
+      "url": "https://sourcesofinsight.com/six-principles-of-sticky-ideas/",
+      "evidence": "经验模式",
+      "collected_at": "2026-10-08",
+      "detail": "Simple / Unexpected / Concrete / Credible / Emotional / Stories。其中 Unexpected 指的是打破读者已有的预期图式——不是把话说得夸张。"
+    },
+    "berger-stepps": {
+      "title": "Jonah Berger, Contagious: Why Things Catch On (2013) · STEPPS 六原则",
+      "url": "https://business-explained.com/blog/stepps-framework/",
+      "evidence": "经验模式",
+      "collected_at": "2026-10-08",
+      "detail": "Social Currency / Triggers / Emotion / Public / Practical Value / Stories。Social Currency 指分享者借内容获得身份收益；Practical Value 指内容里有一条能立刻用上的具体做法。"
+    },
+    "typography-rules": {
+      "title": "本系统排版判据真源 capabilities/typography/rules/typography-rules.json",
+      "url": "capabilities/typography/rules/typography-rules.json",
+      "evidence": "经验模式",
+      "collected_at": "2026-10-08",
+      "detail": "AP-01 的字数上限由 TY-05（标题字距上限 0.15em）与卡片画布推出，推导写在 why 里。字号、行距、行宽、对比度一律以那份文件为准，这里不重写。"
+    },
+    "image-styles": {
+      "title": "本系统视觉风格库 capabilities/image-production/styles/image-styles.json",
+      "url": "capabilities/image-production/styles/image-styles.json",
+      "evidence": "经验模式",
+      "collected_at": "2026-10-08",
+      "detail": "14 套风格各自的 composition / anti_patterns / sample。AP-07 的并列要点上限取自 crayon-qa 的 anti_patterns 原文。新增的 carrier 字段见同一文件。"
+    },
+    "image-pipeline": {
+      "title": "本系统图片线判据 skills/image-pipeline/SKILL.md",
+      "url": "skills/image-pipeline/SKILL.md",
+      "evidence": "经验模式",
+      "collected_at": "2026-10-08",
+      "detail": "A 方案（底图模型生成 + 文字真实渲染叠加）、一套图共用一个 style_id、封面必须有 cover_text，都是这份判据里已有的条款。这里引用，不重写。"
+    },
+    "reader-audit": {
+      "title": "本系统读者审计判据 capabilities/content-production/reader-audit.md",
+      "url": "capabilities/content-production/reader-audit.md",
+      "evidence": "经验模式",
+      "collected_at": "2026-10-08",
+      "detail": "读者审计里「补某类人要给落点」这条判据。图文末页的落点要求与它同源。"
+    }
+  },
+  "rules": [
+    {
+      "id": "AP-01",
+      "name": "封面标题长度",
+      "scope": "cover",
+      "checkable": "machine",
+      "source": "typography-rules",
+      "why": "信息流里封面是「扫」不是「读」。标题一长，缩略后字号就小到扫不到。上限从已有判据推出，不是拍的：卡片画布 1080px 减左右边距 120/108 = 852px 可用宽；封面 headline 96px、标题字距上限 0.15em（TY-05）→ 单字占 110.4px → 单行 7.7 字。两行 15 字是目标，三行 23 字是硬上限。",
+      "value": {
+        "unit": "字符",
+        "target_max": 15,
+        "hard_max": 23
+      }
+    },
+    {
+      "id": "AP-02",
+      "name": "封面必须有视觉承载体",
+      "scope": "cover",
+      "checkable": "machine",
+      "source": "image-pipeline",
+      "why": "一张只有底色的封面，在信息流里和一块空白没有区别。实测：纯文字封面的主色占比 0.948–0.968，即 95% 以上的画面是同一个明度——整张图只有一个视觉事件，就是那几行字。承载体可以是模型生成的底图（A 方案），也可以是真实素材。\n\n**这一条管「有没有承载体」，AP-03 管「承载体够不够实」，两条是链子上的两环。** 风格库的 carrier 字段说清这套风格要哪一种：carrier=base_image 的风格，封面必须有 base_image；carrier=typography 的风格（如 black-gold-manifesto）不走这条，它的隔离由 AP-04 承担。",
+      "value": {
+        "unit": "布尔",
+        "rule": "carrier_present"
+      }
+    },
+    {
+      "id": "AP-03",
+      "name": "封面底图的视觉复杂度下限",
+      "scope": "cover",
+      "checkable": "machine",
+      "source": "measured-2026-10-08",
+      "why": "这是把「素」变成数字的那一条。**只在封面有 base_image 时适用**——它测的是「这张底图够不够实」，不是「封面必须是照片」。纯文字排版的风格（carrier=typography）不走这条，否则会把一个合法风格误判成缺陷。\n\n实测两组区间不重叠：被否的纯文字卡色数 59–63、边缘密度 0.028–0.047；有承载体的图色数 322、边缘密度 0.067。阈值取间隙里的整数。\n\n**样本是 10 比 1，还没校准**（calibrated: false），和回测阈值同一个待遇：现在能说明的只有「明显偏素」。跑够 3–5 套真实图集再回来收紧。",
+      "value": {
+        "unit": "比值",
+        "distinct_colors_hard_min": 100,
+        "distinct_colors_target_min": 200,
+        "edge_density_hard_min": 0.05,
+        "edge_density_target_min": 0.065,
+        "calibrated": false,
+        "sample": "10 张纯文字卡 vs 1 张真实截图"
+      }
+    },
+    {
+      "id": "AP-04",
+      "name": "封面与内页的视觉隔离",
+      "scope": "deck",
+      "checkable": "machine",
+      "source": "von-restorff-1933",
+      "why": "隔离效应：序列里与众不同的那一项，记忆成绩显著更高。封面是全套里唯一需要「被从没看过的人看到」的一张；如果它和内页长得一样，它就没有被隔离出来，读者在信息流里认不出它是入口。深色封面配浅色内页是最省力的隔离做法。",
+      "value": {
+        "unit": "布尔",
+        "rule": "cover_theme_differs_from_inner"
+      }
+    },
+    {
+      "id": "AP-05",
+      "name": "全套共用一个风格",
+      "scope": "deck",
+      "checkable": "machine",
+      "source": "image-pipeline",
+      "why": "风格漂移（同一组图里有的米白有的深色）是成套图最明显的破绽，读者会立刻看出这是拼的。SKILL.md 站 3 已有这条判据，这里把它接到机器上：所有交付物的 style_id 必须相等，且等于 deck.style_id。",
+      "value": {
+        "unit": "布尔",
+        "rule": "single_style_id"
+      }
+    },
+    {
+      "id": "AP-06",
+      "name": "图集序号与总数",
+      "scope": "deck",
+      "checkable": "machine",
+      "source": "kivetz-2006",
+      "why": "目标梯度：越接近目标，投入的努力越大。把进度显示出来（第 3 张 / 共 7 张）会提高完成率。没有终点的图集，读者不知道还剩多少，中途离开的成本感更低。",
+      "value": {
+        "unit": "布尔",
+        "rule": "sequence_present"
+      }
+    },
+    {
+      "id": "AP-07",
+      "name": "单页并列要点上限",
+      "scope": "page",
+      "checkable": "machine",
+      "source": "image-styles",
+      "why": "风格库 crayon-qa 的 anti_patterns 原文：避免画面出现超过 3 个并列要点。超过三个，读者一眼扫不完，就变成「要读」而不是「要扫」——而读者不会读。",
+      "value": {
+        "unit": "个",
+        "max": 3
+      }
+    },
+    {
+      "id": "AP-08",
+      "name": "文案机器化模式",
+      "scope": "copy",
+      "checkable": "machine",
+      "source": "image-pipeline",
+      "why": "「无 AI 味」不是一个感觉，是有指纹的。系统已有 check_authorial.py 的词表与正则（Gate C 模糊修饰语 / Gate D 机器化模式）。这里只拦 Gate D 的高置信度模式——聊天残留、无依据升维、替读者提问、不是 X 而是 Y。这四类是无歧义的机器残留。Gate C 只报告不拦，因为程度词也可能是作者的真实判断。",
+      "value": {
+        "unit": "处",
+        "max": 0,
+        "rule": "no_high_confidence_gate_d_hits"
+      }
+    },
+    {
+      "id": "AP-09",
+      "name": "末页落点",
+      "scope": "deck",
+      "checkable": "machine",
+      "source": "reader-audit",
+      "why": "读者审计的「补某类人要给落点」同源。看完七张图的人已经是最热的一批，末页不给下一步，这批人就散掉了。落点是具体动作，不是「欢迎咨询」——那等于没落点。\n\n**这一条在 `status` 是 ready_for_production / ready_for_review 时才要求。** 落点是内容决策，而且常常依赖还没做出来的产品——一个 blocked 的简报不该被迫编一句落点出来。其余八条任何时候都要：它们判的是**做法对不对**，不是**料齐没齐**。做法错了不是缺料，缺料停机不豁免它。",
+      "value": {
+        "unit": "布尔",
+        "rule": "last_card_has_next_step"
+      }
+    },
+    {
+      "id": "AP-10",
+      "name": "信息缺口",
+      "scope": "cover",
+      "checkable": "human",
+      "source": "loewenstein-1994",
+      "why": "好奇心不是对知识的普遍渴望，是对「知道自己缺什么」这种状态的反感。封面只给结论、不给路径，缺口就明确，读者想补上；封面把答案说完，缺口闭合，没人点。机器判不了「缺口够不够明确」，只能人判。",
+      "value": {
+        "unit": "判断",
+        "verdicts": ["pass", "fail", "unknown"]
+      }
+    },
+    {
+      "id": "AP-11",
+      "name": "意外点",
+      "scope": "cover",
+      "checkable": "human",
+      "source": "heath-succes",
+      "why": "SUCCESs 的 Unexpected：打破读者已有的预期图式。意料之中的话（「AI 能帮你提效」）不会让人停下来，因为它没有和任何已有认知冲突。注意这不是「把话说夸张」——夸张只是噪音。机器判不了预期图式是什么，只能人判。",
+      "value": {
+        "unit": "判断",
+        "verdicts": ["pass", "fail", "unknown"]
+      }
+    },
+    {
+      "id": "AP-12",
+      "name": "情绪唤醒",
+      "scope": "cover",
+      "checkable": "human",
+      "source": "berger-milkman-2012",
+      "why": "传播力由生理唤醒驱动，不由情绪的正负驱动。高唤醒（敬畏、愤怒、焦虑）促进分享，低唤醒（悲伤、满足）抑制分享。所以封面要押高唤醒，不能押「岁月静好」——那读着舒服，但没人转。机器判不了唤醒度，只能人判。",
+      "value": {
+        "unit": "判断",
+        "verdicts": ["pass", "fail", "unknown"]
+      }
+    },
+    {
+      "id": "AP-13",
+      "name": "信息价值",
+      "scope": "page",
+      "checkable": "human",
+      "source": "berger-stepps",
+      "why": "STEPPS 的 Practical Value：内容里有一条能立刻用上的具体做法。读者拿走了能用的东西，才有理由保存和转发。判断的是「有没有这条」，不是「这条好不好」——后者测不了。",
+      "value": {
+        "unit": "判断",
+        "verdicts": ["pass", "fail", "unknown"]
+      }
+    },
+    {
+      "id": "AP-14",
+      "name": "社交货币",
+      "scope": "page",
+      "checkable": "human",
+      "source": "berger-stepps",
+      "why": "STEPPS 的 Social Currency：人分享的是能让自己显得懂行、显得先知道的东西。一组图如果只对公司有用、对读者没有身份收益，读者不会转。机器判不了这个，只能人判。",
+      "value": {
+        "unit": "判断",
+        "verdicts": ["pass", "fail", "unknown"]
+      }
+    }
+  ]
+}

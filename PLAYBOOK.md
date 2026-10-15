@@ -27,8 +27,8 @@
 | **系统根** | 方法、流程、校验器、门禁。所有项目共用一套 | `/Users/conan/project/hq-geo`，不动 |
 | **项目根** | 某个项目的事实、选题、稿子、学习记录 | 你自己定，放哪都行 |
 
-现在有**四个**项目。前三个住在 Kingsway 的工作区里，和运营资料放一起；第四个是闲鱼生意验证，
-住在 `/Users/conan/project/` 下。项目根放哪都行，这就是分根的好处。
+现在有**五个**项目。前三个住在 Kingsway 的工作区里，和运营资料放一起；后两个分别在
+`/Users/conan/project/` 和 hq-chuhai 的工作区里。项目根放哪都行，这就是分根的好处。
 
 | 项目 | 做什么 | 位置 | slug |
 |---|---|---|---|
@@ -36,11 +36,14 @@
 | **Kingsway GEO 内容** | 给豆包 / DeepSeek 写能被引用的长文 | `~/kingsway/kingswaywork/05kingsway运营动作/kingsway-geo` | `ksw-geo` |
 | **Kingsway AI 数字员工** | AI 数字员工这条线的内容（2026-09-29 新建，还没有产物） | `~/kingsway/kingswaywork/05kingsway运营动作/kingsway ai 数字员工` | `ai-employee` |
 | **闲鱼赚钱验证** | 闲鱼数字商品的选品调研与商品发布物料（2026-10-05 接入，还没有产物） | `/Users/conan/project/hq-xianyu` | `hq-xianyu` |
+| **QuoteStitch 站点内容** | 截图拼接工具的站外内容（2026-10-08 接入，还没有产物）。**双身份**，站点本体归 hq-chuhai | `/Users/conan/WorkBuddy AI/hq-chuhai/projects/quotestitch` | `quotestitch` |
 
-四个项目互不相干：各有各的事实包、选题和产出基准。前三个是**内容渠道**——前两个是
+五个项目互不相干：各有各的事实包、选题和产出基准。前三个是**内容渠道**——前两个是
 **同一个产品的两种内容任务**，拿它们对照，测的正是「同一套八站换个项目还灵不灵」；
 第三个是**另一条内容线**，第一次跑的是「取材」而不是八站。
 第四个走的是**交易渠道**（闲鱼），第一次跑的是**商品发布包**，不是文章八站。
+第五个是**第一个双身份项目**——它测的是边界判据能不能落地，写法见
+[`08-system-boundary.md`](00-meta/content-engine/08-system-boundary.md) 第八节。
 
 ### 为什么要分开
 
@@ -82,6 +85,28 @@ python3 capabilities/project-scaffold/scripts/init_project.py <你想要的目�
 项目根整个文件夹剪切到别处，照样能用——系统里没有任何一处写死过项目路径。
 （只有项目 `CLAUDE.md` 里印着系统根的绝对路径，那是给人看的提示。系统要是搬了家，重跑一次
 `init_project.py` 就会刷新，或者手动改那一行。）
+
+### 系统边界：和 hq-chuhai 怎么分
+
+**系统有两个：本系统（hq-geo）和 hq-chuhai。** 判据只有一条：
+
+> **这份产出最终挂在自己拥有的域名上吗？**
+> 是 → hq-chuhai；否 → 本系统。
+
+| | hq-chuhai | hq-geo |
+|---|---|---|
+| 一句话 | 自有资产运营 | 外部渠道内容营销 |
+| 资产 | 自己的域名 | 别人的平台账号 |
+| 闭环 | 排名 → 流量 → 收入 | 曝光 → 互动 → 线索 |
+
+三条推论：
+
+- **SEO 不是活动，是自有资产的属性。** 页面在哪，SEO 在哪。
+  所以不用问「谁做 SEO」，只问「页面挂在谁的域名上」。
+- **本系统是方法层加一个方向。** `capabilities/`、`skills/`、`test/`、`00-meta/` 两边共用。
+- **内容方法单向流动。** 本系统流向 hq-chuhai，反向不引用。
+
+**完整定义**：`00-meta/content-engine/08-system-boundary.md`。
 
 ---
 
@@ -232,7 +257,7 @@ python3 capabilities/project-scaffold/scripts/init_project.py <你想要的目�
 | 1 | 读任务、查事实、**定受众坐标**、列缺口 | |
 | 2 | 补料，缺料停机 | ● 一次问一个问题 |
 | 3 | 定核心判断（一句话），三半都从受众坐标来，**关键词不许有歧义** | ● 确认后才继续 |
-| 4 | 定结构 + 生成 3 个风格候选给你看 | ● 你选风格 |
+| 4 | 定结构 + 生成 3 个风格候选给你看 + **定排版参数**（行宽、行距、字距、对比度） | ● 你选风格 |
 | 5 | 写全文 + **逐节写「读者获得」** + 生成至少 3 个标题候选 | |
 | 6 | **三道检查**：作者化检查（像不像 AI）→ 受众复核（有没有越界）→ **读者审计**（读不读得下去、拿不拿得走） | ● 逐条决定留还是改，并选标题 |
 | 7 | 写回任务，标记 `delivered` | |
@@ -244,9 +269,9 @@ python3 capabilities/project-scaffold/scripts/init_project.py <你想要的目�
 |---|---|---|
 | 1 | 读任务、查事实，定平台和用途 | |
 | 2 | 写图片简报——每张图是什么、**这张图能不能由模型生成** | ● 一次问一个问题 |
-| 3 | 选风格：3 个候选，每个配一张真实样张 | ● 你选风格 |
+| 3 | 选风格：3 个候选，每个配一张真实样张 + 声明**承载体**（要不要底图） | ● 你选风格 |
 | 4 | 组装 prompt → **念给你听** → 调模型一步出图 | ● 你确认后才花钱 |
-| 5 | 验收：机器查尺寸、事实引用、配色回测 + **你自己看图** | ● 你点头才算完 |
+| 5 | 验收：机器查尺寸、事实引用、配色回测、**吸引力判据** + **你自己看图** | ● 你点头才算完 |
 
 **你说不清自己喜欢什么风格，就给图。**（2026-09-30 建）不用描述——
 把喜欢的图丢进项目根 `assets/reference/`，系统量出它的色板：
@@ -277,8 +302,54 @@ python3 /Users/conan/project/hq-geo/capabilities/image-production/scripts/verify
 - **量出来的色板不会自动变成新风格。** 要不要沉淀进风格库是你决定的事，
   不是脚本决定的。
 
+**图做出来了，好不好看也有一条机器能判的线。**（2026-10-08 建）
+`capabilities/image-appeal/` 把「素」变成了能算的数——色数、边缘密度、亮度剖面：
+
+```bash
+python3 /Users/conan/project/hq-geo/capabilities/image-appeal/scripts/measure_card.py <图.png>
+```
+
+**14 条判据分两类，界限按「机器能不能算」划：**
+
+| 类 | 判据 | 谁判 |
+|---|---|---|
+| AP-01…AP-09 | 标题长度、封面有没有视觉承载体、底图复杂度、封面与内页隔不隔离、全套风格一致、序号与总数、单页要点上限、文案机器化、末页落点 | 机器 |
+| AP-10…AP-14 | 信息缺口、意外点、情绪唤醒、信息价值、社交货币 | **你** |
+
+**机器那九条不代替你看图。** 它判不了好奇心——所以它只守一件事：
+人判的五项**有没有登记**、有没有留 `unknown`。信息缺口这类判断要人给，机器答不了。
+
+两条纪律要知道：
+
+- **写简报的人不能自己判「有没有人愿意看」。** 契约要求 `reviewed_by` 和 `author` 不是同一个人，
+  校验器直接拦。2026-10-08 的事故就是这样发生的：Agent 自填 `pass`、十张图交付，
+  你看完说「比较素」。**判据再全，自评仍会放过。**
+- **13 个风格要求封面有底图，1 个不要。** 每个风格自己声明 `carrier`——
+  `base_image` 或 `typography`。判据读它，**不自动替你选风格**。
+  选了 `base_image` 的风格却没给底图，站 5 直接红（`AP-02`）。
+
+**封面怎么真出图**（底图 + 文字层，2026-10-08 打通）：
+
+```bash
+python3 /Users/conan/project/hq-geo/capabilities/typography/scripts/render.py \
+  --spec <排版规格.json> --content <封面文案.json> \
+  --out <封面.html> --png <封面.png>
+```
+
+画布尺寸、四边留白、底色、字体栈、底图、压暗层全部由规格决定；
+每个文字层级（字号、行距、字距、颜色）走同一份规格的 `roles`。
+**参数定了才渲染，顺序不能反。**
+
+两条 2026-10-08 修掉的坑，知道一下：
+
+- **规格改了必须重跑，别信「已写入」。** 出图前脚本会先删目标文件——
+  之前用「文件存在」判成功，旧图在的时候 Chrome 就算没出图也报成功，
+  **改了参数、报了成功、图没变**。
+- **值填不进模板会报错，不再静默丢。** 之前模板里没有占位符时，`replace` 什么都不做，
+  输出看着正常、参数一个都没进去。现在会明确报错。
+
 图片线**不做图片编辑**——要改一张已有的图（局部修改、换背景），这条线不干这个。
-**视频线外发**：hq-geo 出 `CreativeJob`，Vidmix 做，回 `ProductionReceipt`。
+**视频线自建**（2026-10-10 起）：`skills/video-pipeline/` 六站，此前外发 Vidmix 的交接协议已删除。
 三条线中间**没有桥**，图生视频首帧这类事以后再说。
 
 **然后停下。** 分发是你的事——发完之后回来填 `## 分发登记`，那才是下半圈真正开始的地方。
@@ -356,7 +427,7 @@ python3 /Users/conan/project/hq-geo/test/run_quality_gate.py --project .
 ```
 
 - **改进** → 每次改动写进 `CHANGELOG.md`
-- **测试** → 23 个测试跑一遍，`PASS` 才算改完
+- **测试** → 27 个测试跑一遍，`PASS` 才算改完
 - **基准** → 测试数看系统的 `test/baseline.json`，产出数看**项目自己的** `.hq-geo.json`。产出少了直接判 FAIL
 
 这个循环的作用是**防止退步**。它每次都能回答"我是不是把东西改坏了"。
@@ -365,11 +436,16 @@ python3 /Users/conan/project/hq-geo/test/run_quality_gate.py --project .
 
 ```bash
 python3 test/tools/canary.py --project <项目根>
+python3 test/tools/canary.py --file <你改的目录>    # 只跑改到这个路径的破坏点
 ```
 
 **这个工具第一次跑就抓到了 5 条空转的断言**（2026-09-28）——全是「查关键词是否出现」，而关键词在那一节里出现了两次，删掉定义行还剩一次。它现在也是门禁里的一条测试（`canary-unit`），守着它自己的核心逻辑。
 
-用例存在 `test/canary.json`，现在有 **148 条**。**每次给规则加断言，就同时加一条 canary 用例**——不然新断言是真空转还是真守着，没人知道。
+用例存在 `test/canary.json`，2026-10-11 有 **245 条**。**每次给规则加断言，就同时加一条 canary 用例**——不然新断言是真空转还是真守着，没人知道。
+
+**筛破坏点用 `--file`，不用 `--only`。** `--only` 按名字筛，粒度太粗：`--only 视频线` 选中 19 条，其中 3 条跑的是 16 秒起步的单测，整轮 120 秒以上，还会被超时打断。同一个改动按文件筛只有 6 条，0.9 秒跑完（2026-10-11 实测）。
+
+**被 SIGTERM 打断会留下破坏态**（2026-10-07、2026-10-11 各一次）。还原写在 `finally` 里，挡不住信号。跑完顺手扫一遍：某条破坏点的 `replace` 在文件里、`find` 不在，就是残留。
 
 `--project` 给相对路径也行（内部先转绝对）。**给错路径会当场停下报「这里不是 hq-geo 项目根」**，而不是跑出一片红——canary 把「测试非零退出」当成「断言有效」，路径错了每一条都会是假红，那比没有更误导（2026-09-28 修）。
 
@@ -482,7 +558,7 @@ python3 test/tools/canary.py --project <项目根>
 | 文章流水线 | 八站建好，从未跑过真实任务 |
 | 学习库 | 建好，0 条记录 |
 | 图片流水线 | 五站建好（2026-09-29），参考吸收补齐（2026-09-30），从未跑过真实任务 |
-| 视频流水线 | 外发——只有交接协议，生成在 Vidmix |
+| 视频流水线 | 六站建好（2026-10-10），从未跑过真实任务 |
 
 已有产物的清单见 `README.md`「当前真实进度」。
 
@@ -521,6 +597,7 @@ python3 test/tools/canary.py --project <项目根>
 | 选题库 | **6 条，全部 `candidate`**（1 个 idea：`ai-employee`，`topics/ai-employee/topics.json`）。**第一次有选题是从调研链长出来的，不是迁移来的**——前两个项目的选题要么是 v1 迁移（91 条全 `imported`），要么是空的。五问按契约全空：第 3、5 问是 Conan 独有的资产，系统不代答。**没有一条被标 `selected`——选定哪条由 Conan 说** |
 | 取材 | 第一次真跑就在这个项目上——材料在 Conan 脑子里，不在系统里 |
 | 关键词研究 | **第一次真跑**：`AI数字员工` 词找词，612 条记录 + 5 个需求簇。**13 个推断词是推出来的，平台上没有数据**——用的时候要记得这一层。**两个方向的验证都是在这个项目上做的**：SERP 侧采了 15 个词（小红书 + 抖音），抓到 3 处分错的簇；聚光侧补采 4 个种子词（1,083 条记录），把 SERP 判过的四组词对拿量级 / 竞争 / 出价并排复核，**四组全部得到支持** |
+| 图片流水线 | **第一次真跑（2026-10-08）**：小红书图集第一版，十张纯文字卡，被 Conan 判「比较素，让人没啥阅读兴趣」。当时 `appeal_review` 四项全 `pass` 就交付了——**系统里没有一条视觉吸引力判据**。这次失败直接催生了 `capabilities/image-appeal/`。简报已按新契约升级、状态降回 `draft`，**卡在 AP-02：封面没有底图，而底图现在填不进封面模板**（见 BACKLOG） |
 
 **这个项目的关键词研究暴露了三件事**，记在 `research/normalized/` 和 `research/library/AI数字员工.md`
 里，而不是写进文档——**文档讲方法，记录讲事实**：
@@ -560,8 +637,29 @@ python3 test/tools/canary.py --project <项目根>
 
 ---
 
-**系统：** 门禁 23/23 `PASS`，在 `视频画册推广`、`Kingsway GEO 内容`、`Kingsway AI 数字员工`、
-`闲鱼赚钱验证` 和空项目上都跑过。**分根之后在多个真实项目上跑通了**——这正是分根要测的那件事。
+### 项目：`QuoteStitch 站点内容`（slug `quotestitch`）
+
+位置：`/Users/conan/WorkBuddy AI/hq-chuhai/projects/quotestitch`
+2026-10-08 建，**2026-10-10 定边界**。
+
+| | 状态 |
+|---|---|
+| 已有产物 | 0。产出基准已建立：`tasks=1`，其余五项 0 |
+| 任务机制 | 1 条：`tasks/quotestitch-content-onboarding.md`，`stage: intake`，`status: needs_input` |
+| 事实包 | 只有两张图，缺 `manifest.json` / `SOURCE_OF_TRUTH.md` / `facts.jsonl` |
+| 选题库 | 空 |
+| 学习库 | 建好，0 条记录 |
+| 范围 | 纳入：`tasks/` · `facts/` · `topics/` · `content/packages/` · `content/briefs/` · `research/library/`。范围外：`content/` 根下的社媒文案 |
+
+**这是第一个双身份项目。** 站点本体归 hq-chuhai，站外内容生产归本系统。
+它测的是边界判据能不能落地。写法见
+[`08-system-boundary.md`](00-meta/content-engine/08-system-boundary.md) 第八节。
+
+---
+
+**系统：** 门禁 27/27 `PASS`，在 `视频画册推广`、`Kingsway GEO 内容`、`Kingsway AI 数字员工`、
+`闲鱼赚钱验证`、`QuoteStitch 站点内容` 和空项目上都跑过。**分根之后在多个真实项目上跑通了**——
+这正是分根要测的那件事。
 
 ---
 
@@ -628,6 +726,12 @@ python3 test/tools/canary.py --project <项目根>
 参考吸收（量色板 + 回测）也建好了，但**从简报走到出图这一步没有跑过**。
 所有验证都是合成图上的单元测试，没花过一次钱、没调过一次模型。
 
+**2026-10-08 有了第一次真实尝试，但没走到出图那一步。** kingsway `ai-employee` 的
+小红书图集第一版是**本地拼 HTML 渲出来的**（没调模型、没花钱），十张纯文字卡，
+Conan 判「比较素」后全部作废。它证明的不是「图片线能出图」，而是**当时没有任何东西在管好不好看**。
+现在有了（`capabilities/image-appeal/`），但**判据本身也还没在真实图集上校准过**——
+`AP-03` 的阈值样本只有 10:1，要等 3–5 套真实图集才能定。
+
 它需要两样东西才能跑：一个真实的图片任务，
 和一个 API Key（放 `~/.config/hq-geo/image.json` 或环境变量 `HQ_GEO_IMAGE_API_KEY`，不进代码）。
 
@@ -650,6 +754,7 @@ python3 test/tools/canary.py --project <项目根>
 **必须同步的情况**：
 
 - 新增或删除流水线 → 更新「三个入口」
+- 新增能力包或新判据（尤其带校验器的）→ 更新对应流水线那一节，并加进「一页速查」
 - 新增或删除测试 → 更新「已经闭合的」里的测试数量
 - loop 的哪一段建起来了 → 更新第四节，把虚线框变成实线
 - 产出数量或状态变化 → 更新第六节表格
@@ -709,6 +814,17 @@ python3 /Users/conan/project/hq-geo/capabilities/image-production/scripts/verify
 python3 /Users/conan/project/hq-geo/capabilities/image-production/scripts/generate_image.py \
   --brief <图片简报路径> --dry-run
 
+# 吸引力判据（图片线站 5 的第二道；跑在简报上）
+python3 /Users/conan/project/hq-geo/capabilities/image-appeal/scripts/check_appeal.py \
+  --brief <图片简报路径>
+
+# 量一张图有多「素」（色数 / 边缘密度 / 亮度剖面）
+python3 /Users/conan/project/hq-geo/capabilities/image-appeal/scripts/measure_card.py <图.png>
+
+# 渲染封面（底图 + 文字层 → HTML，加 --png 再出图）
+python3 /Users/conan/project/hq-geo/capabilities/typography/scripts/render.py \
+  --spec <排版规格.json> --content <封面文案.json> --out <封面.html> --png <封面.png>
+
 # Canary：确认断言不是空转的（改了测试之后跑，不进日常门禁）
 python3 /Users/conan/project/hq-geo/test/tools/canary.py --project .
 ```
@@ -734,5 +850,6 @@ export HQGEO=/Users/conan/project/hq-geo
 | 文章风格约定 | `capabilities/content-production/styles/README.md` |
 | 图片线的契约、风格与出图 | `capabilities/image-production/` |
 | 图片线怎么走 | `skills/image-pipeline/SKILL.md` |
+| 图文吸引力判据、方法与出处 | `capabilities/image-appeal/` |
 | 参考吸收为什么这么做 | `capabilities/image-production/PRD-reference-absorption.md` |
 | 什么时候能借 dbs | `capabilities/content-production/external-advisors.md` |

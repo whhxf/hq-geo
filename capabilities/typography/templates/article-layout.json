@@ -1,0 +1,23 @@
+{
+  "schema_version": "article-layout/v1",
+  "font_size_body_px": 16,
+  "line_height": {"body": 1.75, "heading": 1.25},
+  "letter_spacing_em": {"body": 0.02, "heading": 0.08},
+  "heading_sizes_px": [30, 22, 18],
+  "measure_chars": 32,
+  "max_width_px": 700,
+  "first_line_indent_em": 0,
+  "paragraph_spacing_em": 1.75,
+  "cjk_latin_spacing_em": 0.0,
+  "line_break_level": "gb",
+  "colors": {"text": "#1a1a1a", "background": "#ffffff"},
+  "human_review": {
+    "reviewed_by": "Conan",
+    "reviewed_at": "2026-10-07",
+    "verdicts": {
+      "reads_comfortably": "pass",
+      "hierarchy_is_clear": "pass",
+      "style_matches_content": "pass"
+    }
+  }
+}

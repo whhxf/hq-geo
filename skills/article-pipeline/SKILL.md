@@ -20,6 +20,7 @@ description: 从任务文件到文章成稿的完整流水线。用户说「看�
 - `capabilities/content-production/strategies/creative-strategies.md` — 结构模式
 - `capabilities/content-production/styles/README.md` — 风格示例与风格库
 - `00-meta/content-engine/03-platform-hard-rules.md` — 目标渠道的硬规则
+- `00-meta/content-engine/07-authorial-quality-system.md` — 作者化规范：Gate C/D 的判据，以及「不作为改写理由」清单
 
 **再查一次调研结论库 `research/library/README.md`**——这个主题这个项目**已经调研过什么**。
 索引也在项目 `CLAUDE.md` 末尾（每次会话自动加载），但换设备或上下文被压缩后要自己读一次。
@@ -108,7 +109,50 @@ description: 从任务文件到文章成稿的完整流水线。用户说「看�
 
 **风格**：按 `capabilities/content-production/styles/README.md` 生成 3 个候选，写成 `content/styles/<task-id>.html`，让用户打开浏览器看。风格库里已有条目时优先用库里的。
 
-产出：策略 ID 和风格选择，写进任务的 `## 交付` 区块。`stage` 改为 `drafting`。
+**排版。** 每个候选除了文字风格，还要定一份排版参数。**排版不是装饰，是可核验的数值。**
+
+照 `capabilities/typography/templates/article.html` 起手，参数写进 `content/styles/<task-id>.layout.json`，然后跑：
+
+```bash
+python3 capabilities/typography/scripts/check_layout.py content/styles/<task-id>.layout.json
+```
+
+判据的真源是 `capabilities/typography/rules/typography-rules.json`，十四条，每条带来源和证据等级。三条先记住：
+
+- **行宽 25–35 汉字**（硬上限 40）——超了换行时视线要跳跃很远的距离，容易读错行
+- **首行缩进与段距二选一**——同时用会产生过多空白，版面松散
+- **正文对比度 ≥ 4.5:1**（WCAG 2.1 AA）——低于这条，弱视读者读不了
+
+**参数定了才写 HTML，顺序不能反。** 反过来就会变成「看着还行就发」。
+
+HTML 写完后量一遍，确认声明和 CSS 一致：
+
+```bash
+python3 capabilities/typography/scripts/extract_html_layout.py content/styles/<task-id>.html \
+  --compare content/styles/<task-id>.layout.json
+```
+
+**对不上就是有一份在撒谎**——要么改了 CSS 忘改参数，要么参数是照别的模板抄的。两种情况都不得进下一站。
+
+**机器判不了好不好看。** 参数里的 `human_review` 三格（读得下去 / 层次清楚 / 风格配内容）必须由人判并登记。`check_layout.py` 只守「有没有登记、有没有留 unknown」，它判不了审美——**所以它要求人判留下痕迹**。
+
+**封面。** 文章头图和正文走**同一套排版规则，只换载体**——`surface` 从 `page` 换成 `image`。
+
+照 `capabilities/typography/templates/cover-type-spec.json` 起手，参数写进
+`content/styles/<task-id>.cover.json`，跑同一个校验器：
+
+```bash
+python3 capabilities/typography/scripts/validate_type_spec.py content/styles/<task-id>.cover.json
+```
+
+**这一站只定封面规格，不定封面文案。** 规格是风格、版位、字号行距颜色；文案等站 6 标题定稿后再填。
+理由是封面必须和标题同向，而标题站 6 才选定——先写封面文案，就会写出一句和标题无关的话。
+
+**底图不在这一站生成。** 风格库里 `carrier` 是 `base_image` 的风格，封面必须有一张底图（AP-02）。
+底图按图片线站 2 的 A 方案单独出，路径填进 `canvas.background_image`。
+**没有底图时封面只能标 `prepared`，不得标发布就绪**（宪法第 5 条）。
+
+产出：策略 ID、风格选择、每个候选的排版参数与校验结果、封面规格与校验结果，写进任务的 `## 交付` 区块。`stage` 改为 `drafting`。
 
 ### 站 5 · 写全文
 
@@ -149,6 +193,9 @@ description: 从任务文件到文章成稿的完整流水线。用户说「看�
 
 渠道版本从主稿派生，不机械截短，不互相复制格式。目标媒体未知时，媒体包不得标为发布就绪。
 
+**主稿写完，立即自动跑一次作者化检查（站 6 第一道），把报告贴出来。**
+不等用户开口，也不问「要不要检查」——这是写稿的收尾动作，不是等指令的独立步骤。
+
 ### 站 6 · 三道检查
 
 **三道都要做。只做前两道，稿子会变成一份挑不出错、完全合规、但没人读完的文件。**
@@ -158,6 +205,8 @@ description: 从任务文件到文章成稿的完整流水线。用户说「看�
 
 #### 一、作者化检查
 
+**这一道在站 5 写完主稿后自动跑，不需要用户要求，也不问「要不要检查」。**
+
 ```bash
 python3 capabilities/content-production/scripts/check_authorial.py <成稿路径>
 ```
@@ -165,6 +214,10 @@ python3 capabilities/content-production/scripts/check_authorial.py <成稿路径
 逐条向用户展示命中，每条只问三个问题：删掉后含义是否变化；能否换成具体动作；能否补事实或条件。
 
 **逐条等用户决定，不要批量改。** 用户说保留就保留——`07` 明确写了，否定词、时间词、范围词和真实的不确定性不得为了降低密度而删除。
+
+**先读「不作为改写理由」再动手。** `07` 同名小节列了 11 项实测站不住的特征（句长均匀度、被动句、句内排比、比喻本身……）。这些不能作为改写理由。命中项里，`重复限定` 只诊断，句长变异系数只报告——两项都不据此改文字。
+
+**要验证某条规则值不值得立，用测量工具。** 需要人类语料和 AI 语料各一份。句级倍率跑 `capabilities/content-production/scripts/compare_human_ai.py`，段级结构跑 `capabilities/content-production/scripts/check_structure.py`，翻译腔跑 `capabilities/content-production/scripts/check_translationese.py`。**换自己的语料重跑，不要直接引用外部倍率。**
 
 改写后对比改写前后：核心判断、数字、专有名词、因果、适用条件、否定和承诺不得漂移（Gate F）。任一变化没有依据就回退。
 
@@ -224,6 +277,25 @@ python3 capabilities/content-production/scripts/check_authorial.py <成稿路径
 
 同时把站 5 的标题候选交给用户选。
 
+**标题定稿后出封面。** 从选定标题派生封面文案，填进站 4 定好的封面规格，渲染：
+
+```bash
+python3 capabilities/typography/scripts/render.py \
+  --spec content/styles/<task-id>.cover.json \
+  --content content/styles/<task-id>.cover-copy.json \
+  --out content/packages/<channel>/<idea>/<topic>/cover.html \
+  --png content/packages/<channel>/<idea>/<topic>/cover.png
+```
+
+封面文案的字段**沿用图片线的定义，不另立一套**：`headline`（必填，取自选定标题）/
+`source_title`（必填，取自哪条标题）/ `kicker` / `meta` / `layout`。
+**封面不许无文字**——一张无字的封面在一屏几十条的流里不会被任何人看见。
+
+**封面的吸引力要人判，而且要登记。** 复用图片线的 `appeal_review` 四项封面判据：
+`same_direction_as_title` / `has_readable_hook` / `has_conflict_or_tension` / `scannable_in_feed`，
+四项全 `pass` 才许进站 7。**判的人不能是写封面文案的人**——同一个人写又同一个人判，等于没判。
+另外五项（`information_gap` 等）是**图集层**的判据，单张封面不强制。
+
 产出：用户对每条的决定、读者审计的六问回答与逐条处理、选定的标题、修订后的成稿、更新后的定位卡。`stage` 改为 `review`。
 
 ### 站 7 · 写回任务
@@ -235,6 +307,7 @@ python3 capabilities/content-production/scripts/check_authorial.py <成稿路径
 - 策略 ID 和风格选择
 - **标题**：选定的那个，以及落选候选和它们各自的路线
 - 每个产物的路径和状态
+- **封面**：产物路径、`source_title`、四项吸引力复核结论、底图路径与权利状态
 - 作者化检查中用户保留的项和理由
 - **受众复核的结论**（四条各是什么，有「否」的写明改了什么）
 - 还差什么（如果有）
@@ -279,6 +352,7 @@ python3 capabilities/content-production/scripts/check_authorial.py <成稿路径
 
 - 不自动发布，不上传，不产生广告花费。
 - 不替用户写 `## 任务` 和 `## 分发登记` 两个区块。
+- **排版参数不过校验器，不得渲染 HTML。** 先定参数、再过判据、最后渲染，顺序不能反。
 - 不为了让文章显得充实而补事实、补案例、补数据。
 - 一次任务只走一条流水线。用户同时要文章和视频时，各自走各自那条，共享站 3 的核心判断。
 - 这条线不加载完整 GEO 流程。官网内容、AI 搜索可见性、品牌引用建设走 GEO 分支。

@@ -23,14 +23,20 @@ BASELINE = ROOT / "test/baseline.json"
 SCHEMA_VERSION = 2
 
 # 系统根和项目根是两个目录。ROOT 永远是系统根（门禁、基准住这里），
-# 项目根由 --project 决定，并通过环境变量传给每个测试子进程。
+# 项目根可选：给了就多比一次产出基准，没给就只跑系统自检。
+# **门禁不依赖任何具体项目**——2026-10-10 起，全部测试只读系统根。
 sys.path.insert(0, str(ROOT))
-from project import MARKER, find_project  # noqa: E402
+from project import MARKER, find_project, is_project  # noqa: E402
 
 # 无论改动落在哪里都必须跑的测试：它们守的是门禁和分层本身，
 # 一旦被跳过，其余测试是否真的跑了就无从判断。
 ALWAYS_RUN = {"feature-registry-contract"}
 RULE_DOCS = {"AGENTS.md", "TEST_PLAN.md", "README.md"}
+
+# 门禁**读不到**的 test/ 文件。改它们不必全量跑。
+# `canary.json` 只被 canary 工具读（`test-canary` 功能登记了它）；
+# `reports/` 是产物，不是输入。
+NOT_GATE_INPUT = ("test/canary.json", "test/reports/")
 
 
 def load_json(path: Path):
@@ -54,6 +60,24 @@ def load_json(path: Path):
         )
 
 
+def locate_project(explicit: str | None) -> Path | None:
+    """找项目根。找不到就返回 None。
+
+    显式 `--project` 指了一个不是项目根的目录 → 停机，那是用错了。
+    没显式指定时向上找 `.hq-geo.json`，找不到不是错——门禁只测系统根。
+    """
+    if explicit:
+        return find_project(explicit)
+    raw = os.environ.get("HQ_GEO_PROJECT")
+    if raw:
+        return find_project(raw)
+    here = Path.cwd().resolve()
+    for candidate in [here, *here.parents]:
+        if is_project(candidate):
+            return candidate
+    return None
+
+
 def changed_paths() -> list[str]:
     commands = [
         ["git", "diff", "--name-only"],
@@ -72,6 +96,25 @@ def base_ids(tests: list[dict]) -> set[str]:
     return set(ALWAYS_RUN) | {item["id"] for item in tests if item["tier"] == "static"}
 
 
+def needs_full_run(paths: list[str]) -> bool:
+    """改动落在门禁自身的输入上时，影响面无法局部判断，全量跑。
+
+    **只挖两个洞。** 2026-10-11 之前这里是「`test/` 下一律全量」，
+    于是改一条破坏点（`test/canary.json`）也退化成全量——快通道等于没有。
+    实测：`--changed --list` 永远列出全部 26 条。
+
+    挖掉的两个洞是门禁读不到的东西，见 `NOT_GATE_INPUT`。
+    其余 `test/` 文件保持全量：保守优先，宁可多跑，
+    也不让一个新加的测试文件悄悄不被跑。
+    """
+    for path in paths:
+        if path in RULE_DOCS:
+            return True
+        if path.startswith("test/") and not path.startswith(NOT_GATE_INPUT):
+            return True
+    return False
+
+
 def select_by_changes(tests: list[dict], registry: dict, paths: list[str]) -> tuple[list[dict], list[str]]:
     selected_ids = base_ids(tests)
     impacted = []
@@ -80,7 +123,7 @@ def select_by_changes(tests: list[dict], registry: dict, paths: list[str]) -> tu
             impacted.append(feature["id"])
             selected_ids.update(feature["test_ids"])
     # 规则文档和门禁自身变动时无法局部判断影响面，全量跑。
-    if any(path in RULE_DOCS or path.startswith("test/") for path in paths):
+    if needs_full_run(paths):
         selected_ids.update(item["id"] for item in tests)
     return [item for item in tests if item["id"] in selected_ids], impacted
 
@@ -125,15 +168,15 @@ def output_metrics(project: Path) -> dict:
     # 主稿住进目标渠道目录后，这个口径就数不到它了：项目里明明有一个 toutiao 渠道包，
     # 门禁报 `渠道包: 1 → 0`。**产出统计口径必须跟着路径约定走**，否则产物丢了它也不会红。
     package_dirs = [
-        path for path in packages.glob("*/*/*")
+        path for pattern in ("*/*", "*/*/*") for path in packages.glob(pattern)
         if path.is_dir() and any((path / name).is_file() for name in ("article.md", "copy.md"))
     ]
     return {
         "tasks": len(task_files),
         "tasks_delivered": delivered,
-        "articles": len(list(packages.glob("*/*/*/article.md"))),
+        "articles": sum(len(list(packages.glob(pattern))) for pattern in ("*/*/article.md", "*/*/*/article.md")),
         "channel_packages": len(package_dirs),
-        "production_briefs": len(list((project / "content/briefs").glob("*/*/production-brief.json"))),
+        "production_briefs": sum(len(list((project / "content/briefs").glob(pattern))) for pattern in ("*/production-brief.json", "*/*/production-brief.json")),
         "fact_packs": len(list((project / "facts").glob("*/*/manifest.json"))),
     }
 
@@ -143,7 +186,7 @@ LABELS = {"tasks": "任务", "tasks_delivered": "已交付任务", "articles": "
 
 
 def compare_baseline(metrics: dict, report: dict, project: Path) -> tuple:
-    """和基准比，返回（说明行，是否有产出倒退）。
+    """和基准比，返回（说明行，是否有产出倒退，是否全零基线未说明）。
 
     基准分两处：**健康基准在系统**（测试数、覆盖率），**产出基准在项目**。
     分开的理由——系统健康是全局的，产物是每个项目自己的。
@@ -153,6 +196,9 @@ def compare_baseline(metrics: dict, report: dict, project: Path) -> tuple:
     页面就是空的，如果门禁还是绿的，就没人会发现。变多不算问题。
     确实要减少（清理旧稿、拆项目），就改 `.hq-geo.json` 的 `output_baseline`
     并在 note 里写清原因——让减少变成一个有人做过的决定，而不是一次静默丢失。
+
+    **全零基线也必须写明原因。** 一个空的实例层不该因为「产出 0 等于基准 0」而通过门禁。
+    零等于零不是合规，是漏记。要么写真值，要么在 `output_baseline_note` 里说明为什么是 0。
     """
     lines = []
     if not BASELINE.is_file():
@@ -173,7 +219,15 @@ def compare_baseline(metrics: dict, report: dict, project: Path) -> tuple:
         (project / MARKER).write_text(
             json.dumps(descriptor, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         lines.append(f"产出基准已建立（{len(metrics)} 项），下次运行开始比对")
-        return lines, False
+        return lines, False, False
+
+    # 这条只在基线**全零**时要求说明。非零基线不需要解释。
+    unexplained_empty = not any(old_output.values()) and not str(
+        descriptor.get("output_baseline_note") or "").strip()
+    if unexplained_empty:
+        lines.append(
+            f"产出基准六项全为零，且 {MARKER} 没有 output_baseline_note。"
+            "零等于零不是合规，是漏记：要么写真值，要么写明为什么是 0。")
 
     regressed = []
     output_lines = []
@@ -191,18 +245,21 @@ def compare_baseline(metrics: dict, report: dict, project: Path) -> tuple:
     if regressed:
         lines.append(f"产出倒退 {len(regressed)} 项。确认是有意清理后，"
                      f"改 {project / MARKER} 的 output_baseline 并在 note 里写明原因。")
-    return lines, bool(regressed)
+    return lines, bool(regressed), unexplained_empty
 
 
-def report_dir(project: Path) -> Path:
-    """报告按项目分目录。
+def report_dir(project: Path | None) -> Path:
+    """报告按项目分目录。没有项目时落 `_system`。
 
-    报告是「系统在某个项目上跑出来的结果」。混在一个目录里，
+    报告是「系统在某个对象上跑出来的结果」。混在一个目录里，
     两个项目的趋势线会互相污染，也就没法比较系统在哪个项目上更有效。
+    系统自检是第三种对象，单独一个目录。
 
     用 `.hq-geo.json` 的 slug 而不是文件夹名：项目文件夹可以搬、可以改名，
     报告历史不该跟着丢。slug 读不到才退回文件夹名，至少还能跑。
     """
+    if project is None:
+        return REPORT_ROOT / "_system"
     try:
         slug = json.loads((project / MARKER).read_text(encoding="utf-8")).get("slug")
     except (OSError, ValueError):
@@ -210,7 +267,7 @@ def report_dir(project: Path) -> Path:
     return REPORT_ROOT / (slug or project.name)
 
 
-def append_history(report: dict, project: Path) -> None:
+def append_history(report: dict, project: Path | None) -> None:
     """每次结果追加一行。没有历史就没有趋势，没有趋势就谈不上改进。"""
     history = report_dir(project) / "history.jsonl"
     history.parent.mkdir(parents=True, exist_ok=True)
@@ -239,7 +296,7 @@ def coverage_summary(registry: dict) -> dict:
             "frozen": len(registry.get("frozen", []))}
 
 
-def write_reports(report: dict, project: Path) -> None:
+def write_reports(report: dict, project: Path | None) -> None:
     directory = report_dir(project)
     directory.mkdir(parents=True, exist_ok=True)
     (directory / "latest.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -247,7 +304,7 @@ def write_reports(report: dict, project: Path) -> None:
     lines = ["# 质量门禁报告", "", f"- 结论：**{report['verdict'].upper()}**",
              f"- 模式：`{report['mode']}`", f"- 时间：{report['generated_at']}",
              f"- 系统根：`{report.get('system_root', '?')}`",
-             f"- 项目根：`{report.get('project_root', '?')}`",
+             f"- 项目根：`{report.get('project_root') or '未指定（只跑系统自检）'}`",
              f"- 测试：{report['passed']}/{report['total']} 通过",
              f"- 现有能力覆盖：{report['coverage']['covered']}/{report['coverage']['implemented_or_partial']}（{report['coverage']['coverage_percent']}%）",
              f"- 仍在规划、不可对外承诺：{report['coverage']['planned']} 项",
@@ -262,7 +319,12 @@ def write_reports(report: dict, project: Path) -> None:
             lines.append(f"| {LABELS.get(key, key)} | {value} |")
     diff = report.get("baseline_diff") or []
     if diff:
-        title = "## 相对基准（产出倒退，判 FAIL）" if report.get("output_regressed") else "## 相对基准"
+        if report.get("output_regressed"):
+            title = "## 相对基准（产出倒退，判 FAIL）"
+        elif report.get("baseline_unexplained_empty"):
+            title = "## 相对基准（基线全零未说明，判 FAIL）"
+        else:
+            title = "## 相对基准"
         lines.extend(["", title, ""])
         lines.extend(f"- {line}" for line in diff)
     if report.get("changed_paths") is not None:
@@ -277,7 +339,9 @@ def write_reports(report: dict, project: Path) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="运行 HQ Content Engine 质量门禁")
-    parser.add_argument("--project", help="项目根目录。不传则从当前目录向上找 .hq-geo.json")
+    parser.add_argument("--project",
+                        help="项目根目录。给了就额外比一次该项目的产出基准；"
+                             "不给就只跑系统自检（会先向上找 .hq-geo.json）")
     parser.add_argument("--changed", action="store_true", help="只运行本地变更影响到的测试（不能替代最终门禁）")
     parser.add_argument("--list", action="store_true", help="列出测试但不执行")
     args = parser.parse_args()
@@ -295,14 +359,16 @@ def main() -> int:
             print(f"{item['id']:<30} {item['tier']:<12} {item['name']}")
         return 0
 
-    project = find_project(args.project)
+    project = locate_project(args.project)
     # 每个测试子进程都从环境变量拿项目根，不用各自去猜。
-    os.environ["HQ_GEO_PROJECT"] = str(project)
+    # 没有项目时不设：全部测试只读系统根，谁都不该去找实例层。
+    if project is not None:
+        os.environ["HQ_GEO_PROJECT"] = str(project)
 
     results = []
     print(f"HQ quality gate ({mode}, {len(tests)} tests)")
     print(f"system  {ROOT}")
-    print(f"project {project}")
+    print(f"project {project or '（未指定，只跑系统自检）'}")
     for item in tests:
         print(f"RUN  {item['id']} ...", flush=True)
         result = run_test(item)
@@ -310,17 +376,25 @@ def main() -> int:
         print(f"{result['status'].upper():4} {item['id']} ({result['duration_seconds']}s)")
     coverage = coverage_summary(registry)
     failed = [item for item in results if item["status"] == "fail"]
-    metrics = output_metrics(project)
+    metrics = output_metrics(project) if project is not None else None
     report = {"schema_version": SCHEMA_VERSION,
               "generated_at": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
               "mode": mode, "total": len(results),
-              "system_root": str(ROOT), "project_root": str(project),
+              "system_root": str(ROOT),
+              "project_root": str(project) if project is not None else None,
               "passed": sum(1 for item in results if item["status"] == "pass"), "failed": len(failed),
               "coverage": coverage, "output": metrics, "changed_paths": paths,
               "impacted_features": impacted, "results": results}
-    report["baseline_diff"], regressed = compare_baseline(metrics, report, project)
+    if project is None:
+        # 产出基准是每个项目自己的。没有项目就不比，也不假装比过。
+        report["baseline_diff"] = ["未指定项目根：本次只跑系统自检，不比较产出基准。"]
+        regressed, unexplained_empty = [], False
+    else:
+        report["baseline_diff"], regressed, unexplained_empty = compare_baseline(metrics, report, project)
     report["output_regressed"] = regressed
-    verdict = "pass" if not failed and not regressed and coverage["coverage_percent"] == 100.0 else "fail"
+    report["baseline_unexplained_empty"] = unexplained_empty
+    verdict = "pass" if not failed and not regressed and not unexplained_empty \
+        and coverage["coverage_percent"] == 100.0 else "fail"
     report["verdict"] = verdict
     write_reports(report, project)
     append_history(report, project)

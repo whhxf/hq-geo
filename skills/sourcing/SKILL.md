@@ -8,12 +8,12 @@ description: 把一个说不清的想法或一个主题，变成可执行的 pro
 ## 目的
 
 把脑子里的东西或外面的材料取回来，立起一份能推动下一步的 brief。
-**不写成稿**——文章走 `article-pipeline` 八站，视频走 `creative-handoff`，图片走 `image-pipeline` 五站。
+**不写成稿**——文章走 `article-pipeline` 八站，视频走 `video-pipeline` 六站，图片走 `image-pipeline` 五站。
 
 ```
 想法 / 主题 ──取材──→ production-brief.json ──┬──→ 文章：八站
                                               ├──→ 图片：image-pipeline 五站
-                                              └──→ 视频：creative-job → Vidmix
+                                              └──→ 视频：video-pipeline 六站
 ```
 
 ## 开始前
@@ -94,7 +94,7 @@ python3 capabilities/fact-packs/scripts/capture_fact.py \
 
 1. **这份 brief 现在能做什么**——还缺什么、缺的会影响什么
 2. **旁支清单**——问「现在继续哪一条，还是先留到以后」
-3. **下一步**——文章进 `article-pipeline`；图/视频走 `creative-handoff` 生成 creative-job
+3. **下一步**——文章进 `article-pipeline`；图片进 `image-pipeline`；视频进 `video-pipeline`
 
 ## 边界
 

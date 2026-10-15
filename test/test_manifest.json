@@ -11,7 +11,7 @@
   "tests": [
     {
       "id": "project-structure",
-      "name": "系统根与项目根的分根边界",
+      "name": "系统根自检：分层、语法与必需路径",
       "tier": "static",
       "command": [
         "python3",
@@ -72,34 +72,8 @@
       "timeout_seconds": 30
     },
     {
-      "id": "creative-handoff-contract",
-      "name": "CreativeJob 与 ProductionReceipt 文件契约",
-      "tier": "contract",
-      "command": [
-        "python3",
-        "-m",
-        "unittest",
-        "discover",
-        "-s",
-        "test/suites",
-        "-p",
-        "test_creative_handoff.py"
-      ],
-      "timeout_seconds": 30
-    },
-    {
-      "id": "content-deliverable-contract",
-      "name": "文章、视频与图片创作交付契约",
-      "tier": "contract",
-      "command": [
-        "python3",
-        "capabilities/content-production/scripts/validate_deliverables.py"
-      ],
-      "timeout_seconds": 30
-    },
-    {
       "id": "content-deliverable-unit",
-      "name": "视频制作简报与外部系统交接门禁",
+      "name": "内容交付契约与作者化测量的单测",
       "tier": "unit",
       "command": [
         "python3",
@@ -110,16 +84,6 @@
         "capabilities/content-production/tests",
         "-p",
         "test_*.py"
-      ],
-      "timeout_seconds": 30
-    },
-    {
-      "id": "fact-pack-contract",
-      "name": "事实包目录、准入与完整性契约",
-      "tier": "contract",
-      "command": [
-        "python3",
-        "capabilities/fact-packs/scripts/validate_fact_pack.py"
       ],
       "timeout_seconds": 30
     },
@@ -167,21 +131,11 @@
     },
     {
       "id": "content-assets-contract",
-      "name": "创作策略库、风格约定与任务约定完整性",
+      "name": "策略库、风格约定、任务约定与学习闭环完整性",
       "tier": "contract",
       "command": [
         "python3",
         "test/suites/test_content_assets.py"
-      ],
-      "timeout_seconds": 30
-    },
-    {
-      "id": "task-contract",
-      "name": "任务单据格式契约",
-      "tier": "contract",
-      "command": [
-        "python3",
-        "capabilities/content-production/scripts/validate_tasks.py"
       ],
       "timeout_seconds": 30
     },
@@ -212,22 +166,38 @@
       "timeout_seconds": 60
     },
     {
-      "id": "image-brief-contract",
-      "name": "项目里图片简报的合法性与风格引用",
-      "tier": "contract",
-      "command": [
-        "python3",
-        "capabilities/image-production/scripts/validate_image_brief.py"
-      ],
-      "timeout_seconds": 30
-    },
-    {
       "id": "image-pipeline-contract",
       "name": "图片线五站判据、契约必填项与风格库完整性",
       "tier": "contract",
       "command": [
         "python3",
         "test/suites/test_image_pipeline.py"
+      ],
+      "timeout_seconds": 30
+    },
+    {
+      "id": "image-appeal-unit",
+      "name": "视觉复杂度测量、十四条吸引力判据的正反例与规则真源",
+      "tier": "unit",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "capabilities/image-appeal/tests",
+        "-p",
+        "test_*.py"
+      ],
+      "timeout_seconds": 60
+    },
+    {
+      "id": "image-appeal-contract",
+      "name": "吸引力判据真源、机器与人判的分工、复核独立性与风格 carrier",
+      "tier": "contract",
+      "command": [
+        "python3",
+        "test/suites/test_image_appeal.py"
       ],
       "timeout_seconds": 30
     },
@@ -292,6 +262,84 @@
         "capabilities/image-production/tests/test_palette.py"
       ],
       "timeout_seconds": 60
+    },
+    {
+      "id": "typography-unit",
+      "name": "排版判据、对比度计算与 HTML 提取的回归",
+      "tier": "unit",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "capabilities/typography/tests",
+        "-p",
+        "test_*.py"
+      ],
+      "timeout_seconds": 30
+    },
+    {
+      "id": "typography-contract",
+      "name": "文章线排版判据、规则真源与人判承载",
+      "tier": "contract",
+      "command": [
+        "python3",
+        "test/suites/test_typography.py"
+      ],
+      "timeout_seconds": 30
+    },
+    {
+      "id": "video-unit",
+      "name": "视频线合身、出帧与成片回归测试",
+      "tier": "unit",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "capabilities/video-production/tests",
+        "-p",
+        "test_*.py"
+      ],
+      "timeout_seconds": 120
+    },
+    {
+      "id": "video-contract",
+      "name": "视频线六站判据与缺口留痕契约",
+      "tier": "contract",
+      "command": [
+        "python3",
+        "test/suites/test_video_pipeline.py"
+      ],
+      "timeout_seconds": 30
+    },
+    {
+      "id": "speech-unit",
+      "name": "WebSocket 帧协议、音频合规与计费口径回归测试",
+      "tier": "unit",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "capabilities/speech/tests",
+        "-p",
+        "test_*.py"
+      ],
+      "timeout_seconds": 60
+    },
+    {
+      "id": "speech-contract",
+      "name": "语音线复刻与合成两个通道、实测留痕与成本契约",
+      "tier": "contract",
+      "command": [
+        "python3",
+        "test/suites/test_speech.py"
+      ],
+      "timeout_seconds": 30
     }
   ]
 }

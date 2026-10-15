@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TypeSpec",
+  "description": "排版规格。图片和文章共用同一份。规则真源见 capabilities/typography/README.md。",
+  "type": "object",
+  "required": ["schema_version", "id", "surface", "background", "roles", "chinese"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "id": {
+      "description": "这份规格的稳定标识。同一份规格可以渲染多个产物。",
+      "type": "string",
+      "minLength": 1
+    },
+    "surface": {
+      "description": "载体。`image` = 画布（封面、图上文案），必填 `canvas`；`page` = 页面（文章正文），必填 `measure_chars`。规格只有一份，载体只是换了容器。",
+      "enum": ["image", "page"]
+    },
+    "background": {
+      "description": "文字压在上面的底色，hex。**对比度按它算**——所以它必须是真的底色，不能填「大概是米白」。",
+      "type": "string",
+      "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+    },
+    "font_family": {
+      "description": "落到 CSS 的字体栈。**这一格不是「选字体」那个决定**——字体属于风格（见 image-production/styles），由风格库给；这里只是把它写成能用的 CSS 值。不填时模板给一份中文可用的兜底栈。",
+      "type": "string",
+      "minLength": 1
+    },
+    "canvas": {
+      "description": "`surface = image` 时必填。",
+      "type": "object",
+      "required": ["width", "height", "margin"],
+      "properties": {
+        "width": {"type": "integer", "minimum": 1},
+        "height": {"type": "integer", "minimum": 1},
+        "margin": {
+          "description": "四边安全留白（px）。每边必须 ≥ 短边的 4%——文字贴边，一裁切就没了。",
+          "type": "object",
+          "required": ["top", "right", "bottom", "left"],
+          "properties": {
+            "top": {"type": "number", "minimum": 0},
+            "right": {"type": "number", "minimum": 0},
+            "bottom": {"type": "number", "minimum": 0},
+            "left": {"type": "number", "minimum": 0}
+          }
+        },
+        "background_image": {
+          "description": "底图路径，项目根相对。模型生成或实拍都行——排版只是往上叠文字，不改底图。不填时用 `background` 纯色。**底图不是纯色时，`background` 只是兜底色，对比度校验不成立**——那种情况下文字必须压在底图自己的干净区域上，并归人看。",
+          "type": "string"
+        },
+        "text_layout": {
+          "description": "文案落在画面哪个位置。取值与 `ImageBrief.cover_text.layout` 一致——同一个决定不要在两个契约里各写一套。",
+          "enum": ["top-left", "top-center", "bottom-left", "bottom-center", "center"]
+        },
+        "scrim": {
+          "description": "文字底下的压暗层，CSS 颜色（如 `rgba(0,0,0,.35)`）。**默认关闭**：2026-10-07 实测，粗暴的底部渐变遮罩会被读成「不专业」。只在底图确实压不住文字时开，并且要人看过。",
+          "type": "string"
+        }
+      }
+    },
+    "measure_chars": {
+      "description": "`surface = page` 时必填。每行汉字数。中文最佳区间 25–35（经验模式），校验器放行 20–45。",
+      "type": "integer",
+      "minimum": 1
+    },
+    "roles": {
+      "description": "每个文字层级一格。键名随便起（`headline` / `kicker` / `h1` / `body` / `caption`…），**行为由 `kind` 决定，不由键名决定**——机器不猜名字。",
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["kind", "size_px", "line_height", "letter_spacing_em", "weight", "color"],
+        "properties": {
+          "kind": {
+            "description": "这一格是干什么的。行距和字距的判据按它分组：`display` / `heading` 是大字（字距要拉开、行距要紧）；`body` / `caption` 是阅读文字（行距要够、字距不能拉）。",
+            "enum": ["display", "heading", "body", "caption"]
+          },
+          "size_px": {
+            "description": "字号。**大字的判定用 WCAG 的定义**（≥24px，或 ≥18.66px 且粗体），不用 kind——那是规范，这是推断。",
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "line_height": {
+            "description": "行距倍数（相对字号）。阅读文字 ≥ 1.5（WCAG 2.1 · 1.4.12 的下限）；标题 1.0–1.4。",
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "letter_spacing_em": {
+            "description": "字距，em。中文大标题 +0.05–0.15 才舒展；正文 0–0.05，拉大了中文会一个字一个字往外蹦。",
+            "type": "number"
+          },
+          "weight": {
+            "description": "字重。粗体的判定门槛是 ≥700（WCAG 对 large text 的定义用 bold）。",
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 900,
+            "multipleOf": 100
+          },
+          "color": {
+            "description": "文字色，hex。与 `background` 的对比度必须过 WCAG 2.1 AA：阅读文字 4.5:1，大字 3:1。",
+            "type": "string",
+            "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+          }
+        }
+      }
+    },
+    "chinese": {
+      "description": "中文排版规范。数值与条款见 W3C《中文排版需求》(clreq)。",
+      "type": "object",
+      "required": ["line_break", "paragraph_indent_em", "paragraph_spacing_em"],
+      "properties": {
+        "line_break": {
+          "description": "行首行尾禁则（避头尾）。`strict` = clreq 的「严格处理」，`normal` = 「基本处理」。**不许用 `anywhere` / `loose` 之类**——那会让中文标点跑到行首行尾。",
+          "enum": ["strict", "normal"]
+        },
+        "paragraph_indent_em": {
+          "description": "首行缩进，em。传统中文排版用 2。**与 `paragraph_spacing_em` 二选一**，同时 > 0 会让段落之间空一大块。",
+          "type": "number",
+          "minimum": 0
+        },
+        "paragraph_spacing_em": {
+          "description": "段间距，em（相对正文字号）。现代屏幕阅读用 1–1.5。**与 `paragraph_indent_em` 二选一**。",
+          "type": "number",
+          "minimum": 0
+        },
+        "text_autospace": {
+          "description": "中西文自动间距（clreq 2.1.3：汉字与西文字母/数字之间 ≤ 1/4 汉字宽）。对应 CSS `text-autospace`。默认开。",
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

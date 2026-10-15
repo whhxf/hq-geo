@@ -9,6 +9,82 @@
   },
   "styles": [
     {
+      "id": "handdrawn-cover",
+      "name": "手绘漫画封面",
+      "summary": "米白纸底 + 铁锈橙手绘卡通插画 + 大号中文标题 + 一枚浅绿胶囊标签，编辑部漫画感",
+      "platforms": [
+        "xhs",
+        "channels",
+        "blog"
+      ],
+      "best_for": "工具介绍、方法拆解、效率干货、产品说明",
+      "tokens": {
+        "palette": [
+          {
+            "role": "background",
+            "hex": "#FDF9EE",
+            "oklch": "0.982 0.015 90.2"
+          },
+          {
+            "role": "surface",
+            "hex": "#F6EFDF",
+            "oklch": "0.953 0.022 87.2"
+          },
+          {
+            "role": "text",
+            "hex": "#2B2926",
+            "oklch": "0.282 0.006 78.2"
+          },
+          {
+            "role": "primary",
+            "hex": "#993C1D",
+            "oklch": "0.480 0.132 38.1"
+          },
+          {
+            "role": "accent",
+            "hex": "#98E3BD",
+            "oklch": "0.856 0.092 161.6"
+          },
+          {
+            "role": "muted",
+            "hex": "#7F5846",
+            "oklch": "0.497 0.059 45.7"
+          }
+        ],
+        "typography": {
+          "display": "苹方 Semibold / 思源黑体 Bold",
+          "body": "苹方 Regular",
+          "font_class": "sans",
+          "scale": [
+            88,
+            34,
+            30,
+            24
+          ]
+        },
+        "composition": "米白纸底铺满，手绘卡通插画占画面一侧或上半部，标题用铁锈橙大字压在另一侧，配一枚浅绿胶囊标签，画面只留插画与文字两组元素",
+        "density": "medium"
+      },
+      "prompt": {
+        "prefix": "米白色纸张背景，铁锈橙与米黄为主的手绘卡通插画，粗线条略带手抖感，圆润简化造型，扁平上色，克制的暖色调，编辑部漫画插图质感，画面干净只画一个主体和少量符号元素，画面中没有任何文字",
+        "negative": "照片级写实、3D 渲染、冷蓝调、高饱和撞色、渐变光晕、立体投影、水印、logo、任何文字或字母数字"
+      },
+      "image_style_enum": "flat-illustration",
+      "anti_patterns": [
+        "避免让模型在图上画字——中文会糊，文字一律由排版层叠加",
+        "避免超过两种有彩色：铁锈橙与浅绿",
+        "避免插画铺满整幅——要给标题留出干净区域"
+      ],
+      "sample": {
+        "scene": "米白色纸张背景上的手绘卡通插画：一个圆润的铁锈橙小机器人握着一支笔，旁边浮着一只发光的灯泡和一张纸，粗线条、扁平上色、造型简化、暖色调，画面干净，画面中没有任何文字",
+        "headline": "让 AI 把重复工作包了",
+        "kicker": "AGENT SKILL",
+        "meta": "01 — 工具",
+        "layout": "bottom-left"
+      },
+      "carrier": "base_image"
+    },
+    {
       "id": "editorial-minimal",
       "name": "极简编辑卡片",
       "summary": "米白纸感底 + 炭黑大号中文标题 + 单一信号色点缀，杂志编辑排版",
@@ -67,6 +143,7 @@
       },
       "prompt": {
         "prefix": "极简杂志编辑排版风格，米白色纸感背景，炭黑色大号中文无衬线标题，标题下方一条细的橙红色信号色横线，大量克制留白，构图居中偏左，扁平矢量，柔和纸质颗粒质感，高级杂志封面感，画面干净只有文字与少量几何色块",
+        "base_image_prefix": "极简杂志插图风格，米白色纸感背景，克制的几何卡片与橙红点缀，柔和纸质颗粒，大量留白，无文字无标志的纯视觉底图",
         "negative": "复杂背景、超过两种有彩色、照片级写实人物、渐变光晕、立体投影、水印、logo、杂乱元素"
       },
       "image_style_enum": "flat-illustration",
@@ -81,7 +158,8 @@
         "kicker": "METHOD",
         "meta": "01 — 方法论",
         "layout": "top-left"
-      }
+      },
+      "carrier": "base_image"
     },
     {
       "id": "magazine-collage",
@@ -154,7 +232,8 @@
         "kicker": "SPRING PICKS",
         "meta": "8 件 · 亲测",
         "layout": "bottom-left"
-      }
+      },
+      "carrier": "base_image"
     },
     {
       "id": "dark-tech",
@@ -229,7 +308,8 @@
         "kicker": "TECH DEEP DIVE",
         "meta": "深度拆解",
         "layout": "bottom-left"
-      }
+      },
+      "carrier": "base_image"
     },
     {
       "id": "warm-handdrawn",
@@ -304,7 +384,8 @@
         "kicker": "治愈手记",
         "meta": "写给焦虑的你",
         "layout": "bottom-center"
-      }
+      },
+      "carrier": "base_image"
     },
     {
       "id": "crayon-qa",
@@ -378,7 +459,8 @@
         "kicker": "新手教程",
         "meta": "一看就会",
         "layout": "top-center"
-      }
+      },
+      "carrier": "base_image"
     },
     {
       "id": "black-gold-manifesto",
@@ -453,7 +535,8 @@
         "kicker": "MANIFESTO",
         "meta": "2026 · 年度思考",
         "layout": "center"
-      }
+      },
+      "carrier": "typography"
     },
     {
       "id": "lifestyle-real",
@@ -528,7 +611,8 @@
         "kicker": "MORNING ROUTINE",
         "meta": "真实记录",
         "layout": "bottom-left"
-      }
+      },
+      "carrier": "base_image"
     },
     {
       "id": "minimal-product",
@@ -603,7 +687,8 @@
         "kicker": "PRODUCT",
         "meta": "材质 · 手感",
         "layout": "bottom-center"
-      }
+      },
+      "carrier": "base_image"
     },
     {
       "id": "moody-portrait",
@@ -678,7 +763,8 @@
         "kicker": "A PAUSE",
         "meta": "人物 · 故事",
         "layout": "bottom-left"
-      }
+      },
+      "carrier": "base_image"
     },
     {
       "id": "food-closeup",
@@ -753,7 +839,8 @@
         "kicker": "RECIPE",
         "meta": "15 分钟 · 一人食",
         "layout": "bottom-left"
-      }
+      },
+      "carrier": "base_image"
     },
     {
       "id": "film-retro",
@@ -828,7 +915,8 @@
         "kicker": "OLD THINGS",
         "meta": "1990s · 记忆",
         "layout": "bottom-left"
-      }
+      },
+      "carrier": "base_image"
     },
     {
       "id": "cinematic-teal-orange",
@@ -903,7 +991,8 @@
         "kicker": "CINEMATIC",
         "meta": "城市 · 叙事",
         "layout": "bottom-left"
-      }
+      },
+      "carrier": "base_image"
     },
     {
       "id": "japanese-fresh",
@@ -978,7 +1067,8 @@
         "kicker": "SIMPLE LIFE",
         "meta": "断舍离 · 日常",
         "layout": "bottom-left"
-      }
+      },
+      "carrier": "base_image"
     },
     {
       "id": "infographic-card",
@@ -1053,7 +1143,9 @@
         "kicker": "INFOGRAPHIC",
         "meta": "图解 · 干货",
         "layout": "top-left"
-      }
+      },
+      "carrier": "base_image"
     }
-  ]
+  ],
+  "carrier_note": "carrier 说这套风格的封面靠什么承载视觉，取值 base_image / typography。它由 appeal-rules.json 的 AP-02 消费：carrier=base_image 的风格，封面必须有 base_image；carrier=typography 的风格（纯文字排版）不走 AP-02，它的封面隔离由 AP-04 承担。2026-10-08 补。判断依据是每套自己的 prompt.prefix——那一段才真正驱动出图。"
 }

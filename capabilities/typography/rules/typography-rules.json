@@ -1,0 +1,223 @@
+{
+  "schema": "typography-rules/v1",
+  "collected_at": "2026-10-07",
+  "note": "排版判据的真源。文章线与图片线共用这一份。每条规则写明数值、来源、证据等级。校验器 check_layout.py 从这里读阈值，不在代码里另写数字——代码里的数字改了没人知道，这份文件改了有契约测试盯着。",
+  "sources": {
+    "clreq": {
+      "title": "W3C Requirements for Chinese Text Layout（中文排版需求）",
+      "url": "https://www.w3.org/TR/clreq/",
+      "evidence": "官方规则",
+      "collected_at": "2026-10-07"
+    },
+    "wcag21": {
+      "title": "WCAG 2.1 AA · 1.4.3 Contrast (Minimum)",
+      "url": "https://www.w3.org/TR/WCAG21/#contrast-minimum",
+      "evidence": "官方规则",
+      "collected_at": "2026-10-07"
+    },
+    "bringhurst": {
+      "title": "The Elements of Typographic Style（Robert Bringhurst）· 行长 45–75 字符",
+      "url": "https://en.wikipedia.org/wiki/The_Elements_of_Typographic_Style",
+      "evidence": "经验模式",
+      "collected_at": "2026-10-07"
+    },
+    "cjk-practice": {
+      "title": "文字排版行距字距怎么调？让设计从丑变美的排版参数完全指南（色彩韵设计，2026-06-01）",
+      "url": "https://www.secaiyun.com/docs/typography-spacing-parameters-guide-2026-06-01.html",
+      "evidence": "经验模式",
+      "collected_at": "2026-10-07"
+    }
+  },
+  "rules": [
+    {
+      "id": "TY-01",
+      "name": "正文行宽",
+      "scope": "article",
+      "checkable": "machine",
+      "source": "cjk-practice",
+      "why": "中文最佳阅读行宽 25–35 汉字。超过 40 字换行时视线跳跃远、容易读错行；少于 15 字频繁换行、打断节奏。",
+      "value": {
+        "unit": "汉字/行",
+        "target_min": 25,
+        "target_max": 35,
+        "hard_min": 15,
+        "hard_max": 40
+      }
+    },
+    {
+      "id": "TY-02",
+      "name": "正文行距",
+      "scope": "both",
+      "checkable": "machine",
+      "source": "cjk-practice",
+      "why": "中文是方块字，上下相邻两行笔画互相干扰，行距要比英文大。网页正文 1.6–1.8 倍；移动端可到 2.0。",
+      "value": {
+        "unit": "倍数",
+        "target_min": 1.6,
+        "target_max": 1.8,
+        "hard_min": 1.5,
+        "hard_max": 2.0
+      }
+    },
+    {
+      "id": "TY-03",
+      "name": "标题行距",
+      "scope": "both",
+      "checkable": "machine",
+      "source": "cjk-practice",
+      "why": "标题字号大，行距比例要收。大标题 1.1–1.3，副标题 1.2–1.4。",
+      "value": {
+        "unit": "倍数",
+        "target_min": 1.1,
+        "target_max": 1.4,
+        "hard_min": 1.0,
+        "hard_max": 1.5
+      }
+    },
+    {
+      "id": "TY-04",
+      "name": "正文字距",
+      "scope": "both",
+      "checkable": "machine",
+      "source": "cjk-practice",
+      "why": "中文正文没有天然词间距，字距拉大会让字一个个蹦出来，丧失气韵连贯。中文正文 0–0.05em。",
+      "value": {
+        "unit": "em",
+        "target_min": 0.0,
+        "target_max": 0.05,
+        "hard_min": 0.0,
+        "hard_max": 0.06
+      }
+    },
+    {
+      "id": "TY-05",
+      "name": "标题字距",
+      "scope": "both",
+      "checkable": "machine",
+      "source": "cjk-practice",
+      "why": "标题字距与正文相同会显得拥挤、没有层次。中文标题加 0.05–0.15em 才有呼吸感。",
+      "value": {
+        "unit": "em",
+        "target_min": 0.05,
+        "target_max": 0.15,
+        "hard_min": 0.04,
+        "hard_max": 0.2
+      }
+    },
+    {
+      "id": "TY-06",
+      "name": "首行缩进与段距互斥",
+      "scope": "article",
+      "checkable": "machine",
+      "source": "cjk-practice",
+      "why": "两者同时使用会产生过多空白，版面松散。传统风格用缩进，现代风格用段距，二选一。",
+      "value": {
+        "unit": "布尔",
+        "rule": "not_both_positive"
+      }
+    },
+    {
+      "id": "TY-07",
+      "name": "字号阶梯",
+      "scope": "both",
+      "checkable": "machine",
+      "source": "cjk-practice",
+      "why": "标题字号必须逐级递减。不递减就没有层次，读者分不出哪句是标题。",
+      "value": {
+        "unit": "px",
+        "rule": "strictly_decreasing"
+      }
+    },
+    {
+      "id": "TY-08",
+      "name": "正文字号下限",
+      "scope": "both",
+      "checkable": "machine",
+      "source": "cjk-practice",
+      "why": "网页正文 14–16px。小于 14px 在屏幕上辨识度不足，中文笔画密的字会糊。",
+      "value": {
+        "unit": "px",
+        "target_min": 14,
+        "target_max": 16,
+        "hard_min": 14,
+        "hard_max": 24
+      }
+    },
+    {
+      "id": "TY-09",
+      "name": "正文对比度",
+      "scope": "both",
+      "checkable": "machine",
+      "source": "wcag21",
+      "why": "WCAG 2.1 AA 要求普通文字对比度不低于 4.5:1。低于这条，弱视读者读不了。",
+      "value": {
+        "unit": "比值",
+        "min": 4.5
+      }
+    },
+    {
+      "id": "TY-10",
+      "name": "大字对比度",
+      "scope": "both",
+      "checkable": "machine",
+      "source": "wcag21",
+      "why": "WCAG 2.1 AA 对大号文字（18pt 以上或 14pt 加粗）放宽到 3:1。标题走这条。",
+      "value": {
+        "unit": "比值",
+        "min": 3.0
+      }
+    },
+    {
+      "id": "TY-11",
+      "name": "避头尾级别",
+      "scope": "both",
+      "checkable": "machine",
+      "source": "clreq",
+      "why": "clreq 定了四级：不处理 / 基本处理 / GB 法 / 严格处理。基本处理要求点号、结束引号、结束括号、结束书名号、连接号、间隔号、分隔号不出现在行首；开始引号、开始括号、开始书名号不出现在行尾。级别必须显式声明，不声明就等于不做。",
+      "value": {
+        "unit": "级别",
+        "allowed": ["none", "basic", "gb", "strict"]
+      }
+    },
+    {
+      "id": "TY-12",
+      "name": "中西文混排间距",
+      "scope": "both",
+      "checkable": "machine",
+      "source": "clreq",
+      "why": "clreq §2.1.3 规定中西文之间的间距不超过 1/4 em。超过就是拉字距，不是混排间距。",
+      "value": {
+        "unit": "em",
+        "max": 0.25
+      }
+    },
+    {
+      "id": "TY-13",
+      "name": "正文区最大宽度",
+      "scope": "article",
+      "checkable": "machine",
+      "source": "cjk-practice",
+      "why": "响应式网页正文区 max-width 建议 650–750px，居中显示。宽屏上铺满整页是最高频的排版错误。",
+      "value": {
+        "unit": "px",
+        "target_min": 650,
+        "target_max": 750,
+        "hard_min": 600,
+        "hard_max": 800
+      }
+    },
+    {
+      "id": "TY-14",
+      "name": "西文行长",
+      "scope": "article",
+      "checkable": "human",
+      "source": "bringhurst",
+      "why": "纯西文正文行长 45–75 字符。中文为主的稿子走 TY-01，这条只在中英混排且西文占多数时人工判断。机器不判。",
+      "value": {
+        "unit": "字符/行",
+        "target_min": 45,
+        "target_max": 75
+      }
+    }
+  ]
+}

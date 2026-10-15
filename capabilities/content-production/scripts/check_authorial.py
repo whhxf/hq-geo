@@ -8,7 +8,11 @@ AI 检测器会对非母语写作者明显误判，也容易通过改写规避�
 每个命中只问三个问题：删掉后含义是否变化；能否换成具体动作；能否补事实或条件。
 否定词、时间词、范围词和真实的不确定性不得为了降低密度而删除。
 
+“不作为改写理由”清单见 07 文档同名小节：句长均匀度、被动句、句内排比、比喻本身
+等 11 项实测站不住，不得据此改写。本脚本只按可定位的触发标记报告。
+
 Gate E（作者语料校准）需要 Conan 本人的语料，尚未建立，固定报告为 blocked。
+测量方法见同目录 compare_human_ai.py、check_structure.py、check_translationese.py。
 """
 
 import argparse
@@ -159,6 +163,7 @@ def render(report: dict) -> str:
     lines = [f"作者化检查：{report['path']}", ""]
     gate_c = report["gate_c"]
     lines.append(f"Gate C · 模糊修饰语（{sum(len(item['hits']) for item in gate_c)} 处）")
+    lines.append("  「重复限定」只诊断，不算 AI 痕迹；限定词不许为降密度删除。")
     if not gate_c:
         lines.append("  没有命中。没有命中不代表通过。")
     for item in gate_c:
@@ -186,9 +191,10 @@ def render(report: dict) -> str:
     else:
         lines.append(f"  句长：{stats['sentences']} 句，均值 {stats['mean_length']} 字，"
                      f"变异系数 {stats['variation_coefficient']}"
-                     f"（越低越均匀），范围 {stats['shortest']}—{stats['longest']}")
+                     f"，范围 {stats['shortest']}—{stats['longest']}")
         lines.append(f"  段落：{stats['paragraphs']} 段，"
                      f"{stats['paragraph_range'][0]}—{stats['paragraph_range'][1]} 字")
+        lines.append("  句长均匀度实测与人类无差异（CV 0.58 对 0.67），不作为改写理由。")
     lines.append("")
 
     lines.append("Gate E · 作者语料校准")

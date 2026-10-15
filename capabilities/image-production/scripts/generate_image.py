@@ -82,7 +82,7 @@ def assemble_prompt(deliverable: dict, style: dict) -> dict:
     放后面会被画面描述盖过去，一套图就会漂成十四种样子。
     """
     parts = [
-        style["prompt"]["prefix"],
+        style["prompt"].get("base_image_prefix") or style["prompt"]["prefix"],
         deliverable["subject"],
     ]
     if deliverable.get("intent"):
@@ -93,6 +93,8 @@ def assemble_prompt(deliverable: dict, style: dict) -> dict:
     if deliverable.get("reference_instruction"):
         parts.append(deliverable["reference_instruction"])
     negative = style["prompt"].get("negative", "")
+    if style['prompt'].get('base_image_prefix'):
+        negative = '、'.join(filter(None, [negative, '任何文字、汉字、字母、数字、标志、水印']))
     if deliverable.get("avoid"):
         negative = "、".join(filter(None, [negative, deliverable["avoid"]]))
     return {
@@ -307,6 +309,13 @@ def load_color_palette(palette_ref: str, project: Path) -> list:
     return palette
 
 
+def check_generation_target(item: dict) -> None:
+    if item.get('subject_kind') != 'concept' or item.get('synthetic') is not True:
+        raise ValueError('真实素材不能送进生成模型；仅接受显式 synthetic=true 的 concept')
+    if item.get('status') in ('blocked', 'rejected'):
+        raise ValueError('blocked/rejected 交付物不能生成，先解除阻塞')
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="按图片简报出图")
     parser.add_argument("--brief", required=True, help="图片简报路径")
@@ -328,6 +337,11 @@ def main() -> int:
 
     planned = []
     for item in targets:
+        try:
+            check_generation_target(item)
+        except ValueError as exc:
+            print(f"{item.get('id')}: {exc}")
+            return 1
         style_id = item.get("style_id")
         if style_id not in styles:
             print(f"{item['id']}: 没有 style_id 或不在风格库里（{style_id!r}）。先选风格再出图。")

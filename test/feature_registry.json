@@ -142,7 +142,6 @@
         "capabilities/fact-packs"
       ],
       "test_ids": [
-        "fact-pack-contract",
         "fact-pack-unit"
       ]
     },
@@ -182,26 +181,14 @@
     },
     {
       "id": "multi-format-deliverables",
-      "name": "文章成稿、视频制作简报、图片简报与外部制作系统交接",
+      "name": "文章成稿、视频制作简报与图片简报的交付契约",
       "status": "partial",
       "owner_paths": [
         "capabilities/content-production",
         "skills/content-orchestrator"
       ],
       "test_ids": [
-        "content-deliverable-contract",
         "content-deliverable-unit"
-      ]
-    },
-    {
-      "id": "creative-production-handoff",
-      "name": "HQ Content Engine 与 Vidmix 的创作任务和成品回读协议",
-      "status": "partial",
-      "owner_paths": [
-        "capabilities/creative-handoff"
-      ],
-      "test_ids": [
-        "creative-handoff-contract"
       ]
     },
     {
@@ -222,7 +209,6 @@
         "capabilities/content-production/scripts/validate_tasks.py"
       ],
       "test_ids": [
-        "task-contract",
         "content-assets-contract"
       ]
     },
@@ -256,10 +242,25 @@
       "name": "作者化检查：模糊修饰语与机器化模式的确定性诊断",
       "status": "partial",
       "owner_paths": [
-        "capabilities/content-production/scripts/check_authorial.py"
+        "capabilities/content-production/scripts/check_authorial.py",
+        "00-meta/content-engine/07-authorial-quality-system.md"
       ],
       "test_ids": [
         "content-deliverable-unit"
+      ]
+    },
+    {
+      "id": "authorial-measurement",
+      "name": "作者化测量工具：人类语料与 AI 语料的规则倍率对比（Gate E）",
+      "status": "partial",
+      "owner_paths": [
+        "capabilities/content-production/scripts/compare_human_ai.py",
+        "capabilities/content-production/scripts/check_structure.py",
+        "capabilities/content-production/scripts/check_translationese.py"
+      ],
+      "test_ids": [
+        "content-deliverable-unit",
+        "content-routing-contract"
       ]
     },
     {
@@ -300,7 +301,7 @@
     },
     {
       "id": "image-production",
-      "name": "图片线：ImageBrief 契约、14 套视觉风格与一步出图",
+      "name": "图片线：ImageBrief 契约、15 套视觉风格与一步出图",
       "status": "partial",
       "owner_paths": [
         "capabilities/image-production",
@@ -308,8 +309,42 @@
       ],
       "test_ids": [
         "image-pipeline-contract",
+        "image-brief-unit"
+      ]
+    },
+    {
+      "id": "image-appeal-judgment",
+      "name": "封面文案与吸引力复核：两类文字分开走，吸引力复核必须登记且九项全过，复核人独立于作者",
+      "status": "partial",
+      "owner_paths": [
+        "capabilities/image-production/contracts/image-brief.schema.json",
+        "capabilities/image-production/scripts/validate_image_brief.py",
+        "capabilities/image-appeal",
+        "skills/image-pipeline/SKILL.md"
+      ],
+      "test_ids": [
         "image-brief-unit",
-        "image-brief-contract"
+        "image-pipeline-contract",
+        "image-appeal-unit",
+        "image-appeal-contract"
+      ]
+    },
+    {
+      "id": "image-appeal",
+      "name": "图文吸引力：把「素」变成可测的数字，把测不了的登记成人判，按风格 carrier 决定封面承载体",
+      "status": "partial",
+      "owner_paths": [
+        "capabilities/image-appeal/rules/appeal-rules.json",
+        "capabilities/image-appeal/methods/expert-playbook.md",
+        "capabilities/image-appeal/scripts/measure_card.py",
+        "capabilities/image-appeal/scripts/check_appeal.py",
+        "capabilities/image-production/styles/image-styles.json",
+        "skills/image-pipeline/SKILL.md"
+      ],
+      "test_ids": [
+        "image-appeal-unit",
+        "image-appeal-contract",
+        "image-pipeline-contract"
       ]
     },
     {
@@ -327,6 +362,58 @@
       "test_ids": [
         "image-palette-tooling",
         "image-pipeline-contract"
+      ]
+    },
+    {
+      "id": "typography-layout",
+      "name": "排版：把专家规则写成数值判据，机器守能守的，人判剩下的",
+      "status": "partial",
+      "owner_paths": [
+        "capabilities/typography",
+        "skills/article-pipeline/SKILL.md"
+      ],
+      "test_ids": [
+        "typography-unit",
+        "typography-contract"
+      ]
+    },
+    {
+      "id": "video-production",
+      "name": "视频线：选风格 → 分镜脚本 → 合身检查 → 出帧 → 成片，时长由旁白决定",
+      "status": "partial",
+      "owner_paths": [
+        "capabilities/video-production",
+        "skills/video-pipeline"
+      ],
+      "test_ids": [
+        "video-unit",
+        "video-contract"
+      ]
+    },
+    {
+      "id": "image-provider-discovery",
+      "name": "运行时生图工具优先、本地已验证 Skill 次之、缺能力询问用户",
+      "status": "partial",
+      "owner_paths": ["capabilities/image-production/scripts/discover_provider.py", "capabilities/image-production/runtime-discovery.md"],
+      "test_ids": ["image-brief-unit"]
+    },
+    {
+      "id": "huashu-video-adapter",
+      "name": "仓库内 huashu 引擎与参数化片段适配入口",
+      "status": "partial",
+      "owner_paths": ["capabilities/video-production/engines", "capabilities/video-production/scripts/huashu_adapter.py"],
+      "test_ids": ["video-unit"]
+    },
+    {
+      "id": "speech-synthesis",
+      "name": "语音：声音复刻与 CosyVoice 合成两个通道，含计费口径与实测留痕",
+      "status": "partial",
+      "owner_paths": [
+        "capabilities/speech"
+      ],
+      "test_ids": [
+        "speech-unit",
+        "speech-contract"
       ]
     }
   ],

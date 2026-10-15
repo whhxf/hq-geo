@@ -26,10 +26,23 @@ def main() -> int:
          "capabilities/project-scaffold/scripts/init_project.py" in orchestrator),
         ("orchestrator routes the marketplace channel",
          "capabilities/content-production/channels/xianyu.md" in orchestrator),
+        # 视频线 2026-10-10 自建。旧文案说「视频流水线尚未建立」并把生成外发给 Vidmix，
+        # 那段话会让 Agent 停在脚本或建议上。断链不在这个仓库里，所以在这里拦住。
+        ("orchestrator routes video to the self-built pipeline",
+         "skills/video-pipeline/SKILL.md" in orchestrator),
+        ("article adaptation uses the quality contract",
+         "capabilities/content-production/article-adaptation.md" in orchestrator),
+        ("orchestrator must not claim the video pipeline is missing",
+         "视频流水线尚未建立" not in orchestrator),
     ]
     for label, passed in expectations:
         if not passed:
             errors.append(label)
+
+    adaptation = read("capabilities/content-production/article-adaptation.md")
+    for marker in ["needs_revision", "transport_verified", "quality_status", "独立复核", "本地发布包"]:
+        if marker not in adaptation:
+            errors.append(f"article adaptation lacks required boundary: {marker}")
 
     writing_entries = [
         "skills/content-orchestrator/SKILL.md",
@@ -55,6 +68,12 @@ def main() -> int:
          "文章流水线必须引用风格约定"),
         ("capabilities/content-production/scripts/check_authorial.py",
          "文章流水线必须跑作者化检查"),
+        ("主稿写完，立即自动跑一次作者化检查",
+         "文章流水线必须在写完主稿后自动跑作者化检查"),
+        ("capabilities/content-production/scripts/compare_human_ai.py",
+         "文章流水线必须引用作者化测量工具"),
+        ("00-meta/content-engine/07-authorial-quality-system.md",
+         "文章流水线必须引用作者化规范"),
         ("tasks/", "文章流水线必须以任务单据为输入"),
     ]
     for needle, reason in pipeline_expectations:
@@ -82,6 +101,17 @@ def main() -> int:
         for token in sorted(set(system_path.findall(read(entry)))):
             if not (ROOT / token).exists():
                 errors.append(f"{entry} points at a path that does not exist: {token}")
+
+    # 作者化规范：边界清单不能在一次改稿里被顺手删掉。删掉不报错，
+    # 只会让「句长参差」「被动句」这类实测站不住的特征重新变成改写理由。
+    authorial_spec = read("00-meta/content-engine/07-authorial-quality-system.md")
+    for needle, reason in [
+        ("Gate D 的边界", "作者化规范必须把边界写成独立小节"),
+        ("不作为改写理由", "作者化规范必须保留「不作为改写理由」清单"),
+        ("句长 CV 0.58 对 0.67", "作者化规范必须写明句长均匀度无差异"),
+    ]:
+        if needle not in authorial_spec:
+            errors.append(reason)
 
     # 交易渠道契约：结构可以变，但「未知规则阻止发布」这条硬线不能在改稿时被顺手删掉——
     # 删掉它不会报错，只会让未核验类目和资质悄悄变成可发布。

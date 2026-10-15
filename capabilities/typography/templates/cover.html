@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>封面排版模板</title>
+<!--
+  图片排版模板。由 capabilities/typography/scripts/render.py 填入。
+
+  这一份只做一件事：**把文案按规格叠到底图上。** 不改底图、不选字体。
+  规格（字号、行距、字距、颜色、位置）全部来自 TypeSpec，
+  由 render.py 展开成下面的 --tp-* 变量和 .tp-<role> 规则。
+
+  没填变量时这份文件也能直接双击打开——那是模板的默认样子，不是成品。
+-->
+<style>
+  :root{
+    --tp-bg:#FAF8F3;
+    --tp-font:"Songti SC","STSong","Source Han Serif SC","Noto Serif CJK SC",serif;
+    --tp-w:1024px;
+    --tp-h:1024px;
+    --tp-mt:96px; --tp-mr:96px; --tp-mb:96px; --tp-ml:96px;
+    --tp-bg-image:none;
+    --tp-scrim:none;
+    --tp-gap:0.6em;
+    --tp-headline-size:84px;
+    --tp-headline-lh:1.15;
+    --tp-headline-ls:0.06em;
+    --tp-headline-w:500;
+    --tp-headline-color:#2B2926;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{background:transparent}
+
+  .tp-canvas{
+    position:relative;
+    width:var(--tp-w);
+    height:var(--tp-h);
+    background:var(--tp-bg);
+    overflow:hidden;
+    font-family:var(--tp-font);
+    /* 中文排版规范交给浏览器执行——见 capabilities/typography/README.md。
+       line-break: strict       行首行尾禁则（clreq「严格处理」）
+       text-autospace: normal   中西文自动间距（clreq 2.1.3：≤1/4 汉字宽）
+       text-spacing-trim        标点挤压（相邻两标点 2 字宽 → 1.5 字宽）
+       浏览器不认识这几条时会静默忽略，不会报错。 */
+    line-break:strict;
+    text-autospace:normal;
+    text-spacing-trim:space-all;
+  }
+
+  /* 底图铺满。排版只是往上叠文字，不改底图。 */
+  .tp-canvas::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background-image:var(--tp-bg-image);
+    background-size:cover;
+    background-position:center;
+  }
+
+  /* 压暗层。默认 none——粗暴的渐变遮罩会被读成不专业。 */
+  .tp-canvas::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:var(--tp-scrim);
+    pointer-events:none;
+  }
+
+  .tp-copy{
+    position:absolute;
+    inset:0;
+    padding:var(--tp-mt) var(--tp-mr) var(--tp-mb) var(--tp-ml);
+    display:flex;
+    flex-direction:column;
+    gap:var(--tp-gap);
+    z-index:1;
+  }
+  .tp-copy[data-layout="top-left"]{justify-content:flex-start;align-items:flex-start;text-align:left}
+  .tp-copy[data-layout="top-center"]{justify-content:flex-start;align-items:center;text-align:center}
+  .tp-copy[data-layout="bottom-left"]{justify-content:flex-end;align-items:flex-start;text-align:left}
+  .tp-copy[data-layout="bottom-center"]{justify-content:flex-end;align-items:center;text-align:center}
+  .tp-copy[data-layout="center"]{justify-content:center;align-items:center;text-align:center}
+
+  /* 中文大标题的字距要拉开。拉开之后最后一个字右边会多出一份字距，
+     不抵消掉的话整块文字看起来是偏的。 */
+  .tp-copy > *{margin-inline-end:calc(-1 * var(--tp-ls,0em))}
+  .tp-copy > *:last-child{margin-bottom:0}
+
+  .tp-headline{
+    font-size:var(--tp-headline-size);
+    line-height:var(--tp-headline-lh);
+    letter-spacing:var(--tp-headline-ls);
+    font-weight:var(--tp-headline-w);
+    color:var(--tp-headline-color);
+    --tp-ls:var(--tp-headline-ls);
+    hanging-punctuation:allow-end;
+  }
+
+  /* render.py 把 TypeSpec 的每一格展开到这里。 */
+{{ROLE_CSS}}
+
+  /* 画布真值（尺寸、留白、底色、字体、底图、压暗层）在这里覆盖一次。
+     上面 :root 里的是模板默认值，只在单独打开这份文件时生效。
+     2026-10-08 之前这段不存在——占位符缺失时 replace 静默什么都不做，
+     于是画布恒为 1024×1024、底图永远填不上。 */
+{{CANVAS_CSS}}
+</style>
+</head>
+<body>
+<div class="tp-canvas">
+  <div class="tp-copy" data-layout="{{TEXT_LAYOUT}}">
+{{COPY_HTML}}
+  </div>
+</div>
+</body>
+</html>

@@ -744,10 +744,14 @@ def _brief(**overrides) -> dict:
         "status": "draft", "objective": "o", "audience": "a", "core_thesis": "c",
         "fact_refs": ["F-001"], "platform": "xhs", "prohibited_claims": [],
         "acceptance_criteria": ["无错别字"],
+        "author": "写简报的人",
         "deliverables": [{
             "id": "d1", "role": "封面", "size": "1024*1024", "subject": "一张封面",
             "subject_kind": "concept", "synthetic": True, "source_assets": [],
-            "style_id": "editorial-minimal", "status": "planned",
+            "style_id": "editorial-minimal",
+            "base_image": "assets/generated/img-001/cover.png",
+            "base_image_rights": "ai_generated：本项目生成",
+            "status": "planned",
         }],
     }
     brief["deliverables"][0].update(overrides)

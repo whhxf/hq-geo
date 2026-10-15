@@ -561,17 +561,6 @@
       ]
     },
     {
-      "name": "图片线不再要求图上文字挂事实",
-      "test": "image-pipeline-contract",
-      "edits": [
-        {
-          "file": "skills/image-pipeline/SKILL.md",
-          "find": "**图上不要写字，除非它能挂上事实。**",
-          "replace": "图上的字尽量简短。"
-        }
-      ]
-    },
-    {
       "name": "图片线丢掉「不做编辑」的边界",
       "test": "image-pipeline-contract",
       "edits": [
@@ -1661,6 +1650,28 @@
       ]
     },
     {
+      "name": "编排器不再指向视频流水线",
+      "test": "content-routing-contract",
+      "edits": [
+        {
+          "file": "skills/content-orchestrator/SKILL.md",
+          "find": "skills/video-pipeline/SKILL.md",
+          "replace": "skills/article-pipeline/SKILL.md"
+        }
+      ]
+    },
+    {
+      "name": "编排器声称视频流水线尚未建立",
+      "test": "content-routing-contract",
+      "edits": [
+        {
+          "file": "skills/content-orchestrator/SKILL.md",
+          "find": "视频线 2026-10-10 起自建",
+          "replace": "视频流水线尚未建立"
+        }
+      ]
+    },
+    {
       "name": "交易渠道契约删掉未知停机硬线",
       "test": "content-routing-contract",
       "edits": [
@@ -1668,6 +1679,1062 @@
           "file": "capabilities/content-production/channels/xianyu.md",
           "find": "未知项阻止 `ready_to_publish`。",
           "replace": "未知项可以先发布。"
+        }
+      ]
+    },
+    {
+      "name": "封面与吸引力 丢掉「两类文字」的边界",
+      "test": "image-pipeline-contract",
+      "edits": [
+        {
+          "file": "skills/image-pipeline/SKILL.md",
+          "find": "**图上有两种文字，分开走，别混。**",
+          "replace": "**图上的字尽量简短。**"
+        }
+      ]
+    },
+    {
+      "name": "封面与吸引力 丢掉「封面必须有 cover_text」",
+      "test": "image-pipeline-contract",
+      "edits": [
+        {
+          "file": "skills/image-pipeline/SKILL.md",
+          "find": "**封面必须有 `cover_text`。**",
+          "replace": "**封面有文案会更好。**"
+        }
+      ]
+    },
+    {
+      "name": "封面与吸引力 丢掉 A 方案说明",
+      "test": "image-pipeline-contract",
+      "edits": [
+        {
+          "file": "skills/image-pipeline/SKILL.md",
+          "find": "**文案怎么上封面：走 A 方案。**",
+          "replace": "**文案怎么上封面以后再定。**"
+        }
+      ]
+    },
+    {
+      "name": "封面与吸引力 丢掉吸引力复核的判否条件",
+      "test": "image-pipeline-contract",
+      "edits": [
+        {
+          "file": "skills/image-pipeline/SKILL.md",
+          "find": "**九项全 `pass` 才允许简报进 `ready`。**",
+          "replace": "**复核结果仅供参考。**"
+        }
+      ]
+    },
+    {
+      "name": "封面与吸引力 契约里删掉 cover_text",
+      "test": "image-pipeline-contract",
+      "edits": [
+        {
+          "file": "capabilities/image-production/contracts/image-brief.schema.json",
+          "find": "        \"cover_text\": {",
+          "replace": "        \"cover_text_removed\": {"
+        }
+      ]
+    },
+    {
+      "name": "封面与吸引力 契约里删掉 appeal_review",
+      "test": "image-pipeline-contract",
+      "edits": [
+        {
+          "file": "capabilities/image-production/contracts/image-brief.schema.json",
+          "find": "    \"appeal_review\": {",
+          "replace": "    \"appeal_review_removed\": {"
+        }
+      ]
+    },
+    {
+      "name": "封面与吸引力 校验器不再拦「封面无文案」",
+      "test": "image-brief-unit",
+      "edits": [
+        {
+          "file": "capabilities/image-production/scripts/validate_image_brief.py",
+          "find": "    if ready and covers_without_text:",
+          "replace": "    if False and covers_without_text:"
+        }
+      ]
+    },
+    {
+      "name": "封面与吸引力 校验器不再要求吸引力复核",
+      "test": "image-brief-unit",
+      "edits": [
+        {
+          "file": "capabilities/image-production/scripts/validate_image_brief.py",
+          "find": "    if ready:\n        errors.extend(_check_appeal_review(data, deliverables))",
+          "replace": "    if False:\n        errors.extend(_check_appeal_review(data, deliverables))"
+        }
+      ]
+    },
+    {
+      "name": "封面与吸引力 校验器不再拦「文案与事实主张重复」",
+      "test": "image-brief-unit",
+      "edits": [
+        {
+          "file": "capabilities/image-production/scripts/validate_image_brief.py",
+          "find": "        if claim_text and claim_text in texts:",
+          "replace": "        if False:"
+        }
+      ]
+    },
+    {
+      "name": "封面与吸引力 校验器不再校验 layout",
+      "test": "image-brief-unit",
+      "edits": [
+        {
+          "file": "capabilities/image-production/scripts/validate_image_brief.py",
+          "find": "    if layout and layout_ids and layout not in layout_ids:",
+          "replace": "    if False:"
+        }
+      ]
+    },
+    {
+      "name": "封面与吸引力 校验器不再要求 source_title",
+      "test": "image-brief-unit",
+      "edits": [
+        {
+          "file": "capabilities/image-production/scripts/validate_image_brief.py",
+          "find": "    if not (cover_text.get(\"source_title\") or \"\").strip():",
+          "replace": "    if False:"
+        }
+      ]
+    },
+    {
+      "name": "封面与吸引力 校验器不再要求封面有 style_id",
+      "test": "image-brief-unit",
+      "edits": [
+        {
+          "file": "capabilities/image-production/scripts/validate_image_brief.py",
+          "find": "    if not item.get(\"style_id\"):",
+          "replace": "    if False:"
+        }
+      ]
+    },
+    {
+      "name": "排版线 站4 删掉「参数先于渲染」的顺序判据",
+      "test": "typography-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "**参数定了才写 HTML，顺序不能反。**",
+          "replace": "**先渲染 HTML，再补参数也行。**"
+        }
+      ]
+    },
+    {
+      "name": "排版线 站4 删掉声明与 CSS 的比对判据",
+      "test": "typography-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "**对不上就是有一份在撒谎**",
+          "replace": "**两份对不上也没关系**"
+        }
+      ]
+    },
+    {
+      "name": "排版线 站4 删掉人判登记的理由",
+      "test": "typography-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "**机器判不了好不好看。**",
+          "replace": "**机器能判好不好看。**"
+        }
+      ]
+    },
+    {
+      "name": "排版线 站4 删掉排版的否定式边界",
+      "test": "typography-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "**排版参数不过校验器，不得渲染 HTML。**",
+          "replace": "**排版参数可以先渲染再补。**"
+        }
+      ]
+    },
+    {
+      "name": "排版线 规则真源少一条判据",
+      "test": "typography-contract",
+      "edits": [
+        {
+          "file": "capabilities/typography/rules/typography-rules.json",
+          "find": "\"id\": \"TY-01\",",
+          "replace": "\"id\": \"TY-1\","
+        }
+      ]
+    },
+    {
+      "name": "排版线 规则来源丢掉证据等级",
+      "test": "typography-contract",
+      "edits": [
+        {
+          "file": "capabilities/typography/rules/typography-rules.json",
+          "find": "\"evidence\": \"官方规则\",\n      \"collected_at\": \"2026-10-07\"",
+          "replace": "\"collected_at\": \"2026-10-07\""
+        }
+      ]
+    },
+    {
+      "name": "排版线 契约丢掉人判承载字段",
+      "test": "typography-contract",
+      "edits": [
+        {
+          "file": "capabilities/typography/contracts/article-layout.schema.json",
+          "find": "\"human_review\"",
+          "replace": "\"_human_review\""
+        }
+      ]
+    },
+    {
+      "name": "排版线 契约放宽避头尾级别枚举",
+      "test": "typography-contract",
+      "edits": [
+        {
+          "file": "capabilities/typography/contracts/article-layout.schema.json",
+          "find": "\"enum\": [\"none\", \"basic\", \"gb\", \"strict\"]",
+          "replace": "\"enum\": [\"none\", \"basic\", \"gb\", \"strict\", \"auto\"]"
+        }
+      ]
+    },
+    {
+      "name": "排版线 校验器少一个执行者",
+      "test": "typography-contract",
+      "edits": [
+        {
+          "file": "capabilities/typography/scripts/check_layout.py",
+          "find": "def contrast_ratio(",
+          "replace": "def _contrast_ratio("
+        }
+      ]
+    },
+    {
+      "name": "排版线 金样本 CSS 与声明漂移",
+      "test": "typography-contract",
+      "edits": [
+        {
+          "file": "capabilities/typography/templates/article.html",
+          "find": "line-height: 1.75;",
+          "replace": "line-height: 1.4;"
+        }
+      ]
+    },
+    {
+      "name": "排版线 对比度公式改错",
+      "test": "typography-unit",
+      "edits": [
+        {
+          "file": "capabilities/typography/scripts/check_layout.py",
+          "find": "ratio <= 0.03928",
+          "replace": "ratio <= 0.5"
+        }
+      ]
+    },
+    {
+      "name": "排版线 行宽改取容器宽度而不是正文列",
+      "test": "typography-unit",
+      "edits": [
+        {
+          "file": "capabilities/typography/scripts/extract_html_layout.py",
+          "find": "para_width = to_px(para.get(\"max-width\"), body_px)",
+          "replace": "para_width = None"
+        }
+      ]
+    },
+    {
+      "name": "排版线 缩进与段距互斥判据失效",
+      "test": "typography-unit",
+      "edits": [
+        {
+          "file": "capabilities/typography/scripts/check_layout.py",
+          "find": "if indent > 0 and spacing > 0:",
+          "replace": "if False:"
+        }
+      ]
+    },
+    {
+      "name": "排版线 字号阶梯判据放宽成不递增",
+      "test": "typography-unit",
+      "edits": [
+        {
+          "file": "capabilities/typography/scripts/check_layout.py",
+          "find": "and sizes[i] < sizes[i - 1])",
+          "replace": "and sizes[i] <= sizes[i - 1])"
+        }
+      ]
+    },
+    {
+      "name": "排版线 漏填 max_width 不再拦",
+      "test": "typography-unit",
+      "edits": [
+        {
+          "file": "capabilities/typography/scripts/check_layout.py",
+          "find": "        add(\"TY-13\", \"fail\", \"没填 max_width_px——宽屏铺满是最高频的排版错误\")",
+          "replace": "        pass"
+        }
+      ]
+    },
+    {
+      "name": "排版线 人判未全过不再拦",
+      "test": "typography-unit",
+      "edits": [
+        {
+          "file": "capabilities/typography/scripts/check_layout.py",
+          "find": "        if failed:\n            add(\"TY-14\", \"fail\", f\"人判未全过：{failed}\")",
+          "replace": "        if False:\n            add(\"TY-14\", \"fail\", f\"人判未全过：{failed}\")"
+        }
+      ]
+    },
+    {
+      "name": "排版线 CSS 注释重新并进选择器",
+      "test": "typography-unit",
+      "edits": [
+        {
+          "file": "capabilities/typography/scripts/extract_html_layout.py",
+          "find": "COMMENT_RE.sub(\"\", block)",
+          "replace": "block"
+        }
+      ]
+    },
+    {
+      "name": "吸引力 丢掉「两半分工」这一节",
+      "test": "image-appeal-contract",
+      "edits": [
+        {
+          "file": "skills/image-pipeline/SKILL.md",
+          "find": "**吸引力分成两半：机器判的数值，人判的登记。**",
+          "replace": "**吸引力只有一半：人判的登记。**"
+        }
+      ]
+    },
+    {
+      "name": "吸引力 丢掉「素是可测的」",
+      "test": "image-appeal-contract",
+      "edits": [
+        {
+          "file": "skills/image-pipeline/SKILL.md",
+          "find": "**「素」是可测的。**",
+          "replace": "**「素」只是一种感觉。**"
+        }
+      ]
+    },
+    {
+      "name": "吸引力 丢掉「复核的人不能是写的人」",
+      "test": "image-appeal-contract",
+      "edits": [
+        {
+          "file": "skills/image-pipeline/SKILL.md",
+          "find": "**复核的人不能是写的人。**",
+          "replace": "**复核可以自己来。**"
+        }
+      ]
+    },
+    {
+      "name": "吸引力 丢掉 carrier 分流判据",
+      "test": "image-appeal-contract",
+      "edits": [
+        {
+          "file": "skills/image-pipeline/SKILL.md",
+          "find": "**`carrier` 决定封面要不要底图。**",
+          "replace": "**风格决定一切。**"
+        }
+      ]
+    },
+    {
+      "name": "吸引力 规则真源少一条判据",
+      "test": "image-appeal-contract",
+      "edits": [
+        {
+          "file": "capabilities/image-appeal/rules/appeal-rules.json",
+          "find": "\"id\": \"AP-07\",",
+          "replace": "\"id\": \"AP-70\","
+        }
+      ]
+    },
+    {
+      "name": "吸引力 规则来源丢掉证据等级",
+      "test": "image-appeal-contract",
+      "edits": [
+        {
+          "file": "capabilities/image-appeal/rules/appeal-rules.json",
+          "find": "\"evidence\": \"直接证据\",",
+          "replace": "\"evidence\": \"\","
+        }
+      ]
+    },
+    {
+      "name": "吸引力 人判规则全标成机器判",
+      "test": "image-appeal-contract",
+      "edits": [
+        {
+          "file": "capabilities/image-appeal/rules/appeal-rules.json",
+          "find": "\"checkable\": \"human\",",
+          "replace": "\"checkable\": \"machine\","
+        }
+      ]
+    },
+    {
+      "name": "吸引力 未校准的阈值假装已校准",
+      "test": "image-appeal-contract",
+      "edits": [
+        {
+          "file": "capabilities/image-appeal/rules/appeal-rules.json",
+          "find": "\"calibrated\": false,",
+          "replace": "\"calibrated\": true,"
+        }
+      ]
+    },
+    {
+      "name": "吸引力 风格库丢掉 carrier 分流",
+      "test": "image-appeal-contract",
+      "edits": [
+        {
+          "file": "capabilities/image-production/styles/image-styles.json",
+          "find": "\"carrier\": \"base_image\"",
+          "replace": "\"carrier\": \"typography\""
+        }
+      ]
+    },
+    {
+      "name": "吸引力 契约删掉 deck",
+      "test": "image-appeal-contract",
+      "edits": [
+        {
+          "file": "capabilities/image-production/contracts/image-brief.schema.json",
+          "find": "\"deck\": {",
+          "replace": "\"deck_x\": {"
+        }
+      ]
+    },
+    {
+      "name": "吸引力 校验器不再拦封面缺底图",
+      "test": "image-appeal-unit",
+      "edits": [
+        {
+          "file": "capabilities/image-appeal/scripts/check_appeal.py",
+          "find": "if carrier == \"base_image\" and not base_image and carrier_rule:",
+          "replace": "if False:"
+        }
+      ]
+    },
+    {
+      "name": "吸引力 校验器不再拦末页缺落点",
+      "test": "image-appeal-unit",
+      "edits": [
+        {
+          "file": "capabilities/image-appeal/scripts/check_appeal.py",
+          "find": "if not (last.get(\"next_step\") or \"\").strip():",
+          "replace": "if False:"
+        }
+      ]
+    },
+    {
+      "name": "吸引力 校验器不再拦风格漂移",
+      "test": "image-appeal-unit",
+      "edits": [
+        {
+          "file": "capabilities/image-appeal/scripts/check_appeal.py",
+          "find": "if strays:",
+          "replace": "if False:"
+        }
+      ]
+    },
+    {
+      "name": "吸引力 校验器不再扫文案机器化",
+      "test": "image-appeal-unit",
+      "edits": [
+        {
+          "file": "capabilities/image-appeal/scripts/check_appeal.py",
+          "find": "    if hits:\n        shown = ",
+          "replace": "    if False:\n        shown = "
+        }
+      ]
+    },
+    {
+      "name": "吸引力 校验器不再拦封面标题过长",
+      "test": "image-appeal-unit",
+      "edits": [
+        {
+          "file": "capabilities/image-appeal/scripts/check_appeal.py",
+          "find": "if verdict:",
+          "replace": "if False:"
+        }
+      ]
+    },
+    {
+      "name": "吸引力 校验器不再拦封面与内页同底色",
+      "test": "image-appeal-unit",
+      "edits": [
+        {
+          "file": "capabilities/image-appeal/scripts/check_appeal.py",
+          "find": "elif cover_theme == inner_theme:",
+          "replace": "elif False:"
+        }
+      ]
+    },
+    {
+      "name": "吸引力 测量器把抗锯齿算成视觉事件",
+      "test": "image-appeal-unit",
+      "edits": [
+        {
+          "file": "capabilities/image-appeal/scripts/measure_card.py",
+          "find": "QUANT_BITS = 4",
+          "replace": "QUANT_BITS = 8"
+        }
+      ]
+    },
+    {
+      "name": "吸引力 测量器边缘阈值放宽到看不见",
+      "test": "image-appeal-unit",
+      "edits": [
+        {
+          "file": "capabilities/image-appeal/scripts/measure_card.py",
+          "find": "EDGE_LUMA_DELTA = 24",
+          "replace": "EDGE_LUMA_DELTA = 255"
+        }
+      ]
+    },
+    {
+      "name": "吸引力 校验器不再拦「写的人自己判」",
+      "test": "image-brief-unit",
+      "edits": [
+        {
+          "file": "capabilities/image-production/scripts/validate_image_brief.py",
+          "find": "if author and reviewer and reviewer == author:",
+          "replace": "if False:"
+        }
+      ]
+    },
+    {
+      "name": "吸引力 校验器不再拦封面底图不在",
+      "test": "image-brief-unit",
+      "edits": [
+        {
+          "file": "capabilities/image-production/scripts/validate_image_brief.py",
+          "find": "if item.get(\"status\") == \"generated\" and not candidate.is_file():",
+          "replace": "if False:"
+        }
+      ]
+    },
+    {
+      "name": "吸引力 校验器不再要求 deck 四格",
+      "test": "image-brief-unit",
+      "edits": [
+        {
+          "file": "capabilities/image-production/scripts/validate_image_brief.py",
+          "find": "    for key in DECK_FIELDS:",
+          "replace": "    for key in ():"
+        }
+      ]
+    },
+    {
+      "name": "吸引力 契约删掉 author 必填",
+      "test": "image-pipeline-contract",
+      "edits": [
+        {
+          "file": "capabilities/image-production/contracts/image-brief.schema.json",
+          "find": "\"acceptance_criteria\",\n    \"author\"",
+          "replace": "\"acceptance_criteria\""
+        }
+      ]
+    },
+    {
+      "name": "吸引力 契约删掉 evidence 必填",
+      "test": "image-pipeline-contract",
+      "edits": [
+        {
+          "file": "capabilities/image-production/contracts/image-brief.schema.json",
+          "find": "\"required\": [\"reviewed_by\", \"reviewed_at\", \"evidence\", \"verdicts\"],",
+          "replace": "\"required\": [\"reviewed_by\", \"reviewed_at\", \"verdicts\"],"
+        }
+      ]
+    },
+    {
+      "name": "吸引力 契约删掉 base_image 字段",
+      "test": "image-pipeline-contract",
+      "edits": [
+        {
+          "file": "capabilities/image-production/contracts/image-brief.schema.json",
+          "find": "\"base_image\": {",
+          "replace": "\"base_image_x\": {"
+        }
+      ]
+    },
+    {
+      "name": "排版线 渲染器静默丢值不再拦（反向校验失效）",
+      "test": "typography-unit",
+      "edits": [
+        {
+          "file": "capabilities/typography/scripts/render.py",
+          "find": "    unused = sorted(key for key in values if \"{{\" + key + \"}}\" not in original)",
+          "replace": "    unused = []"
+        }
+      ]
+    },
+    {
+      "name": "排版线 画布覆盖块丢掉底图",
+      "test": "typography-unit",
+      "edits": [
+        {
+          "file": "capabilities/typography/scripts/render.py",
+          "find": "        f\"    --tp-bg-image:{values['BG_IMAGE']};\",",
+          "replace": "        f\"    --tp-bg-image:none;\","
+        }
+      ]
+    },
+    {
+      "name": "排版线 画布覆盖块丢掉留白",
+      "test": "typography-unit",
+      "edits": [
+        {
+          "file": "capabilities/typography/scripts/render.py",
+          "find": "        f\"    --tp-mt:{values['MARGIN_TOP']}px; --tp-mr:{values['MARGIN_RIGHT']}px; \"",
+          "replace": "        f\"    --tp-mt:96px; --tp-mr:96px; \""
+        }
+      ]
+    },
+    {
+      "name": "排版线 封面模板丢掉画布覆盖块占位符",
+      "test": "typography-unit",
+      "edits": [
+        {
+          "file": "capabilities/typography/templates/cover.html",
+          "find": "{{CANVAS_CSS}}",
+          "replace": "<!-- 覆盖块没了 -->"
+        }
+      ]
+    },
+    {
+      "name": "排版线 出图不再清旧图（失败会被旧图掩盖）",
+      "test": "typography-unit",
+      "edits": [
+        {
+          "file": "capabilities/typography/scripts/render.py",
+          "find": "    if png_path.exists():\n        png_path.unlink()",
+          "replace": "    pass"
+        }
+      ]
+    },
+    {
+      "name": "排版线 站4 删掉封面金样本入口",
+      "test": "typography-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "cover-type-spec.json",
+          "replace": "cover-spec.json"
+        }
+      ]
+    },
+    {
+      "name": "排版线 站4 封面规格先于文案的顺序判据失效",
+      "test": "typography-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "**这一站只定封面规格，不定封面文案。**",
+          "replace": "**这一站顺手把封面文案也定了。**"
+        }
+      ]
+    },
+    {
+      "name": "排版线 站6 封面复核的职责分离失效",
+      "test": "typography-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "**判的人不能是写封面文案的人**",
+          "replace": "**判的人就是写封面文案的人**"
+        }
+      ]
+    },
+    {
+      "name": "排版线 封面金样本标题色跌破对比度",
+      "test": "typography-unit",
+      "edits": [
+        {
+          "file": "capabilities/typography/templates/cover-type-spec.json",
+          "find": "\"color\": \"#993C1D\"",
+          "replace": "\"color\": \"#D3A088\""
+        }
+      ]
+    },
+    {
+      "name": "作者化规范 去掉不作为改写理由小节",
+      "test": "content-routing-contract",
+      "edits": [
+        {
+          "file": "00-meta/content-engine/07-authorial-quality-system.md",
+          "find": "### Gate D 的边界：不作为改写理由",
+          "replace": "### Gate D 的补充说明"
+        }
+      ]
+    },
+    {
+      "name": "作者化检查 去掉句长无差异说明",
+      "test": "content-deliverable-unit",
+      "edits": [
+        {
+          "file": "capabilities/content-production/scripts/check_authorial.py",
+          "find": "  句长均匀度实测与人类无差异（CV 0.58 对 0.67），不作为改写理由。",
+          "replace": "  句长均匀度已统计。"
+        }
+      ]
+    },
+    {
+      "name": "文章线 开始前 去掉作者化规范",
+      "test": "content-routing-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "00-meta/content-engine/07-authorial-quality-system.md",
+          "replace": "00-meta/content-engine/06-creator-workbench-design.md"
+        }
+      ]
+    },
+    {
+      "name": "全零基线不再要求写明原因（空实例层又能通过门禁）",
+      "test": "quality-gate-unit",
+      "edits": [
+        {
+          "file": "test/run_quality_gate.py",
+          "find": "unexplained_empty = not any(old_output.values())",
+          "replace": "unexplained_empty = False"
+        }
+      ]
+    },
+    {
+      "name": "全零基线无视 output_baseline_note（写了原因也不认）",
+      "test": "quality-gate-unit",
+      "edits": [
+        {
+          "file": "test/run_quality_gate.py",
+          "find": "descriptor.get(\"output_baseline_note\") or \"\").strip()",
+          "replace": "\"\").strip()"
+        }
+      ]
+    },
+    {
+      "name": "视频线 合身检查被摘掉（放不下的标题照常出帧）",
+      "test": "video-unit",
+      "edits": [
+        {
+          "file": "capabilities/video-production/scripts/build_frames.py",
+          "find": "        problems = FIT.check_content(scene_spec, content, f\"[{scene_id}]\")",
+          "replace": "        problems = []"
+        }
+      ]
+    },
+    {
+      "name": "视频线 合身检查挪到渲染之后（等于没检查）",
+      "test": "video-contract",
+      "edits": [
+        {
+          "file": "capabilities/video-production/scripts/build_frames.py",
+          "find": "        problems = FIT.check_content(scene_spec, content, f\"[{scene_id}]\")\n        if problems:\n            raise FrameError(\"分镜文案放不下：\\n  - \" + \"\\n  - \".join(problems))\n\n        html = TYPO.render_cover(scene_spec, content)",
+          "replace": "        html = TYPO.render_cover(scene_spec, content)\n\n        problems = FIT.check_content(scene_spec, content, f\"[{scene_id}]\")\n        if problems:\n            raise FrameError(\"分镜文案放不下：\\n  - \" + \"\\n  - \".join(problems))"
+        }
+      ]
+    },
+    {
+      "name": "视频线 时长回到写死的 5 秒（不再由旁白决定）",
+      "test": "video-contract",
+      "edits": [
+        {
+          "file": "capabilities/video-production/scripts/compose.py",
+          "find": "        seconds = max(min_seconds, spoken + tail)",
+          "replace": "        seconds = 5.0"
+        }
+      ]
+    },
+    {
+      "name": "视频线 音轨不再补齐到整幕（音画对不齐）",
+      "test": "video-contract",
+      "edits": [
+        {
+          "file": "capabilities/video-production/scripts/compose.py",
+          "find": "apad=whole_dur=",
+          "replace": "anull="
+        }
+      ]
+    },
+    {
+      "name": "视频线 音轨不再扣叠化（旁白一路追着画面跑）",
+      "test": "video-unit",
+      "edits": [
+        {
+          "file": "capabilities/video-production/scripts/compose.py",
+          "find": "        hold = item[\"seconds\"] if index == last else item[\"seconds\"] - transition",
+          "replace": "        hold = item[\"seconds\"]"
+        }
+      ]
+    },
+    {
+      "name": "视频线 静止帧不再循环（整幕塌成两帧）",
+      "test": "video-unit",
+      "edits": [
+        {
+          "file": "capabilities/video-production/scripts/compose.py",
+          "find": "    return [\"-loop\", \"1\", \"-t\", f\"{item['frames'] / fps:.4f}\", \"-i\", str(item[\"frame\"])]",
+          "replace": "    return [\"-i\", str(item[\"frame\"])]"
+        }
+      ]
+    },
+    {
+      "name": "视频线 缺口留痕被删（安全区被当成已核验）",
+      "test": "video-contract",
+      "edits": [
+        {
+          "file": "capabilities/video-production/README.md",
+          "find": "平台安全区",
+          "replace": "平台区域"
+        }
+      ]
+    },
+    {
+      "name": "视频线 金样本不再是竖屏 9:16",
+      "test": "video-contract",
+      "edits": [
+        {
+          "file": "capabilities/video-production/templates/video-scene-type-spec.json",
+          "find": "    \"width\": 1080,",
+          "replace": "    \"width\": 1440,"
+        }
+      ]
+    },
+    {
+      "name": "视频线 缺料停机判据从 skill 里消失",
+      "test": "video-contract",
+      "edits": [
+        {
+          "file": "skills/video-pipeline/SKILL.md",
+          "find": "**缺料停机**",
+          "replace": "缺料停机"
+        }
+      ]
+    },
+    {
+      "name": "视频线 验收不再要求职责分离",
+      "test": "video-contract",
+      "edits": [
+        {
+          "file": "skills/video-pipeline/SKILL.md",
+          "find": "**判的人不能是写脚本的人。**",
+          "replace": "**判的人要仔细。**"
+        }
+      ]
+    },
+    {
+      "name": "文章线 写完主稿不再自动跑作者化检查",
+      "test": "content-routing-contract",
+      "edits": [
+        {
+          "file": "skills/article-pipeline/SKILL.md",
+          "find": "**主稿写完，立即自动跑一次作者化检查（站 6 第一道），把报告贴出来。**",
+          "replace": "**主稿写完后可以跑一次作者化检查。**"
+        }
+      ]
+    },
+    {
+      "name": "语音线 客户端帧不带掩码（服务端会直接断连）",
+      "test": "speech-unit",
+      "edits": [
+        {
+          "file": "capabilities/speech/scripts/ws.py",
+          "find": "        return bytes(header) + bytes(b ^ mask[i % 4] for i, b in enumerate(payload))",
+          "replace": "        return bytes(header) + payload"
+        }
+      ]
+    },
+    {
+      "name": "语音线 合成时不再认二进制帧（音频被当 JSON 解析，成片静音）",
+      "test": "speech-contract",
+      "edits": [
+        {
+          "file": "capabilities/speech/scripts/synthesize.py",
+          "find": "            if opcode == ws.OP_BINARY:",
+          "replace": "            if False:"
+        }
+      ]
+    },
+    {
+      "name": "语音线 计费口径退回 len()（估算少算将近一半）",
+      "test": "speech-unit",
+      "edits": [
+        {
+          "file": "capabilities/speech/scripts/dashscope.py",
+          "find": "        total += CJK_WEIGHT if (wide and letter) else OTHER_WEIGHT",
+          "replace": "        total += OTHER_WEIGHT"
+        }
+      ]
+    },
+    {
+      "name": "语音线 单价被改小（成本估算成了安慰剂）",
+      "test": "speech-contract",
+      "edits": [
+        {
+          "file": "capabilities/speech/scripts/dashscope.py",
+          "find": "PRICE_PER_10K_CHARS = 0.9541",
+          "replace": "PRICE_PER_10K_CHARS = 0.5"
+        }
+      ]
+    },
+    {
+      "name": "语音线 不再等音色部署（拿到看不出原因的 418）",
+      "test": "speech-contract",
+      "edits": [
+        {
+          "file": "capabilities/speech/scripts/voices.py",
+          "find": "def wait_until_ready(",
+          "replace": "def _dropped_wait_until_ready("
+        }
+      ]
+    },
+    {
+      "name": "语音线 传之前不再查音频（失败报错看不出哪里不合格）",
+      "test": "speech-contract",
+      "edits": [
+        {
+          "file": "capabilities/speech/scripts/voices.py",
+          "find": "def check_audio(",
+          "replace": "def _dropped_check_audio("
+        }
+      ]
+    },
+    {
+      "name": "语音线 本地文件不再变 data URL（被迫去搭对象存储）",
+      "test": "speech-unit",
+      "edits": [
+        {
+          "file": "capabilities/speech/scripts/voices.py",
+          "find": "    return f\"data:{mime};base64,\" + base64.b64encode(path.read_bytes()).decode(\"ascii\")",
+          "replace": "    return str(path)"
+        }
+      ]
+    },
+    {
+      "name": "视频线 CosyVoice 引擎被摘掉（退回只有 say 的年代）",
+      "test": "speech-contract",
+      "edits": [
+        {
+          "file": "capabilities/video-production/scripts/compose.py",
+          "find": "\"dashscope-cosyvoice\"",
+          "replace": "\"dashscope-nope\""
+        }
+      ]
+    },
+    {
+      "name": "视频线 花钱前的 dry-run 被摘掉（按量计费闭着眼睛花）",
+      "test": "speech-contract",
+      "edits": [
+        {
+          "file": "capabilities/video-production/scripts/compose.py",
+          "find": "--dry-run",
+          "replace": "--no-dry-run"
+        }
+      ]
+    },
+    {
+      "name": "视频线 不再按引擎区分外部依赖（用 CosyVoice 还要求机器有 say）",
+      "test": "speech-contract",
+      "edits": [
+        {
+          "file": "capabilities/video-production/scripts/compose.py",
+          "find": "        check_tools(engine)",
+          "replace": "        check_tools(\"macos-say\")"
+        }
+      ]
+    },
+    {
+      "name": "视频线 风格映射首选指向只出提示词的风格（自动走到生成会断）",
+      "test": "video-contract",
+      "edits": [
+        {
+          "file": "capabilities/video-production/styles/style-map.json",
+          "find": "\"primary\": \"wb-stream-whiteboard\",",
+          "replace": "\"primary\": \"hd-02-crayon-kid\","
+        }
+      ]
+    },
+    {
+      "name": "视频线 风格映射引了不存在的风格 id",
+      "test": "video-contract",
+      "edits": [
+        {
+          "file": "capabilities/video-production/styles/style-map.json",
+          "find": "\"primary\": \"g-y1-kurzgesagt\",",
+          "replace": "\"primary\": \"g-y1-kurzgesagt-ghost\","
+        }
+      ]
+    },
+    {
+      "name": "视频线 选题映射指向被屏蔽的风格（屏蔽没生效）",
+      "test": "video-contract",
+      "edits": [
+        {
+          "file": "capabilities/video-production/styles/style-map.json",
+          "find": "\"primary\": \"g-t1-3b1b\",",
+          "replace": "\"primary\": \"v1-editorial\","
+        }
+      ]
+    },
+    {
+      "name": "视频线 屏蔽清单里写了不存在的风格 id（写错了不报错）",
+      "test": "video-contract",
+      "edits": [
+        {
+          "file": "capabilities/video-production/styles/video-styles.json",
+          "find": "\"v1-editorial\", \"v2-signal\"",
+          "replace": "\"v1-editorial-ghost\", \"v2-signal\""
+        }
+      ]
+    },
+    {
+      "name": "视频线 屏蔽只改了数据，没重跑 build_gallery.py",
+      "test": "video-contract",
+      "edits": [
+        {
+          "file": "capabilities/video-production/styles/gallery.html",
+          "find": "\"id\": \"v3-notebook\"",
+          "replace": "\"id\": \"v1-editorial\""
+        }
+      ]
+    },
+    {
+      "name": "视频线 风格条目丢掉 status 字段",
+      "test": "video-contract",
+      "edits": [
+        {
+          "file": "capabilities/video-production/styles/video-styles.json",
+          "find": "      \"status\": \"needs-install\",\n      \"entry\": \"scripts/render_stream_whiteboard.py\",",
+          "replace": "      \"entry\": \"scripts/render_stream_whiteboard.py\","
+        }
+      ]
+    },
+    {
+      "name": "门禁 改破坏点也退化成全量（快通道被堵死）",
+      "test": "quality-gate-unit",
+      "edits": [
+        {
+          "file": "test/run_quality_gate.py",
+          "find": "        if path.startswith(\"test/\") and not path.startswith(NOT_GATE_INPUT):",
+          "replace": "        if path.startswith(\"test/\") and True:"
+        }
+      ]
+    },
+    {
+      "name": "canary --file 从前缀匹配退化成包含匹配（筛出别人）",
+      "test": "canary-unit",
+      "edits": [
+        {
+          "file": "test/tools/canary.py",
+          "find": "    return any(edit[\"file\"].startswith(prefix) for edit in case[\"edits\"])",
+          "replace": "    return any(prefix in edit[\"file\"] for edit in case[\"edits\"])"
         }
       ]
     }

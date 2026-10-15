@@ -11,8 +11,15 @@
 
 用法：
 
-    python3 test/tools/canary.py --project <项目根>
-    python3 test/tools/canary.py --project <项目根> --only 站6
+    python3 test/tools/canary.py
+    python3 test/tools/canary.py --only 站6
+    python3 test/tools/canary.py --file capabilities/video-production/styles/
+
+`--only` 按破坏点的**名字**筛，`--file` 按它**改哪个文件**筛。
+改了某个文件之后，用 `--file` 只跑碰到它的那几条——`--only` 太粗，
+会把跑整条慢单测的破坏点一起拖进来。
+
+`--project` 现在可省略——2026-10-10 起全部测试只读系统根，不需要项目。
 
 破坏点写在 `test/canary.json`。**改了断言就加一条**，否则新断言可能一出生就是空转的。
 
@@ -54,14 +61,19 @@ def load_commands() -> dict:
     return {item["id"]: item["command"] for item in manifest["tests"]}
 
 
-def run_test(command: list, project: str) -> int:
+def run_test(command: list, project) -> int:
     """跑一条测试，返回退出码。非零就是变红了——那正是我们要的。
 
     **不让这次运行写字节码。** 它跑的是被破坏过的源码，写下来的缓存
     一旦被之后的运行当成新鲜的，整个系统就在执行被破坏的代码。
     见 `invalidate_bytecode` 的长注释。
     """
-    env = dict(os.environ, HQ_GEO_PROJECT=project, PYTHONDONTWRITEBYTECODE="1")
+    env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
+    # 项目根可选：2026-10-10 起测试只读系统根，不给项目也跑得动。
+    if project:
+        env["HQ_GEO_PROJECT"] = project
+    else:
+        env.pop("HQ_GEO_PROJECT", None)
     result = subprocess.run(
         command,
         cwd=SYSTEM,
@@ -129,6 +141,18 @@ def stale_edits(originals: dict, edits: list) -> list:
     ]
 
 
+def touches(case: dict, prefix: str) -> bool:
+    """这条破坏点改的文件里，有没有落在 `prefix` 下的。
+
+    `--only` 按名字筛，粒度太粗：一条改 `compose.py` 的破坏点，
+    名字里带着「视频线」，就会把跑整条 `video-unit` 的破坏点一起拖进来。
+    实测 `--only 视频线` 的 19 条里，只有 13 条跑的是 0.5 秒的契约测试，
+    另外 3 条跑的是 16 秒起步的单测——一次 120 秒，还会被超时打断。
+    按文件筛，同一件事 3 秒跑完。
+    """
+    return any(edit["file"].startswith(prefix) for edit in case["edits"])
+
+
 def apply_edits(originals: dict, edits: list) -> dict:
     """把破坏点应用到原文上，返回新内容。
 
@@ -146,12 +170,17 @@ def apply_edits(originals: dict, edits: list) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="破坏被测对象，确认断言真的会红")
-    parser.add_argument("--project", required=True, help="项目根，测试要用它找实例层")
+    parser.add_argument("--project",
+                        help="项目根。给了就传给测试；不给则测试只读系统根"
+                             "（2026-10-10 起全部测试都不需要项目）")
     parser.add_argument("--only", default="", help="只跑名字里含这个词的破坏点")
+    parser.add_argument("--file", default="",
+                        help="只跑改到这个路径下的破坏点（前缀匹配，"
+                             "如 capabilities/video-production/styles/）")
     args = parser.parse_args()
-    args.project = resolve_project(args.project)
+    args.project = resolve_project(args.project) if args.project else None
 
-    if not (Path(args.project) / MARKER).is_file():
+    if args.project and not (Path(args.project) / MARKER).is_file():
         print(f"这里不是 hq-geo 项目根（没有 {MARKER}）：{args.project}")
         print("路径给错时，测试会全部报错退出——而 canary 把非零退出当成「变红」，")
         print("于是你会看到一整片假红。先确认 --project 指向项目根，再跑。")
@@ -160,9 +189,11 @@ def main() -> int:
     commands = load_commands()
     config = json.loads(CASES.read_text(encoding="utf-8"))
     cases = [item for item in config["cases"] if args.only in item["name"]]
+    if args.file:
+        cases = [item for item in cases if touches(item, args.file)]
 
     if not cases:
-        print(f"没有匹配的破坏点：--only {args.only}" if args.only else "破坏点清单是空的")
+        print(f"没有匹配的破坏点：--only {args.only!r} --file {args.file!r}")
         return 1
 
     print("=== Canary：逐条破坏，确认测试真的会红\n")

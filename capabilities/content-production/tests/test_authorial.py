@@ -111,6 +111,11 @@ class StructureTest(unittest.TestCase):
     def test_rhythm_handles_single_sentence(self):
         self.assertIn("note", scan("只有一句话。")["rhythm"])
 
+    def test_rhythm_states_no_difference(self):
+        # 句长均匀度实测与人类无差异，脚本必须写明它不作为改写理由
+        text = CHECKER.render(scan("第一句。第二句。\n\n第二段只有一句。"))
+        self.assertIn("不作为改写理由", text)
+
 
 class ContractTest(unittest.TestCase):
     def test_gate_e_is_reported_as_blocked(self):

@@ -15,7 +15,7 @@ owner_capability: image-production
 怎么验，**后续迭代以它为准**。改了实现不改这里，或者改了这里不改实现，都算没做完。
 
 **为什么放在 `capabilities/image-production/` 而不是 `00-meta/content-engine/`。**
-`00-meta/` 的 specs（`spec-creative-production-handoff.md` 等）管的是**跨线协议**；
+`00-meta/` 的 specs（`spec-positioning-writing.md` 等）管的是**跨线协议**；
 这一份管的是**单个能力包内部的实现**。`test/feature_registry.json` 里
 `image-production` 的 `owner_paths` 是 `capabilities/image-production`——
 规格住在它管辖的路径下，登记表里的责任路径才是有意义的。

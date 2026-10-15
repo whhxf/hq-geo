@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>排版参考模板 · article</title>
+<!--
+  排版参考模板。**这份 HTML 的排版参数全过机器判据**，
+  单测拿它当金样本，站 4 生成风格候选时照它起手。
+
+  它配一份声明文件 `article-layout.json`。两份必须一致——
+  `extract_html_layout.py --compare` 会逐格比对，对不上就红。
+  改了 CSS 记得同步改 JSON。
+
+  硬规则（来自 capabilities/content-production/styles/README.md）：
+  能直接在浏览器打开，不依赖任何网络资源。所以这里没有 webfont。
+-->
+<style>
+  /* 正文：16px / 行距 1.75 / 字距 0.02em。判据 TY-02 TY-04 TY-08。 */
+  body {
+    font-family: "Songti SC", "STSong", "SimSun", Georgia, serif;
+    font-size: 16px;
+    line-height: 1.75;
+    letter-spacing: 0.02em;
+    color: #1a1a1a;
+    background-color: #ffffff;
+    line-break: normal;
+    margin: 0;
+  }
+
+  /* 正文列 32em = 32 汉字/行。判据 TY-01。
+     首行缩进 0 + 段距 1.75em，二选一。判据 TY-06。 */
+  p {
+    max-width: 32em;
+    text-indent: 0;
+    margin: 0 0 1.75em;
+  }
+
+  /* 标题字号逐级递减 30 / 22 / 18。判据 TY-07。
+     标题字距 0.08em，行距 1.25。判据 TY-03 TY-05。 */
+  h1 { font-size: 30px; line-height: 1.25; letter-spacing: 0.08em; }
+  h2 { font-size: 22px; line-height: 1.25; letter-spacing: 0.08em; }
+  h3 { font-size: 18px; line-height: 1.25; letter-spacing: 0.08em; }
+
+  /* 正文区最大宽度 700px，居中。判据 TY-13。 */
+  .container { max-width: 700px; margin: 0 auto; padding: 48px 24px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>把一段话排到能读下去</h1>
+  <p>排版不是装饰。一段话读不读得下去，取决于行宽、行距、字距这几个数字。</p>
+  <h2>行宽决定换行的成本</h2>
+  <p>每行 25 到 35 个汉字最好读。超过 40 个字，读者换行时视线要跳跃很远的距离，容易读错行。</p>
+  <h3>行距决定串不串行</h3>
+  <p>中文是方块字，上下相邻两行笔画互相干扰。正文行距取 1.6 到 1.8 倍，比纯英文排版更大。</p>
+  <h3>字距决定密度</h3>
+  <p>中文正文没有天然词间距，字距拉大会让字一个个蹦出来。正文 0 到 0.05em，标题 0.05 到 0.15em。</p>
+  <h2>缩进和段距二选一</h2>
+  <p>首行缩进和段间距同时用会产生过多空白，版面松散。传统风格用缩进，现代风格用段距。</p>
+</div>
+</body>
+</html>

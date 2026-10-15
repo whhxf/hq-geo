@@ -1,15 +1,16 @@
+"""交付契约的单测。
+
+**只用 fixture，不读任何项目根。** 2026-10-10 起门禁不依赖项目，
+原先「遍历项目里每个简报」的两条用例移出门禁——那是项目侧的验收，
+由项目自己跑。契约本身的判据全在这里测。
+"""
+
 import importlib.util
 import json
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-SYSTEM = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(SYSTEM))
-from project import find_project  # noqa: E402
-
-PROJECT = find_project()
 MODULE = Path(__file__).resolve().parents[1] / "scripts/validate_deliverables.py"
 SPEC = importlib.util.spec_from_file_location("deliverables", MODULE)
 VALIDATOR = importlib.util.module_from_spec(SPEC)
@@ -39,11 +40,6 @@ def fixture_brief(**overrides) -> dict:
     return data
 
 
-def discover_briefs() -> list:
-    """发现 content/briefs/<idea>/<topic>/production-brief.json，不写死任何项目标识。"""
-    return sorted((PROJECT / "content/briefs").glob("*/*/production-brief.json"))
-
-
 class DeliverableContractTest(unittest.TestCase):
     def write_temp(self, data: dict) -> Path:
         handle = tempfile.NamedTemporaryFile("w", suffix=".json", encoding="utf-8", delete=False)
@@ -54,18 +50,6 @@ class DeliverableContractTest(unittest.TestCase):
 
     def test_fixture_brief_is_structurally_valid(self):
         self.assertEqual(VALIDATOR.validate(self.write_temp(fixture_brief())), [])
-
-    def test_every_existing_brief_is_valid(self):
-        for path in discover_briefs():
-            with self.subTest(brief=str(path.relative_to(PROJECT))):
-                self.assertEqual(VALIDATOR.validate(path), [])
-
-    def test_blocked_brief_does_not_claim_handoff_ready(self):
-        for path in discover_briefs():
-            with self.subTest(brief=str(path.relative_to(PROJECT))):
-                data = json.loads(path.read_text(encoding="utf-8"))
-                if data["status"] == "blocked":
-                    self.assertFalse(data["handoff"]["ready"], f"{path} 阻塞却声明可交接")
 
     def test_ready_handoff_cannot_hide_missing_assets(self):
         data = fixture_brief()

@@ -6,6 +6,1014 @@
 
 ---
 
+## 2026-10-13
+
+### 关键词能力加一层场景识别：新增 `ROUTING.md`
+
+- **做了什么**：
+
+  | 文件 | 动作 |
+  |---|---|
+  | `capabilities/keyword-research/ROUTING.md` | 新增。三步路由：定平台 → 定能力 → 定流程 |
+  | `capabilities/keyword-research/README.md` | 目录树加一行 |
+  | `skills/keyword-research/SKILL.md` | 「开始前」加一条路由指针 |
+
+- **为什么**：Conan 提「关键词能力也要按受众做场景识别拆分使用」。
+  查下来判据已经存在——`08-system-boundary.md` 已写明
+  「选词（Google / 英文）归 hq-chuhai，选词（小红书 / 抖音 / 微信）归本仓库」。
+  **缺的不是判据，是入口**：走本技能时读不到那句边界。
+
+- **关键取舍**：**识别信号用目标平台，不用受众所在地，也不用定位卡的 `region`。**
+  `region` 记的是**卖家地区**。中国卖家把货卖到海外，`region` 仍是「中国」——按它分流会分错。
+  受众没有丢：它决定**选哪个平台**，平台再决定**用哪套能力**。
+  三步因此写成「平台 → 能力 → 流程」。
+
+- **有意不做**：**不加校验器、不加契约、不加 canary。** 选的是最轻的一档。
+  理由站得住：这是一份路由说明，不是新部件。按宪法第 8 条，
+  等它被真实用过第三次再决定要不要加断言。代价写在该文件第七节：**它现在可以静默腐烂。**
+
+- **影响**：不改任何现有判据。`08-system-boundary.md` 未动——它仍是边界唯一真源。
+  本包的六站流程与四条渠道口径全部不变。
+
+- **顺带登记三条缺口**（写在 `ROUTING.md` 第四节，不为它们新建文件）：
+  海外平台（Reddit / X）选词、国内自有域名（中文站）选词、视频号选词。
+  前两条现在都是「没有能力」。
+
+---
+
+## 2026-10-11
+
+### 测试反馈提速：修 `--changed` 退化，canary 加 `--file`
+
+- **做了什么**：
+
+  | 文件 | 动作 |
+  |---|---|
+  | `test/run_quality_gate.py` | 抽 `needs_full_run()`；全量判据从「`test/` 下一律全量」收窄到「除 `test/canary.json` 与 `test/reports/`」 |
+  | `test/tools/canary.py` | 加 `--file <前缀>`，按破坏点**改的文件**筛，不再只按名字筛 |
+  | `test/README.md` | 加「反馈速度」一节；改掉「全部测试一秒内跑完」的旧话；补 `--file`、SIGTERM 残留、并发危害 |
+  | `PLAYBOOK.md` | 破坏点数 148 → 245（旧数早就对不上） |
+  | `test/suites/test_quality_gate.py` | 加 2 条断言 |
+  | `test/suites/test_canary.py` | 加 4 条断言 |
+  | `test/canary.json` | 加 2 条破坏点，都变红 |
+
+- **为什么**：Conan 问「为什么每次都要经过 canary，能不能有更快的验证方式」。
+  查下来两条都是真的：
+
+  1. **`--changed` 永远退化成全量。** 判据是「`test/` 下一律全量」，
+     而 `test/canary.json` 就在 `test/` 下——改一条破坏点就把快通道堵死。
+     实测 `--changed --list` 永远列出全部 26 条。
+  2. **`--only` 粒度太粗。** `--only 视频线` 选中 19 条，其中 3 条跑的是
+     16 秒起步的 `video-unit`，整轮 120 秒以上，被 SIGTERM 打断。
+     同一件事按文件筛只有 6 条，**0.93 秒**。
+
+- **顺带修一次真事故**：那次 SIGTERM 把 `capabilities/video-production/scripts/compose.py`
+  留在破坏态（`input_args()` 的 `-loop 1` 参数被摘掉，静止帧会塌成 2 帧）。
+  `git status` **看不出来**——整个 `video-production/` 是未跟踪目录。
+  用「`replace` 在文件里、`find` 不在」的手法扫出来的。这是 2026-10-07 那次事故的同一类。
+
+- **一次实测教训**：canary **不能和别的测试并发跑**。并行时 `--changed` 的选择结果
+  被污染成「全量」——它读到的是破坏态。已写进 `test/README.md`。
+
+- **验证**：全量门禁 `VERDICT: PASS` 26/26，覆盖率 100% · 残留破坏扫描 **0 条** ·
+  两条新破坏点变红 · `--file capabilities/video-production/styles/` 6 条 0.93 秒。
+
+- **实测数字**（2026-10-11 本机）：全量 99.6 秒；`video-unit` 36.7 秒、
+  `image-brief-unit` 15.0 秒、`geo-pack-unit` 14.6 秒，三条占 66 秒；其余 23 条合计 16.3 秒。
+  单条契约 suite 0.5 秒。
+
+- **没做的**：没并行化门禁。CPU 只占 37%，并行能把 100 秒压到约 40 秒，
+  但先要确认没有测试共用固定路径。写进 `BACKLOG.md`。
+
+### 视频风格库屏蔽 32 条
+
+- **做了什么**：`video-styles.json` 顶层加 `blocked` 块，含日期、判定人、理由、32 个 id。
+  `build_gallery.py` 按清单跳过；`style-map.json` 把引用被屏蔽 id 的 primary / secondary
+  全部换成存活风格；`test_video_pipeline.py` 的 `check_style_registry` 加三条断言。
+
+  | 文件 | 动作 |
+  |---|---|
+  | `capabilities/video-production/styles/video-styles.json` | 加 `blocked` 块，32 个 id |
+  | `capabilities/video-production/styles/style-map.json` | 8 个选题重映射，兜底换掉 `v1-editorial` |
+  | `capabilities/video-production/styles/build_gallery.py` | 加 `blocked_ids()`，两处 `continue` |
+  | `capabilities/video-production/styles/gallery.html` | 重生成，76 条 → 44 条 |
+  | `capabilities/video-production/styles/README.md` | 加「屏蔽」一节，改全部计数 |
+  | `skills/video-pipeline/SKILL.md` | 站 2 的 76 条改 44 条 |
+  | `test/suites/test_video_pipeline.py` | `known` 排除被屏蔽 id；加两条断言 |
+  | `test/canary.json` | 改 1 条失效破坏点，新增 3 条 |
+
+- **为什么**：Conan 判这 32 条视觉上不需要——lanshu 5 条（V1 / V2 / V6 / V7 / 数字人口播）、
+  huashu 艺术史 26 条、huashu 讲解员语法 1 条。它们此前占 gallery 的 42%，
+  视觉上挤掉了能跑的那几条。
+
+- **为什么用清单而不是删条目**：整个 `capabilities/video-production/` 还是**未跟踪目录**，
+  没有 git 历史。删掉找不回来。清单方式一行可逆。
+
+- **两条断言，两条 canary**：
+  1. 屏蔽清单写了不存在的 id → 报错。不报的话，写错 id 的那条风格**照常出现在页面上**，没有信号。
+  2. 被屏蔽的 id 还在 `gallery.html` 里 → 报错。这一条同时盯「改了数据没重跑生成器」。
+
+- **重映射里有两处是判断题**（等 Conan 确认）：
+  - `brand-flagship` 的首选从 V6 一镜到底换成 `v9-clay`。V6 屏蔽后，
+    3D 电影感这一路只剩黏土。
+  - `personal-brand` 的首选从 `g-y6-presenter-explainer` 换成 `g-y4-storytime`。
+    两条口播专线（讲解员、数字人）都被屏蔽，这个选题实际已无专属风格。
+
+- **验证**：`video-contract` PASS · 视频线 canary **19 条全部变红**，还原后复跑通过 ·
+  全量门禁 `VERDICT: PASS` 26/26，覆盖率 100% · `gallery.html` 44 条、0 条无图、
+  0 个被屏蔽 id 残留。
+
+- **没做的**：`previews/` 里被屏蔽的 32 张图没删。解屏蔽时不用重新生成。
+  两个分组（科技暗色、真人/数字人）成员全被屏蔽，空组保留在 `groups` 里。
+
+---
+
+## 2026-10-10
+
+### 本地媒体引擎与文章改编验证
+
+- huashu 引擎进入本仓库，保留上游版本与许可证；适配器只开放实际验证过的 y2_vox 语法，不依赖外部 vendor 路径。
+- 生图发现顺序固定为实际宿主工具、已验证本地 Skill、用户补充。工具名或 Skill 目录存在不算可执行证明；增加正反例测试。
+- 文章改编方法补齐逐页任务、真实素材、独立复核和质量阻断。图文允许排版与真实截图，不强制生成插画。
+- 将上传通道与质量状态分开。浏览器本地草稿不能冒充云端备份，草稿回执不等于公开发布回执。
+- 实产复核发现的重复截图、错误圈注和裁切不能被系统测试覆盖；当前媒体案例仍按需修订，不登记为金样本。
+
+### 三管道实产修复
+
+- 文章使用独立动态模板，渲染实际正文；来源链接保留可点击属性并过滤危险协议。
+- 生图入口拒绝以生成图冒充真实界面；编辑排版风格拆出无字底图提示词，文字由排版器绘制。
+- 视频拒绝未接通的风格；真实背景图检查文件与使用权，不再忽略背景指令。
+- 以上行为绑定回归测试。实际生产仍须单独检查正文、图像与成片；系统测试通过不代替发布授权。
+- 产出统计兼容 `<channel>/<topic>/` 与 `<channel>/<idea>/<topic>/`，制作简报同样兼容两层路径，防止实际稿件被漏计。
+
+### 修两条失效的 canary 破坏点
+
+- **做了什么**：`视频线 合身检查被摘掉` 与 `视频线 合身检查挪到渲染之后` 两条破坏点的
+  `find` / `replace` 文本里，变量名 `spec` 改成 `scene_spec`。
+
+- **为什么**：`capabilities/video-production/scripts/build_frames.py` 加底图支持时
+  把变量从 `spec` 改名成 `scene_spec`（逐幕深拷贝一份再改画布），两条破坏点的 `find`
+  文本因此再也匹配不上。canary 把失效的破坏点报成 `?` 并**不计入变红**——
+  等于那两条断言当时没人守。
+
+- **怎么发现的**：全量 canary 复跑时它们报「破坏点已失效：找不到要替换的文本」。
+
+- **验证**：`canary.py --only 合身检查` → **2 条全部变红**，还原后复跑通过。
+
+- **没查清的**：同一次全量 canary 末尾报「还原后测试没通过」，但**查不出是哪条**。
+  三项当场核对全部干净——残留破坏扫描 0 条、门禁 26/26 `PASS`、
+  canary 引用到的 23 条测试逐条单跑全过。写进 `BACKLOG.md`，附两个候选原因。
+
+### 门禁去项目依赖：系统只测自身
+
+- **做了什么**：`run_quality_gate.py` 的 `--project` 从「必须」变成「可选」。
+  不带参数就跑系统自检；给了才额外比一次该项目的产出基准。
+
+  | 文件 | 动作 |
+  |---|---|
+  | `test/run_quality_gate.py` | 新增 `locate_project()`，找不到项目返回 `None` 而不是停机；报告目录 `_system`；无项目时不做产出基准比较 |
+  | `test/suites/test_project_structure.py` | 去掉项目根那半；`project_slugs()` 改从 `test/reports/<slug>/` 取 |
+  | `test/suites/test_content_assets.py` | 学习闭环检查改读系统根 `learning-loop.md`；去掉模块级 `find_project()` |
+  | `capabilities/content-production/tests/test_deliverables.py` | 去掉两条遍历真实简报的用例，保留三条 fixture 用例 |
+  | `test/tools/canary.py` | `--project` 同样变可选 |
+  | `test/test_manifest.json` | 删 4 条测试，测试数 31→26 |
+  | `test/feature_registry.json` | 4 个功能解除已删测试的绑定 |
+  | `test/baseline.json` | 健康基准 31→26，耗时 110→45 |
+  | `AGENTS.md` · `README.md` | 门禁一节改写 |
+
+- **为什么**：Conan 问「为什么 hq-geo 的系统会把 hq-xianyu 作为门禁」。
+  查下来 `--project` 从来没有硬编码，但门禁**确实需要一个项目根**——
+  实测 30 条测试里 7 条读实例数据。他要的是系统只测自身。
+
+- **删掉哪 7 条**：
+
+  | 测试 | 性质 | 处置 |
+  |---|---|---|
+  | `content-deliverable-contract` | 拿校验器跑真实项目的简报 | 删条目 |
+  | `fact-pack-contract` | 同上，跑真实事实包 | 删条目 |
+  | `task-contract` | 同上，跑真实任务单据 | 删条目 |
+  | `image-brief-contract` | 同上，跑真实图片简报 | 删条目 |
+  | `project-structure` | 混合：系统半 + 项目半 | 改成只测系统根 |
+  | `content-assets-contract` | 混合：约定在系统根，学习记录在项目根 | 改成只读系统根 |
+  | `content-deliverable-unit` | 混合：3 条 fixture + 2 条真实简报 | 去掉实例那 2 条 |
+
+- **关键取舍**：
+  1. **覆盖率一条没掉。** 28 个现有能力全部仍有测试。四条纯实例测试各自对应功能都另有单元测试
+     （`fact-pack-unit`、`image-brief-unit`、`content-assets-contract`），所以删的是集成层，不是唯一守门人。
+  2. **`project_slugs()` 换了来源。** 原先从项目根发现标识，现在从 `test/reports/<slug>/` 的目录名取
+     ——那是门禁自己生成的，不依赖任何项目在场。**全新克隆时 `test/reports/` 为空**，
+     这一条会明确报 `NOTE ... 扫描未执行`，不静默通过。
+  3. **`learning-loop.md` 顶上项目文件。** 学习记录的**格式定义**本来就住在系统根，
+     项目里的 `LEARNING.md` 只是照格式写的一条记录。改读前者，检查强度不变、依赖没了。
+  4. **四个校验器脚本保留。** 它们是项目侧要用的工具，删的只是「拿它们跑真实数据」的门禁条目。
+  5. **代价写进 BACKLOG。** 项目根必需目录、项目根混进系统层目录、实例数据合不合契约——
+     这三件事现在没有东西自动守。不静默丢。
+
+- **验证**：`python3 test/run_quality_gate.py` **26/26 PASS · 覆盖率 100% · 无项目根**，
+  报告落 `test/reports/_system/`；带 `--project hq-xianyu` 也 PASS（产出 6 项与基准一致）。
+  canary 全量复跑通过。
+
+- **已知未修**：项目侧的实例验收没有入口，见 `BACKLOG.md` 同日新条目。
+
+### 删掉 creative-handoff：视频线自建后它没有入口
+
+- **做了什么**：Conan 定删。删掉 `capabilities/creative-handoff/`（README · `creative-job.schema.json` ·
+  `production-receipt.schema.json` · `handoff.py`）、`00-meta/content-engine/spec-creative-production-handoff.md`、
+  `test/suites/test_creative_handoff.py`，以及它的 4 条 canary 破坏点。
+
+- **为什么**：视频线 2026-10-10 已自建，编排器同日改指 `skills/video-pipeline/`。
+  这个包**不再有任何入口指向它**，留着是一条死路径。
+  它同时是三处门禁 FAIL 的根因——登记表、测试清单、分根检查都还指着已被删除的目录。
+
+- **同步改掉 11 处引用**：`AGENTS.md`（接口一节 + 三条 `CreativeJob → ProductionReceipt` 规则）、
+  `README.md` 目录树、`PLAYBOOK.md` 两处、`skills/sourcing/SKILL.md` 三处、
+  `capabilities/sourcing/README.md` 两处、`capabilities/image-production/README.md`、
+  `skills/image-pipeline/SKILL.md`、`capabilities/image-production/PRD-reference-absorption.md`。
+
+- **顺带清掉的说法**：`assets/generated/` 与 `content/briefs/` 的「外部制作系统」措辞——
+  现在三条线都是自建，没有外部制作系统了。
+
+- **验证**：全库 `grep "creative-handoff\|Vidmix\|外部制作系统"` 只剩 `CHANGELOG.md` 与 `BACKLOG.md`
+  的历史记录；门禁 26/26 PASS。
+
+### 信息图生产线：接入外部 diagram-design
+
+- **做了什么**：新建 `capabilities/diagram-production/`。
+  `vendor/diagram-design/` 原样收录上游 skill（SKILL.md + 62 份 references + 211 份 assets + 5 个脚本）。
+  `README.md` 写清来源、用途、入口与边界。
+  `skills/image-pipeline/SKILL.md` 加「先分流：生成图还是示意图」，边界加一条否定规则。
+  `test/suites/test_image_pipeline.py` 加 1 个 needle。
+- **为什么**：图片线只会出 AI 生成的照片类图。流程图、架构图、时间线、图表这类结构图，
+  让模型去画必然画错。这条线补上这一类，且不花生成费用。
+- **来源**：`github.com/cathrynlavery/diagram-design`，版本 2.6.73，
+  提交 `246d6d71d752245403d2bf28d27f124192584d18`，MIT 许可。
+- **只依赖标准库**。已扫过：无网络请求、无 subprocess、无 eval。
+
+### 风格库建立：吸收四位作者
+
+- **做了什么**：新建 `capabilities/content-production/styles/library.md`，
+  收录汪曾祺、王小波、海明威、刘震云四条风格条目，每条按 `README.md` 的条目格式写。
+  `styles/README.md` 顶部加指向 `library.md` 的一行。
+- **为什么**：风格库长期为空，站 4 的风格候选只能靠系统临时想。
+  Conan 指定吸收这四位——共同点是表达精准、故事生动。
+- **边界**：吸的是特征，不是文本。每条只写句长、节奏、人称、用词、结构五项方法；
+  样本只留篇目定位，原文不摘录、不进入产物。
+
+### 文章线：写完主稿自动跑作者化检查
+
+- **做了什么**：`skills/article-pipeline/SKILL.md` 站 5 结尾加一句——主稿写完立即自动跑一次作者化检查；
+  站 6 第一道加「自动跑，不需要用户要求，也不问要不要检查」。
+- **为什么**：Conan 要求「写完之后就自动执行一次去 AI 味」。检查原来写在站 6，
+  但触发点靠 Agent 自觉，会被跳过。现在改成写稿的收尾动作。
+- **配套**：`test/suites/test_content_routing.py` 加 1 个 needle；
+  `test/canary.json` 加 1 条破坏点（`content-routing-contract`）。
+
+### 编排器视频路由修正：改指自建视频线
+
+- **做了什么**：`skills/content-orchestrator/SKILL.md` 三处改指 `skills/video-pipeline/SKILL.md`。
+
+  | 位置 | 改前 | 改后 |
+  |---|---|---|
+  | 路由表 `video` 行 | 视频流水线尚未建立 | `skills/video-pipeline/SKILL.md` 六站 |
+  | 路由表下方说明 | 生成交给外部的 Vidmix | 2026-10-10 起自建，先选风格再写脚本 |
+  | 对话流程第 9 条 | 视频生成交给外部制作系统的 `ProductionBrief` | 视频走 `skills/video-pipeline/SKILL.md` 的六站 |
+
+- **为什么**：视频线 2026-10-10 已自建，Vidmix 同一天放弃。风格库那次改到了
+  `capabilities/content-production/styles/README.md`，**漏了编排器**。
+  后果不是文档不一致——编排器是入口，它说「流水线尚未建立」，
+  Agent 就会停在脚本或建议上，用户要视频拿不到视频。
+- **配套**：`test/suites/test_content_routing.py` 加 2 条断言
+  （指向自建流水线 · 不许再声称尚未建立）；`test/canary.json` 加 2 条破坏点。
+- **验证**：`content-routing-contract` PASS · canary 新增 2 条全部变红 · 还原后工作区干净。
+- **没做的**：`PLAYBOOK.md`、`skills/sourcing/SKILL.md`、`capabilities/sourcing/README.md`、
+  `capabilities/image-production/README.md`、`capabilities/creative-handoff/` 仍写着
+  「视频外发 Vidmix」。那些不是入口，不卡当前任务，写进 `BACKLOG.md`。
+
+### 视频风格库建立：接入四位作者的 76 条风格
+
+- **做了什么**：新建 `capabilities/video-production/styles/`。
+  `video-styles.json` 收录 67 种视觉风格与 9 种解说语法，来源四个外部仓库。
+  `style-map.json` 是 11 类选题到风格的映射。`gallery.html` 是并排看的选择页，
+  由 `build_gallery.py` 从两个 JSON 生成。
+- **为什么**：视频线此前**没有风格层**——图片线有 `image-production/styles/`，
+  文章线有 `content-production/styles/`，视频线的风格一直外发给 Vidmix。
+  2026-10-10 Conan 定暂时放弃 Vidmix，风格层收回自建。
+- **四位作者**：`geeklee/srt-whiteboard-animation`（1 条，白板渲染器）、
+  `cclank/lanshu-create-ai-presenter-video`（10 条，含数字人）、
+  `alchaincyf/huashu-art-motion`（44 条，代码绘制）、
+  `threerocks/hand-drawn-styles`（21 条，提示词生成器）。四个都是 MIT。
+- **同类项**：14 组。重叠最多的三处是白板手写（3 条）、波普漫画（6 条）、
+  艺术史标本（22 条）。**分组只标重叠，不合并条目**——三套引擎画法不同，合并会丢信息。
+- **一条硬判据**：映射表的首选**只从 `execution=local-render` 里挑**。
+  首选指向 `prompt-only` 的话，「选题定了自动走到生成」会在第一步就断。
+  这条写进了契约测试。
+
+| 文件 | 动作 |
+|---|---|
+| `capabilities/video-production/styles/video-styles.json` | 新增，76 条风格与来源 |
+| `capabilities/video-production/styles/style-map.json` | 新增，11 类选题映射 |
+| `capabilities/video-production/styles/gallery.html` | 新增，生成的选择页 |
+| `capabilities/video-production/styles/build_gallery.py` | 新增，HTML 生成器 |
+| `capabilities/video-production/styles/README.md` | 新增，用法与未决 |
+| `skills/video-pipeline/SKILL.md` | 站 2 改为「选风格，写分镜脚本」，加选风格四步 |
+| `capabilities/content-production/styles/README.md` | 删过时的「视频线外发」声明 |
+| `test/suites/test_video_pipeline.py` | 加 2 个 needle + `check_style_registry` |
+| `test/canary.json` | 加 3 条破坏点 |
+| `test/feature_registry.json` | video-production 描述加「选风格」 |
+
+- **验证**：`video-contract` PASS · canary 新增 3 条全部变红 ·
+  `gallery.html` 无头渲染正常（76 条）。
+- **没做的**：**没装任何依赖，没 clone 任何仓库，没花钱。**
+  54 条本地渲染全标 `needs-install`，21 条提示词风格标 `prompt-only`，
+  1 条数字人标 `needs-authorization`。
+- **未决**：装哪些依赖；threerocks 的 21 条要不要接外部生图模型；
+  数字人口播要不要开。三条都等 Conan 定。
+
+### 风格库建立：吸收四位作者
+
+- **做了什么**：新建 `capabilities/content-production/styles/library.md`，
+  收录汪曾祺、王小波、海明威、刘震云四条风格条目，每条按 `README.md` 的条目格式写。
+  `styles/README.md` 顶部加指向 `library.md` 的一行。
+- **为什么**：风格库长期为空，站 4 的风格候选只能靠系统临时想。
+  Conan 指定吸收这四位——共同点是表达精准、故事生动。
+- **边界**：吸的是特征，不是文本。每条只写句长、节奏、人称、用词、结构五项方法；
+  样本只留篇目定位，原文不摘录、不进入产物。
+
+### 文章线：写完主稿自动跑作者化检查
+
+- **做了什么**：`skills/article-pipeline/SKILL.md` 站 5 结尾加一句——主稿写完立即自动跑一次作者化检查；
+  站 6 第一道加「自动跑，不需要用户要求，也不问要不要检查」。
+- **为什么**：Conan 要求「写完之后就自动执行一次去 AI 味」。检查原来写在站 6，
+  但触发点靠 Agent 自觉，会被跳过。现在改成写稿的收尾动作。
+- **配套**：`test/suites/test_content_routing.py` 加 1 个 needle；
+  `test/canary.json` 加 1 条破坏点（`content-routing-contract`）。
+
+### 边界定义：hq-geo 与 hq-chuhai 分家，判据只有一条
+
+- **做了什么**：把两套系统的边界写进规则真源，让两边的目录各归其位。
+
+  | 文件 | 作用 |
+  |---|---|
+  | `00-meta/content-engine/08-system-boundary.md` | **边界唯一真源**：判据、身份、归属表、协同接口 |
+  | `AGENTS.md` | 新增「系统边界（与 hq-chuhai）」一节，指回 08 |
+
+  外部改动（`hq-chuhai` 仓库）：
+
+  | 文件 | 作用 |
+  |---|---|
+  | `README.md` | 新增硬性规则 6「与 hq-geo 的边界」 |
+  | `.workbuddy-ai/memory/MEMORY.md` | 结构节加边界段 |
+  | `promotion/README.md` | 新增「与 hq-geo 的分工」 |
+  | `backlink/README.md` · `keyword-research/README.md` | 各加一行边界声明 |
+  | `projects/quotestitch/CLAUDE.md` | 新增「双身份」节与范围声明 |
+  | `projects/quotestitch/.hq-geo.json` | 加 `output_baseline_note` |
+  | `projects/quotestitch/tasks/quotestitch-content-onboarding.md` | 第一个任务单据 |
+
+- **为什么**：Conan 发现两套系统在内容和 SEO 上重叠。查证后根因是**切分轴错了**——
+  按「活动」分（内容 vs 建站），而内容和 SEO 是同一价值链的相邻环节。
+  证据：`quotestitch` 同时是两套系统的实例根；选词方法两份；分发渠道两边都记；门禁两套。
+
+- **关键取舍**：
+
+  1. **换轴，不加实体。** 判据一条：产出最终挂在自己拥有的域名上吗。是 → chuhai，否 → geo。
+  2. **不改宪法八条。** 边界写成 AGENTS.md 的独立一节，不动八条设计否决规则。
+     宪法改动要三轮真实生产证据，这次不满足。
+  3. **SEO 重新定义。** SEO 不是活动，是自有资产的属性。页面在哪，SEO 在哪。
+     这样它和内容营销不再重叠。
+  4. **只写声明，不搬文件。** 渠道操作手册与选词方法的真源归属写清，但不动现有文件。
+     搬文件风险高，收益低。
+  5. **quotestitch 保持双身份。** 资产归 chuhai，方法借 geo。社媒文案暂声明范围外，
+     等事实包补齐再迁。
+
+- **影响**：两套系统从「活动分工」变成「资产分工」。`00-meta/content-engine/` 多一份 08 文档，
+  `AGENTS.md` 多一节，外部仓库 7 个文件加边界声明。
+
+- **验证**：`python3 test/run_quality_gate.py` 在 `hq-xianyu` 与 `quotestitch` 上跑，
+  均 **27/27 · VERDICT: PASS**。系统层标识检查未触发——`00-meta` 不在 `SYSTEM_LAYER`。
+
+### 边界复核后的修补：方法/资产分界 + 全零基线门禁
+
+- **做了什么**：按复核结论补上边界的执行缺口。
+
+  | 文件 | 作用 |
+  |---|---|
+  | `00-meta/content-engine/08-system-boundary.md` | 判据补「看服务的资产，不看暂时落在哪」；外链标为唯一例外；新增「官网内容怎么分」与「渠道操作手册的现状」两节 |
+  | `PLAYBOOK.md` | 项目表补 `quotestitch` 一行，「四个」改「五个」；第六节补该项目状态 |
+  | `test/run_quality_gate.py` | `compare_baseline` 新增：产出基准六项全零且无 `output_baseline_note` → 判 FAIL |
+  | `test/suites/test_quality_gate.py` | 新增 4 条用例：全零无 note 拦截 / 有 note 放行 / 空白 note 不算 / 非零基线不要求 |
+  | `test/canary.json` | 新增 2 条破坏点，证明上面两条断言不是空转 |
+
+  外部改动（`hq-chuhai` 仓库）：
+
+  | 文件 | 作用 |
+  |---|---|
+  | `projects/quotestitch/CLAUDE.md` | 范围声明改成表，补齐 `data/` · `assets/generated/` · `research/raw/` · `research/normalized/`；`research/` 按层级分 |
+  | `projects/quotestitch/.hq-geo.json` | `tasks` 由 0 改 1，note 改写 |
+  | `hq-xianyu/.hq-geo.json` · `ai-employee/.hq-geo.json` | 基线由全零改成实测真值 |
+
+- **为什么**：复核发现判据站得住，但执行有缺口。最重的一条是本仓库仍有 8 处把官网当自己的活——
+  判据说官网归 chuhai，技能里还说是自己，Agent 两边都能自圆其说。
+
+- **关键取舍**：
+
+  1. **官网内容按「方法 / 资产」拆，不整块归一边。** 渲染器、Schema、llms.txt 是方法，留在本仓库；
+     落页、部署、页面 SEO 归 chuhai。**因此 `AGENTS.md` 与 `skills/` 里的「自有博客」一个字都不用改**——
+     它们是方法层的声明。改 1 份文件，不是 8 处。
+  2. **外链写成判据的唯一例外。** 它的载体在别人的域名，但归 chuhai。理由：外链的价值在「指向谁」，
+     只有 SEO 特别在意这一点。同时把判据读法写明——看服务的资产，不看暂时落在哪。
+  3. **全零基线要写原因，判 FAIL。** 把 08 第八节的「空实例层不许 PASS」从约定变成约束。
+     只在**全零**时要求，非零基线不用解释。
+  4. **顺手修了两个过期基准。** `hq-xianyu` 与 `ai-employee` 的基准全零，实际各有 4 项产出——
+     基准从建起就没更新过。这是漏记，不是空项目。改成实测真值。
+
+- **影响**：`08` 从「只有判据」变成「判据 + 两处易错点 + 一处现状」。门禁多一条 FAIL 条件。
+
+- **验证**：新增 4 条单测全过；2 条 canary 均变红。`quotestitch` 与 `hq-xianyu` **27/27 · PASS**。
+
+- **已知未修**：`video-album` 的 `creative-handoff-contract`、`ai-employee` 的 `image-brief-contract`、
+  `ksw-geo` 的 `project-structure` 三条失败与本轮无关，来自并行改动与存量缺口。
+
+### 作者化规范补边界：11 项「不作为改写理由」+ 三个测量脚本
+
+- **做了什么**：给作者化检查补上「哪些不算 AI 味」的边界，并引入可复用的测量方法。
+
+  | 文件 | 作用 |
+  |---|---|
+  | `00-meta/content-engine/07-authorial-quality-system.md` | 新增「Gate D 的边界：不作为改写理由」小节，列 11 项实测站不住的特征 |
+  | `capabilities/content-production/scripts/compare_human_ai.py` | 句级倍率测量（人类语料 vs AI 语料） |
+  | `capabilities/content-production/scripts/check_structure.py` | 段级结构测量（相邻句同构、段首零主语） |
+  | `capabilities/content-production/scripts/check_translationese.py` | 翻译腔频率测量 |
+  | `capabilities/content-production/scripts/check_authorial.py` | 节奏输出加「句长均匀度实测无差异」；docstring 指向边界清单 |
+  | `skills/article-pipeline/SKILL.md` | 站 6 加「先读边界清单」「用测量工具验证规则」两段；「开始前」必读清单加 07 规范 |
+  | `capabilities/content-production/tests/test_measurement.py` | 新增，11 条用例 |
+  | `test/canary.json` | 新增 2 条破坏点 |
+
+- **为什么**：Conan 拿来一个外部 skill（`lieflat-less-ai-tone`），问能不能吸纳。
+  对比后是三件事：**本地的设计哲学更完整**（有 Gate A/B/E/F 四道门，外部只有改写规则），
+  **但本地缺一张边界表**，而且**本地在报告一个已被实测证伪的指标**。
+
+- **关键取舍**：
+
+  1. **只吸纳边界与方法，不吸纳它的 11 条改写规则。** 规则要先用本地语料验证倍率。
+     没有语料就是照抄别人的数字。这是第二层，暂不做。
+  2. **不吸纳它的改写动作。** 它是改写 skill；本地只诊断、人逐条决定。两者冲突。
+  3. **删掉本地两条被证伪的项。** 07 文档 Gate D 原列「固定三段式和匀速排比」「句长和节奏过度均匀」。
+     外部实测：句内排比人类更多（0.61×）、句长 CV 无差异（0.87×）。两条都站不住，删掉。
+  4. **`HEDGE_WORDS` 降级为只诊断。** 它报「可能/通常」这类限定词，但 07 文档自己说不许删。
+     报出来不许改，会误删。现在明确标注「不算 AI 痕迹」。
+  5. **抄脚本但不抄语料。** 外部语料不入库、数字无法核验。只引入方法（切分、分母、门槛）。
+  6. **07 规范进「开始前」必读清单。** 原先站 6 只用简写 `07` 引用，Agent 可能不去读。
+     现在必读清单里写完整路径，契约测试守住这一行——否则「沉淀了但不会自动应用」。
+
+- **影响**：Gate E 从「blocked，没有方法」变成「blocked，只缺语料」。方法已就位。
+  新增 3 个脚本 + 1 个测试文件；canary 破坏点 215 → 217 条。
+
+- **验证**：单测 54 条 PASS · 契约测试 2 个 PASS · canary 作者化 2 条全变红 · 全量 217 条破坏点 0 失效 ·
+  hq-xianyu 门禁 VERDICT PASS（27/27，覆盖率 100%）。
+
+### 封面进文章线：一套排版规则，两个载体
+
+- **做了什么**：文章线第一次有封面。
+
+  | 文件 | 作用 |
+  |---|---|
+  | `capabilities/image-production/styles/image-styles.json` | 新增第 15 套风格 `handdrawn-cover`（手绘漫画封面），`carrier: base_image` |
+  | `capabilities/typography/templates/cover-type-spec.json` | 封面金样本（TypeSpec，`surface: image`，1080×1440） |
+  | `skills/article-pipeline/SKILL.md` | 站 4 定封面规格、站 6 标题定稿后渲染、站 7 登记封面产物 |
+  | `capabilities/typography/tests/test_typography.py` | 新增 `GoldenCoverSpecTests`，4 条用例 |
+  | `test/canary.json` | 新增 4 条破坏点 |
+
+- **为什么**：Conan 拿宝玉（@dotey）的推文封面问「能不能整合到文章的封面图里面去调用」。
+  查下来，**机制早就在，缺的是文章线没有调用它的那一站**——
+  `carrier=typography` 有实例（`black-gold-manifesto`）、`render_cover()` 已实现且有 7 条单测、
+  `cover.html` 也在被 `render.py` 读；但文章线八站里搜「封面」零命中。
+
+- **关键取舍**：
+
+  1. **只抄风格，不抄生成方式。** 宝玉那张是图像模型一次出图、文字烤进图里；
+     hq-geo 走 A 方案（底图不含字 + 真实文本渲染叠字）。
+     **中文烤进图，错字、字距、避头尾全不受控——刚建立的排版判据一条都量不了它。**
+  2. **配色不能照抄。** 用系统自己的对比度函数量了那张图，底色 `#FDF9EE` 上：
+     标题 `#AD6145` = 4.37:1（只过大字线），**副标题 `#D3A088` = 2.18:1（两条都不过）**。
+     新风格把副标题换成 `#7F5846`（5.89:1）、标题换成 `#993C1D`（6.61:1）；
+     绿色胶囊 `#98E3BD` 留在色板里当填充色，不当小字（它压米白只有 1.42:1）。
+  3. **不新开一站。** 封面接在站 4（定规格）、站 6（渲染）、站 7（登记）上，八站不变。
+  4. **封面文案的字段沿用图片线**（`headline` / `source_title` / `kicker` / `meta` / `layout`），
+     不另立一套。吸引力复核也用图片线那四项封面判据。
+
+- **影响**：文章线站 4 / 6 / 7 的产出物各多一项（封面规格、封面成品、封面登记）。
+  风格库从 14 套变 15 套，`test_image_pipeline.py` 与 `test_appeal.py` 两处硬编码计数同步改。
+  旧任务不受影响。
+
+- **验证**：单测 47 条（新增 4）· 契约测试 5 个 PASS · canary 排版线 26 条全变红 ·
+  门禁 `VERDICT: PASS` 27/27、覆盖率 100%。
+
+- **还没做**：① 底图还没生成（要一次图像生成，成本要先问 Conan）；
+  ② 宝玉那种**左右分栏**的宽幅版式（文字占右半、插画占左半）目前只能靠 `canvas.margin.left` 顶出来，
+  契约里没有「文字只占画布一部分」这个概念——等重复到第三次再补。
+
+### 旁白分段进契约：白板视频那条线的第一块砖
+
+- **做了什么**：`CreativeJob` 的 `scenes[]` 从 4 个必填键变 5 个，新增 `narration[]`。
+
+  | 文件 | 作用 |
+  |---|---|
+  | `00-meta/content-engine/spec-creative-production-handoff.md` | 补设计说明：旁白必须先分段，每段声明要画什么 |
+  | `capabilities/creative-handoff/contracts/creative-job.schema.json` | `scenes[].narration[]`，每段三格 `text` / `fact_ref` / `draw_elements` |
+  | `capabilities/creative-handoff/scripts/handoff.py` | 新增 `_check_scenes()`，挂在 `validate_job()` 里 |
+  | `test/suites/test_creative_handoff.py` | 新增 5 条用例（含 1 条正例） |
+  | `test/canary.json` | 新增 4 条破坏点 |
+  | `hq-vidmix/packages/engine/src/creative-handoff/index.ts` | 类型同步 + `validateScenes()`，与 HQ 校验器对齐 |
+  | `hq-vidmix/packages/engine/src/__tests__/creative-handoff-test.ts` | 夹具加 `narration`，新增 3 条拒收断言 |
+
+- **为什么**：白板视频那条线（Excalidraw 程序化渲染）调研出的核心洞见是
+  **先旁白后画面、每段必须有能画的元素**。按 `spec-creative-production-handoff.md`，
+  内容纪律的真源在 hq-geo，所以这条规则要写进契约，而不是留在那个 skill 的 README 里。
+  这条是 BACKLOG「白板视频」条目下两个卡点中的第一个。
+
+- **关键取舍**：
+
+  1. **改 `CreativeJob`，不改 `ProductionBrief`。** 要交给 Vidmix 渲染的是前者。
+     结构必须落在**被消费的那一份**上，否则规则写了没人执行。
+  2. **加在 `scenes[].narration`，不新开顶层 `narration` 段。** Vidmix 已经把
+     `scenes` 原样塞进 `production-plan.json`，桌面端也读它。新开一段就是两处真源。
+  3. **`draw_elements` 非空。画不出来的句子并进相邻段——不是删掉。**
+     删掉会丢旁白，并段只丢切分。
+  4. **`fact_ref` 的值可以是 `null`，键不能少。** 少了就分不清「这行本来没事实」和「忘了挂」。
+     缺省视为未声明，校验器直接拒。
+  5. **`spoken` 保留，但必须等于各段 `text` 的拼接。** 两份一旦漂移，
+     配音和字幕就和脚本对不上，而且漂移时两边都"看着是对的"。
+  6. **`narration` 设为必填。** 代价是旧 job 实例不合规，但 `validateCreativeJob`
+     只在导入时调用——Vidmix 盘上那 3 个实例不会被重新校验，重跑会走新版本号。
+
+- **影响**：新建 `CreativeJob` 必须分段写旁白，`spoken` 变成派生字段。
+  hq-geo 与 Vidmix 两侧同一套规则、同一批错误文案。功能登记不变——
+  `creative-production-handoff` 已在册，`test_ids` 里已有 `creative-handoff-contract`，不新增条目。
+
+- **验证**：创意交接单测 11 条 OK · 契约测试 PASS · canary 创意交接 **4/4 变红** ·
+  排版线 26/26、吸引力 36/36 复跑仍全红 · 门禁 `VERDICT: PASS` 27/27、覆盖率 100% ·
+  canary 之后 `git status` 无残留。
+  Vidmix 侧用 Node 22 自带的类型剥离，在**临时副本**上真跑通了
+  `creative-handoff-test.ts`（仓库文件未改、未装依赖）；并做了反向验证——
+  把 `validateScenes()` 调用注掉后测试立刻失败，断言不是空转。
+  **没跑到的**：`tsc --noEmit` 类型检查。`hq-vidmix/node_modules` 没装，装它要联网和原生编译，
+  没做。改的是一个类型字面量和一个新函数，类型风险低，但这一项是空的。
+
+- **计数更正**：本条自己新增 **4 条**，canary 现在共 **218 条**。上面「作者化规范」那条写的
+  「215 → 217」与磁盘对不上——按 `git show HEAD:test/canary.json` 算，
+  提交版是 **150 条**，现在 **218 条**，中间还夹着排版线、吸引力、封面几批未提交的改动。
+  那批数字是各次会话自己数的，没有共同的基准，**不能相加**。要准数就比 HEAD。
+
+### 视频线进系统：帧不重画，时长由旁白算
+
+- **做了什么**：新增能力包 `capabilities/video-production/` 与 skill `skills/video-pipeline/`。
+
+  | 文件 | 作用 |
+  |---|---|
+  | `capabilities/video-production/README.md` | 为什么复用排版引擎、三站分工、参数表、还没做 |
+  | `capabilities/video-production/templates/video-scene-type-spec.json` | 竖屏金样本 1080×1920，四层级 |
+  | `capabilities/video-production/scripts/build_frames.py` | 分镜 → PNG 帧，**渲染前先量合身** |
+  | `capabilities/video-production/scripts/compose.py` | 帧 + 旁白 → mp4，`say` 配音、音垫、进度条 |
+  | `capabilities/typography/scripts/check_fit.py` | 规格 × 文案的合身检查（排版线共用） |
+  | `capabilities/video-production/tests/test_video.py` | 19 条单测 |
+  | `test/suites/test_video_pipeline.py` | 契约测试：六站判据、竖屏金样本、合身前置、时长来源、缺口留痕 |
+  | `skills/video-pipeline/SKILL.md` | 六站流程与边界 |
+  | `test/test_manifest.json` | 新增 `video-unit` / `video-contract` |
+  | `test/canary.json` | 新增 10 条破坏点 |
+  | `test/feature_registry.json` | 新增 `video-production` |
+  | `test/baseline.json` | 健康基准 27 → 29，耗时 8.78 → 17.45 |
+
+- **为什么**：Conan 要求「跑通视频内容生产管线，直到能有一个观赏极佳的产出」。
+  这条线此前只有契约（旁白分段进 `CreativeJob`），没有任何一站能真出片。
+
+- **关键取舍**：
+
+  1. **不写第二个渲染器。** 视频帧和封面是同一类东西——**底图加文字层**。
+     帧由排版线的 `render_cover()` + `render_png()` 出，`cover.html` 原样复用。
+     复制一份等于让两套排版判据各自漂移。
+  2. **`check_fit.py` 补的是排版线的漏洞，不是新规矩。** `validate_type_spec.py`
+     只校验**规格本身**，不知道要写什么字。于是「规格合法 + 文案太长 = 标题折成孤字」
+     这条路没人拦。2026-10-10 实测：9 个字的标题在 108px 下要 1030px，
+     只有 864px 可用，折成「或者遇到敏感问」+「题，」，**而机器一条都不报**。
+  3. **旁白用 macOS 自带的 `say`，不接云端 TTS。** 本地、免费、已标定、不需要简报，
+     且满足「零第三方依赖」。接云端要联网、要计费、要新契约。
+     **（2026-10-10 晚被推翻，见下面「语音线」那条。`say` 念中文像机器人，
+     Conan 听完第一版成片的判词是「效果比较垃圾」。）**
+  4. **音垫用六个正弦合成，不下曲库。** Apple Loops 是空的，任何下载来的曲子都会
+     引出 `asset_rights` 问题——那正是图片线存在的理由。实测音垫均值 −36.5dB、
+     人声 −18.0dB，低 18dB。
+  5. **时长 = `max(最短时长, 旁白时长 + 尾留)`。** 写死的时长在语速一变就出现两种难看：
+     画面走完话没说完，或话说完画面还杵着。
+  6. **进度条是 `drawbox` 按时间推的，不是每帧画的。** 它只解决「看下去」，
+     不解决「好看」。放在下边缘，金样本下留白因此从 340 提到 460。
+
+- **两个真缺陷（都是这次撞到的，不是顺手改的）**：
+
+  1. **音画错位约 5 秒，ffmpeg 不报。** 叠化吃掉 `transition` 秒，
+     音轨却按整幕长度铺——十幕下来旁白比画面晚近 5 秒。实测画面 94.7s、音轨 99.6s，
+     成片取了长的那个。修法：前 n−1 幕各铺 `seconds − transition`，最后一幕铺满。
+     并新增 `verify_sync()`，两条流差超 0.15s 直接报错——**这个错只有自己量才看得见**。
+  2. **`--motion none` 整幕塌成 2 帧（0.07 秒）。** 单张 PNG 当输入时 ffmpeg 只读一帧；
+     `zoom` 那条路靠 `zoompan` 的 `d=` 撑满整幕，`none` 那条没有。修法：静止帧用
+     `-loop 1 -t` 让输入自己循环。这个缺陷是**写单测时才撞到**的——成片走的是 zoom，
+     所以真产出一直是好的，坏的是那个开关。
+
+- **影响**：任何视频内容现在有六站可走，产出为 mp4。**不自动发布**，
+  公开发布仍要 Conan 授权。缺口留在纸上：背景音乐（要真实音源）、
+  平台安全区（**没有核验过**）、逐字入场、口播与字幕对齐检查。
+
+- **验证**：视频线单测 **19 条 OK**（约 8.7s）· 契约测试 PASS ·
+  canary 视频线 **10/10 变红**，还原后 `git status` 无差异 ·
+  功能登记契约 PASS（28 个现有能力均有测试）·
+  门禁 `VERDICT: PASS` **29/29**、覆盖率 100% ·
+  真产出：`kingsway ai 数字员工` 的 `vendor-selection-questions.mp4`，
+  **94.6s、1080×1920、h264/aac、13.1MB、10 幕、音垫 有、进度条 有**，
+  画面 94.567s / 声音 94.586s（差 0.02s）。
+  **注意**：修错位之前那一版是 99.5s——多出来的 4.9s 就是十幕累积的旁白滞后。
+  时长从 99.5 掉到 94.6 不是内容被删，是画面不再被音轨拖着。
+  契约测试做了反向验证——把「缺料停机」和「合身前置」两处判据破坏掉，
+  测试立刻红，断言不是空转。
+
+- **计数**：本条新增 canary **10 条**，canary 现在共 **230 条**（上一条记的是 218，
+  同一天又加了 2 条质量门禁的破坏点）。测试 **27 → 29**。
+
+### 语音线进系统：`say` 换成 CosyVoice，复刻与合成两个通道都接
+
+- **做了什么**：新增能力包 `capabilities/speech/`，并把视频线的配音引擎做成可切换的。
+
+  | 文件 | 作用 |
+  |---|---|
+  | `capabilities/speech/README.md` | 两个通道、两个坑、计费口径、缺口 |
+  | `capabilities/speech/scripts/ws.py` | 最小 WebSocket 客户端（RFC 6455，只用标准库） |
+  | `capabilities/speech/scripts/dashscope.py` | 密钥、端点、计费口径、成本估算 |
+  | `capabilities/speech/scripts/voices.py` | **复刻通道**：查、建、删、等部署、传前校验 |
+  | `capabilities/speech/scripts/synthesize.py` | **合成通道**：CosyVoice 流式 → 音频文件 |
+  | `capabilities/speech/tests/test_speech.py` | 34 条单测（帧协议、音频合规、计费口径、引擎分发） |
+  | `test/suites/test_speech.py` | 契约测试：两通道齐全、WebSocket 真实现、坑留痕、成本有价有源 |
+  | `capabilities/video-production/scripts/compose.py` | `audio.engine` 两个引擎 + `--dry-run` |
+  | `skills/video-pipeline/SKILL.md` | 站 4 补引擎选择与参数对照 |
+  | `test/test_manifest.json` | 新增 `speech-unit` / `speech-contract` |
+  | `test/canary.json` | 新增 10 条破坏点 |
+  | `test/feature_registry.json` | 新增 `speech-synthesis` |
+  | `test/baseline.json` | 健康基准 29 → 31 |
+
+- **为什么**：Conan 听完第一版成片说「效果比较垃圾」。根因是配音用的
+  `say -v Tingting`——2007 年的拼接式合成。他随后指定接百炼 CosyVoice 的
+  复刻与合成两个通道。
+
+- **关键取舍**：
+
+  1. **自己写 WebSocket 客户端，不引 `dashscope` SDK。**
+     CosyVoice 的合成接口**只有 WebSocket，没有 HTTP**（试过几个候选端点，
+     都返回 `url error, please check url`）。宪法第 187 行「新系统只使用标准库」，
+     而标准库没有 WebSocket 客户端。所以按 RFC 6455 写了一个够用的：
+     文本帧、二进制帧、分片、ping/pong、close、掩码。
+     **不做** permessage-deflate、重连、代理——多了就是自己造一个库。
+  2. **音频是二进制帧，不是 base64。** 服务端每发一个 `sentence-synthesis`
+     事件，紧接着在 binary 通道推一帧音频。拼错顺序不报错，只会听到乱码。
+  3. **复刻可以直接给本地文件。** 文档写 `url` 必须公网可达，
+     但实测 `data:audio/wav;base64,...` 也收——传静音时返回的是
+     `Audio.AudioSilentError`，说明它已经进到音频处理了。
+     **这条文档里没有。** 有它就不需要对象存储。
+  4. **等部署，不猜。** 新建的音色状态先是 `DEPLOYING`，约 10 秒后变 `OK`。
+     在 OK 之前合成返回 `[cosyvoice]Engine return error code: 418`——
+     **这个报错看不出是「还没好」**。`--wait` 替人轮询。
+  5. **`say` 不删，降级成离线档。** 两个引擎并存，按 `audio.engine` 选。
+     试排版、看节奏、断网时用 `say`；要发出去的成片用 CosyVoice。
+     删掉 `say` 会让「不联网就完全不能出片」。
+  6. **传之前先量音频。** 复刻失败时服务端报错很含糊（`AudioSilentError`），
+     所以本地先把格式、时长、采样率、大小量出来，不合格就停，并给出转码命令。
+
+- **一个实测出来的计费口径**：**一个汉字算两个计费字符，其他都算一个，标点也算一个。**
+
+  | 输入 | 长度 | 计费 | 比值 |
+  |---|---|---:|---:|
+  | 纯汉字 | 10 | 20 | 2.00 |
+  | 纯字母 | 10 | 10 | 1.00 |
+  | 汉字加标点 | 10 | 15 | 1.50 |
+  | 英文句子 | 26 | 26 | 1.00 |
+
+  第一版 dry-run 按 `len(text)` 估，446 字的视频估成 ¥0.043，
+  **实际账单 ¥0.079——少算将近一半**。改成按口径算之后估 827 字符，
+  与实际账单**完全一致**。文档里没有这条，是七组对照量出来的。
+
+- **影响**：视频线现在能出「能发出去」的配音，不再只有机器人声。
+  复刻通道让「用某一个人的声音念」变成一条命令。
+  **不自动发布**，公开发布仍要 Conan 授权。
+  **月度上限仍要去百炼控制台设**——估算不替代上限（用户红线：按量计费 ≤ 10 美元/月）。
+
+- **验证**：语音线单测 **34 条 OK** · 契约测试 PASS ·
+  canary 语音线 **7/7 变红**、视频线 **13/13 变红**、还原后 `git status` 无差异 ·
+  门禁 `VERDICT: PASS` **31/31**、覆盖率 100% ·
+  真产出：`vendor-selection-questions.mp4` 用复刻音色重渲，
+  **102.4s、1080×1920、13.9MB、10 幕、音画差 0.006s**，计费 827 字符、约 ¥0.079。
+  复刻通道也真跑过一轮：造样音 → `--check` 通过 → `create_voice` 成功 →
+  轮询 `DEPLOYING`→`OK` → 用新音色合成 → `delete_voice` 回收配额。
+
+- **一次真事故（已修）**：跑视频线 canary 时进程被 SIGTERM 打断，
+  `compose.py` 停在破坏态（`hold = item["seconds"]`），
+  而 `git status` **看不出来**——整个 `capabilities/video-production/` 是未跟踪目录。
+  这是 2026-10-07 那次事故的同一类。用「遍历 canary 清单，若某条 `replace` 在文件里
+  而 `find` 不在 → 残留破坏」的手法查出来的。**canary 的 `finally` 挡不住 SIGTERM。**
+
+- **计数**：本条新增 canary **10 条**，canary 现在共 **241 条**。测试 **29 → 31**。
+
+## 2026-10-08
+
+### 图文吸引力进系统：把「素」变成能算的数
+
+- **做了什么**：新增能力包 `capabilities/image-appeal/`。
+
+  | 文件 | 作用 |
+  |---|---|
+  | `rules/appeal-rules.json` | 判据真源，14 条 AP-01…AP-14，每条带来源、证据等级、采集日期 |
+  | `methods/expert-playbook.md` | 五个触发器的专家方法与出处；反面清单；判据边界 |
+  | `scripts/measure_card.py` | 从 PNG 量色数、边缘密度、亮度剖面 |
+  | `scripts/check_appeal.py` | 共用校验器，阈值从真源读，代码里不另写数字 |
+  | `tests/test_appeal.py` | 40 条单测 |
+  | `README.md` | 为什么建、量出来的数字、逐项目怎么适配风格 |
+
+  契约与校验器：`image-brief.schema.json` 的 `appeal_review` 从 4 项扩到 **9 项**，
+  新增 `author`、`deck`、5 个交付字段（`sequence` / `base_image` / `base_image_rights` / `points` / `next_step`）；
+  `validate_image_brief.py` 增加**复核人独立性**检查与 `base_image` 路径检查。
+
+  风格库：14 个风格各加一个 `carrier` 字段——13 个 `base_image`，1 个 `typography`（`black-gold-manifesto`）。
+
+- **为什么**：**图片线五站，每一站管的都是事实纪律，没有一条管「有没有人愿意点」。**
+  `appeal_review` 是线上唯一碰吸引力的东西，但它只守「有没有登记」，不提供方法，
+  也拦不住一张四项全 `pass` 但依然很素的封面。
+  2026-10-08 实测：kingsway `ai-employee` 第一版图集，米白底加居中文字，四项全 `pass` 交付；
+  Conan 看过十张后的判断是「比较素，让人没啥阅读兴趣」。**复核填了 `pass`，人一看就否了。**
+
+- **根因是两条，不是一条**（两条都修了）：
+
+  1. **没有视觉吸引力的判据。** 系统里零判据 → 交付质量全靠执行者当时的审美。
+  2. **写简报的人自己判「有没有人愿意看」。** 同一个 agent 既写简报又填复核 → 复核等于自评。
+     这是**职责分离**问题，与判据无关；**只修判据仍会被自评放过。**
+
+- **关键取舍**：
+
+  1. **判据分两类，界限按「机器能不能算」划，不按「重不重要」划。**
+     AP-01…AP-09 机器判（长度、承载体、复杂度、序号、要点上限、机器化文案、末页落点）；
+     AP-10…AP-14 人判（信息缺口、意外点、情绪唤醒、信息价值、社交货币）。
+     **校验器只守「有没有登记、有没有留 unknown」**——它判不了好奇心，所以它要求人判留下痕迹。
+  2. **复核人必须独立于简报作者。** 写进契约描述，也写进校验器：`reviewed_by == author` 直接报错，
+     错误信息里带上这次事故。**这是本改动里唯一一条防自评的硬拦。**
+  3. **阈值从实测的区间缝隙里取，不从文献里取。** 文献给机制，不给数值。
+     AP-03 的阈值来自「10 张被否的卡」与「1 张真实截图」两组不重叠的区间。
+     样本是 10:1，所以 `calibrated: false`——**先建判据，等 3–5 套真实图集再校准**。
+  4. **量的是底图，不是合成后的成品卡。** 理由两条：AP-03 问的是「这张底图够不够实」，
+     量底图才问对了对象；成品卡上叠了文字，文字边缘会把数字抬上去，
+     **于是「底图是一块纯色」这个事实被自己的标题掩盖了。**
+  5. **`carrier` 解决「按项目自动适配风格」，而不是让系统自动挑风格。**
+     14 个风格各自声明承载体是什么；判据读 `carrier`，不硬编码、也不自动选风格（自动选违反宪法第 7 条）。
+     这同时解释了这次事故：`editorial-minimal` 的样本是照片，`carrier` 是 `base_image`，
+     **却交付了一张纯文字卡**——不是风格问题，是**没读自己声明的承载体**。
+  6. **AP-09（末页落点）只在 `ready` 时才要求。** 落点是内容决策，常常依赖还没做出来的产品
+     （宪法第 5 条缺料停机）。其余八条任何时候都要——它们判的是**做法对不对**，不是**料齐没齐**。
+  7. **规则只写真源一份。** `check_appeal.py` 从规则文件读阈值；`validate_image_brief.py` 调
+     `check_appeal` 而不重写；`check_copy()` 复用 `check_authorial` 的词表；`measure_card.py`
+     复用 `png_io` 的解码器。**一个方法只保留一个真源。**
+
+- **实测发现（三条，都是量出来的）**：
+
+  | 发现 | 数值 | 后果 |
+  |---|---|---|
+  | 「素」是可以算的 | 被否的 10 张：色数 59–63、边缘密度 0.028–0.047；真实截图：色数 322、边缘密度 0.067。**两组区间不重叠** | 「素」从主观词变成可判否的数 |
+  | 风格库的 `carrier` 早就说了要用底图 | `editorial-minimal` 的样本是照片，承载体应为 `base_image` | 交付纯文字卡不是风格问题，是没读自己声明的承载体 |
+  | 一条断言什么都没测 | 单测里条纹周期写成 1，而测量器以 2 像素为步长抽样 → 每个采样点都取到同一个值 | **`QUANT_BITS` 改坏了那条测试照样绿。** canary 抓到的，已改成周期 2 |
+
+- **影响**：
+  - 新增 `capabilities/image-appeal/`（README、rules、methods、scripts、tests）。
+  - 改 `capabilities/image-production/`：契约（`author` / `deck` / 5 个交付字段 / 9 项复核）、
+    校验器（复核人独立性 + `base_image`）、风格库（`carrier`）、README。
+  - 改 `skills/image-pipeline/SKILL.md`：站 2 加 `deck` 与 5 个逐图字段，站 3 加 `carrier` 表，
+    站 5 的吸引力一节重写成三段（机器判的数值 / 人判的登记 / 道理在哪），边界加三条否定式。
+  - 测试从 25 个增到 **27** 个（新增 `image-appeal-unit`、`image-appeal-contract`）；
+    `image-brief-unit` 从 83 条增到 **99** 条。
+  - canary 从 178 个破坏点增到 **202** 个（24 个新的，全部前缀「吸引力 」）。
+  - `feature_registry` 新增功能 `image-appeal`；`image-appeal-judgment` 的判据从 4 项改到 9 项。
+  - 这是继封面吸引力、排版之后的**第三条内部求好能力**。
+
+- **验证**：门禁 27/27 `PASS`，覆盖率 100%。24 个新破坏点逐个确认能红，还原后重跑干净。
+  canary 另外抓到两处**测试自身的问题**：一条永真的断言（上表第三行），
+  以及一处过期的破坏点（还在搜「四项全 `pass`」，判据已经改成九项）。
+  两份项目简报按新契约升级后：`hq-xianyu` 的 `blocked` 简报通过；
+  kingsway 的简报从 `ready_for_review` 降回 `draft`，**并如实报出 AP-02 失败——封面没有底图**。
+
+- **已知未闭合的相互作用（重要）**：AP-02 现在要求 13 个风格的封面必须有底图，
+  但 `capabilities/typography/templates/cover.html` 里 `--tp-bg-image` 写死 `none`，
+  `render.py` 填的 `{{BG_IMAGE}}` **在模板里根本不存在**（见 BACKLOG「cover.html 模板与 render.py 的填值脱节」）。
+  **底图那条路现在是断的。** 所以 kingsway 的图集要么先修模板，要么改用 `carrier: typography` 的风格
+  （`black-gold-manifesto`）。**这条不修，AP-02 会一直红。**
+
+### 渲染器不许静默丢参数：三处「报成功、其实没做」
+
+上面那条相互作用当天就修掉了。修的过程里发现根因不止一处。
+
+- **做了什么**：改 `capabilities/typography/scripts/render.py` 与 `templates/cover.html`。
+
+  | 改哪 | 改成什么 |
+  |---|---|
+  | `_fill()` | **加反向校验**：每个传进来的键都必须在模板里出现过，否则报错 |
+  | `cover.html` | 新增 `{{CANVAS_CSS}}` 占位符，位置在 `</style>` 前 |
+  | `build_canvas_css()` | 新增：把画布真值写成一段覆盖块（尺寸、留白、底色、字体栈、底图、压暗层） |
+  | `render_cover()` | 画布值与模板值**分成两份字典**，各配各的消费者 |
+  | `render_png()` | **渲染前先删目标文件** |
+
+- **为什么**：`_fill()` 原来只查「模板里的占位符填没填」，不查「传进来的值有没有落点」。
+  这两种漏法看着不一样，后果差得很远：
+
+  | 漏法 | 原来会怎样 |
+  |---|---|
+  | 模板有占位符、值没给 | **报错**（原来就拦得住） |
+  | 模板没占位符、值给了 | **静默丢掉**——`replace` 什么都不做，也不留残余，输出看着正常 |
+
+  第二条一直没人管，于是三处一起坏掉。
+
+- **三处实测（都是 2026-10-08 量的）**：
+
+  | 缺陷 | 实测现象 |
+  |---|---|
+  | 封面画布值全丢 | 规格写 1080×1440，出图恒为 **1024×1024**，右侧 56px、下方 416px 是白的；`--tp-bg-image` 永远是 `none`，**底图根本填不上** |
+  | 文章渲染整条空转 | `render.py --markdown 成稿.md` 的输出**与模板逐字节相同**——输入的成稿一个字都没进 HTML，模板自带的样例句全在，脚本报「HTML 已写入」 |
+  | 出图假成功 | 目标 PNG 已存在时，Chrome 没出图也判成功，旧图原地不动，**失败重试分支永远进不去**（旧图在，条件为假） |
+
+  第三条最坏：三次改规格重跑，输出始终是「10 张全成功，失败 0 张」，**图一张没变**。
+
+- **关键取舍**：
+
+  1. **根因修在 `_fill()`，不修在三处调用点。** 三个缺陷是同一个根因的三种表现；
+     只补调用点，下次再有人写模板还会踩。反向校验一加，三处同时从「静默」变成「报错」。
+  2. **加完校验，`render_cover()` 立刻报错**——因为画布值本来该由模板直接接住，而它们其实是被
+     `build_canvas_css()` 接住的。所以把值**分成两份字典**：画布值给 `build_canvas_css`，
+     模板值给 `_fill`。**合成一份就会让校验误判。**
+  3. **覆盖块写在 `</style>` 前，不把占位符塞进模板的 `:root`。** 模板要能单独双击打开看默认样子
+     （模板顶部注释写明这条）。占位符写进 `:root`，模板本身就不可读了。
+     所以默认值留在模板里，真值在最后覆盖一次——**后写的 `:root` 规则赢**。
+  4. **出图先删旧图，而不是比 mtime。** 删掉之后 `is_file()` 才真的表示「这次出的」，
+     失败重试分支的条件也同时被修好。比 mtime 要多处理时钟精度和跨秒边界，收益一样。
+
+- **实测验证（端到端）**：规格 1080×1440 + 一张带纹理的底图 → 出图 **1080×1440**，
+  底图铺满、无留白，标题与序号真实渲染。预置一张 4×4 的假旧图，重跑后出的是新图——
+  **旧图被清掉，不再掩盖失败。**
+
+- **影响**：
+  - 改 `capabilities/typography/scripts/render.py`（`_fill` / 新增 `build_canvas_css` / `render_cover` / `render_png`）。
+  - 改 `capabilities/typography/templates/cover.html`（新增 `{{CANVAS_CSS}}`）。
+  - `capabilities/typography/tests/test_typography.py` 新增 `RendererTests` 九条，34 → **43** 条用例。
+  - canary 202 → **207** 条，新增五条（反向校验、覆盖块丢底图、覆盖块丢留白、模板丢占位符、出图不清旧图），
+    全部确认能红。
+  - **AP-02 的底图那条路接通了**——封面「底图 + 文字层」的 A 方案现在端到端可跑。
+  - 测试数与覆盖率不变（`typography-unit` 这个 id 本来就存在），所以基准不用改。
+
+- **顺带发现一条没修的**：`article.html` 是手写金样本、一个占位符都没有，
+  所以 `render_article()` **现在明确报错**，而不是吐一份假产出。
+  要恢复这条路径，得给文章单独一份带占位符的模板——`article.html` 兼不了两个角色
+  （它得能单独打开、且要被提取器逐格量）。见 BACKLOG。**站 4 的排版是手写 HTML + 提取器比对，
+  不走这条路径**，所以不影响内容生产。
+
+- **验证**：门禁 27/27 `PASS`，覆盖率 100%。canary 22 条「排版线」破坏点全红，还原后复跑干净；
+  残留破坏排查 0 处，`git status` 行数跑前跑后一致。
+
+---
+
+## 2026-10-07
+
+### 排版进系统：把「好看」拆成可核验的数值
+
+- **做了什么**：新增能力包 `capabilities/typography/`。
+
+  | 文件 | 作用 |
+  |---|---|
+  | `rules/typography-rules.json` | 判据真源，14 条，每条带数值、来源、证据等级、采集日期 |
+  | `contracts/article-layout.schema.json` | 排版参数契约 |
+  | `scripts/check_layout.py` | 共用校验器，阈值从真源读，代码里不另写数字 |
+  | `scripts/extract_html_layout.py` | 从 HTML 量出参数，并与声明逐格比对 |
+  | `templates/article.html` + `article-layout.json` | 金样本，两份必须互相量得出来 |
+  | `tests/test_typography.py` | 34 条单测 |
+
+  接线：`skills/article-pipeline/SKILL.md` 站 4 新增「排版」一步——**参数先于渲染**，
+  每个风格候选配一份 `.layout.json`，过校验器；HTML 写完后过提取器比对。边界加一条否定式。
+
+- **为什么**：**系统里零排版部件。** 文章成稿是 `.md`，没有任何版式规范；站 4 的
+  「生成 3 个风格候选 HTML」只写在文档里，没有生成器、没有参数、没有判据——
+  **排版做没做、做成什么样，门禁看不出来。**
+  排版属于「求好」那条腿，而求好原本整个外包给 `dbs`（不可商用、结论不落盘、不进单据），
+  违反宪法第 6 条。这是继封面吸引力之后的**第二条内部求好能力**。
+
+- **关键取舍**：
+
+  1. **规则只写真源一份，两条线共用。** 文章（HTML）和图片（底图 + 文字层）载体不同，
+     专家规则是同一套。分两套实现就会各自演化，然后有一边是错的。
+  2. **判据分两类。** 机器能判的 13 条进校验器；「读得下去吗、层次清楚吗、风格配内容吗」
+     机器答不了，进契约的 `human_review` 由人填。**校验器只守「有没有登记、有没有留 unknown」**——
+     它判不了审美，所以它要求人判留下痕迹。
+  3. **目标范围外是 `warn`，硬边界外是 `fail`。** 行宽 38 汉字偏离目标但没到硬上限，不该拦住交付；
+     行宽 45 汉字必须拦住。全判 `fail` 会让判据变成一堵墙，全判 `warn` 等于没判。
+  4. **参数是判据的真源，HTML 是参数的可视化。** 顺序不能反——反过来就变成「看着还行就发」。
+  5. **声明与 CSS 必须互相量得出来。** 只判声明不判 CSS，两份可以各说各话；
+     只量 CSS 不看声明，就没法在渲染前拦住。两边都做。
+  6. **来源必须可核验。** 规则文件里每条都记来源和证据等级（W3C clreq / WCAG 2.1 是官方规则，
+     行距字距行宽是经验模式）。**没有来源的数值就是审美，审美进不了判据。**
+  7. **渲染引擎定 Chrome headless，但图片线的渲染脚本暂缓。** CSS 本身就是排版语言
+     （`line-break` / `text-spacing-trim` / `text-autospace` 直接对应 clreq 的避头尾、标点挤压、
+     中西文间距），一份规则能同时落进文章和图片，且 Chrome 已是 `ego-browser` 的前提，
+     不新增 Python 依赖。合成脚本等封面排版重复到第三次再做（宪法第 8 条）。
+
+- **实测发现（两条，都是量出来的）**：
+
+  | 发现 | 数值 | 后果 |
+  |---|---|---|
+  | 风格库点缀色不能当小字 | `#E2603A` 压米白只有 **3.32:1**，低于 WCAG AA 的 4.5:1 | 之前没有任何东西拦着，点缀色可以被填进字色，封面上的小字读不清 |
+  | 风格库引用的字体本机没有 | 思源黑体 / 思源宋体 / 站酷快乐体**全部缺失**，渲染时静默回退 | 风格的名义字体和实际字体不一致；本机可用的是 PingFang SC / Hiragino Sans GB / Heiti SC / Songti SC |
+
+- **影响**：
+  - 新增 `capabilities/typography/`（README、rules、contracts、scripts、templates、tests）。
+  - `skills/article-pipeline/SKILL.md` 站 4 新增排版步骤，边界加一条。
+  - `test/test_manifest.json` 新增 2 个测试（23 → 25）；`test/feature_registry.json` 新增
+    `typography-layout`（`partial`）；`test/canary.json` 新增 17 条破坏点（161 → 178）；
+    新增 `test/suites/test_typography.py`。
+
+- **验证**：`typography-unit` 34 条单测全过；`typography-contract` PASS；
+  17 条新 canary 破坏点全部真的变红（`--only 排版线`）。
+
+- **附带修复**：`capabilities/keyword-research/scripts/validate_research.py` 里有一处
+  `elif available and kw not in available:` 被留成了 `elif False:`——**那是 canary 没还原干净**。
+  先前一次全量 canary 被外部信号杀掉，`finally` 里的还原没跑完。它把关键词研究最核心的
+  「编词拦截」关掉了，而门禁只报一条失败。已还原。
+
+- **没做**：图片线的渲染与合成脚本（等第三次重复）；标题那一半的吸引力判据仍未做
+  （站 5 的「≥3 个标题候选」依然只是写作要求，没有判据、没有登记、没有门禁）。
+
+### 图片线补上第一格「求好」：封面文案有承载字段了，吸引力复核必须登记
+
+- **做了什么**：`ImageBrief` 新增两处契约。
+
+  | 位置 | 字段 | 干什么 |
+  |---|---|---|
+  | `deliverables[]` | `cover_text` | 承载**封面文案**（`headline` / `kicker` / `meta` / `layout` / `source_title`），字段名对齐风格库 `sample` |
+  | 简报顶层 | `appeal_review` | 承载**吸引力复核**（四项判断 + 复核人 + 日期） |
+
+  `validate_image_brief.py` 新增 `_check_cover_text()` 与 `_check_appeal_review()`：
+  有 `cover_text` 就必须有 `headline`、`source_title`、`style_id`，`layout` 必须在风格库
+  出现过的位置里，且 `cover_text` 的文字不得与 `claims_on_image` 重复；
+  `role` 含 `cover` / `封面` 的图进 `ready` 时必须有 `cover_text`；
+  有封面文案时进 `ready` 必须有 `appeal_review`，**四项全 `pass`**。
+
+- **为什么**：Conan 指出「标题和封面决定这篇文章有无价值的一半」，而封面当时**一个字都没有**。
+  查清是**三重封锁**，而且根子在契约：
+
+  | 位置 | 内容 |
+  |---|---|
+  | 契约 `claims_on_image` | 图上每句话必须挂 `fact_ref`——封面标题是文章的**题目**，不是事实主张，挂不上 |
+  | 简报 `avoid` | 「任何文字、汉字、字母、数字」 |
+  | 风格 `negative` | 「…水印、logo、文字」 |
+
+  **讽刺点是风格库自己就有答案**：`image-styles.json` 每套风格的 `sample` 里本来就定义了
+  `headline` / `kicker` / `meta` / `layout`（`japanese-fresh`：「把房间清空」/「SIMPLE LIFE」/
+  `bottom-left`）——**封面文字本来就是风格设计的一部分，是契约把路堵了。**
+
+  更根本的是：图片线五站**全在管事实纪律**（`subject_kind` / `synthetic` / `claims_on_image`），
+  **没有一站管吸引力**。实例：cable-tidy 的封面出了明亮通透、线缆整齐平行排布的静物照，
+  无文字、无冲突、无情绪，而标题押的是「乱」——**封面给的「整齐」和标题的「乱」正好反向**，
+  扫到的人看不到自己。
+
+- **关键取舍**：
+
+  1. **两类文字分开走，不是放宽事实纪律。** `claims_on_image` 是**事实主张**（挂 `fact_ref`），
+     `cover_text` 是**封面文案**（挂 `source_title`）。校验器专门拦「同一句话同时出现在两边」——
+     否则「挂没挂 `fact_ref`」这个信号就失真了。封面文案不挂事实，但它同样受 `prohibited_claims` 约束：
+     「效率提升 300%」写成标题一样是假主张，只是换了个地方说。
+  2. **吸引力不假装能机器判。** 「这张封面能不能让人停下来」机器答不了。所以 `appeal_review`
+     不发明一个假分数，只守两件机器能守的事：**该有复核的时候有没有，以及有没有留下未决的判断**。
+     复核本身由人做——和定位卡的语义复核同一个模式。
+  3. **四项全 `pass` 才许进 `ready`。** 允许 `fail` 也能进 ready 的话，这个门就是摆设。
+  4. **排版环节没建，也不该现在建。** 走 A 方案（底图模型生成 + 文字真实渲染），
+     但合成脚本要依赖 PIL，而系统根只用标准库——所以这轮只到契约与判据，
+     排版由外部工具做，产物落项目根 `assets/composed/<brief-id>/`，与 `assets/generated/` 分开。
+     等它重复到第三次再谈怎么进系统（宪法 8）。
+
+- **影响**：
+  - `capabilities/image-production/contracts/image-brief.schema.json`、`scripts/validate_image_brief.py`、
+    `README.md`（校验器规则表 + 新增「封面文字与吸引力」一节）、
+    `skills/image-pipeline/SKILL.md`（站 2 字段表 + 两类文字规则 + A 方案说明；站 5 新增吸引力复核；
+    边界加一条）。
+  - `capabilities/image-production/tests/test_image_brief.py` 新增 13 条单测（70 → 83）；
+    `test/suites/test_image_pipeline.py` 替换 1 条判据锚点、新增 5 条、schema 检查扩到 cover_text / appeal_review。
+  - `test/canary.json` 加 12 条破坏点（150 → 162），全部真的变红。
+  - `hq-xianyu` 的 `image-brief.json` 解开第三重锁（`acceptance_criteria` 从「图上每一句文字都挂 fact_ref」
+    改成两类文字规则），封面补 `cover_text` 草案。
+
+- **验证**：`hq-xianyu` 与 `cable-tidy` 门禁各跑一次，`PASS`（23/23，覆盖率 100%）。
+  canary 12 条新破坏点全变红（`--only 封面与吸引力`）。
+  **`Kingsway GEO 内容` 本次未跑**，它缺 `research/library/` 的既有问题与本次改动无关。
+
+- **没做**：`generate_image.py` 没有改（排版不是出图）；`role` 的用词没有做成枚举
+  （只加了一句 description 说明约定，枚举等三次重复）。
+
+---
+
 ## 2026-10-05
 
 ### 闲鱼成为系统认可的交易渠道，hq-xianyu 接入为第四个真实项目

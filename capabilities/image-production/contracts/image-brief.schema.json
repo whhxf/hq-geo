@@ -15,15 +15,117 @@
     "platform",
     "deliverables",
     "prohibited_claims",
-    "acceptance_criteria"
+    "acceptance_criteria",
+    "author"
   ],
   "properties": {
+    "author": {
+      "description": "写这份简报的是谁。**它存在的唯一理由是分离职责**：`appeal_review.reviewed_by` 必须和它不同。2026-10-08 的实例——Agent 自己写了简报、自己填了四项吸引力 `pass`、图交付，Conan 看完说「比较素」。吸引力复核里「有没有人愿意看」这一层，写的人不能自己判。",
+      "type": "string",
+      "minLength": 1
+    },
+    "deck": {
+      "description": "整组图的层。**交付物 ≥2 张时必填**——单张图没有「组」可言。四格分别喂四条判据：`style_id` → AP-05（全套单一风格），`cover_theme`/`inner_theme` → AP-04（封面隔离），`sequence_total` → AP-06（序号与总数）。判据真源在 capabilities/image-appeal/rules/appeal-rules.json。",
+      "type": "object",
+      "required": ["style_id", "sequence_total", "cover_theme", "inner_theme"],
+      "properties": {
+        "style_id": {
+          "description": "全套共用的风格 id。必须在风格库里，且每张交付物的 style_id 都要等于它。",
+          "type": "string",
+          "minLength": 1
+        },
+        "sequence_total": {
+          "description": "这套图一共几张。必须等于 deliverables 的张数——对不上，读者看到的进度就是假的。",
+          "type": "integer",
+          "minimum": 2
+        },
+        "cover_theme": {
+          "description": "封面用哪套底色。取值必须和 inner_theme 不同（AP-04 隔离效应）。",
+          "enum": ["dark", "light", "colored"]
+        },
+        "inner_theme": {
+          "description": "内页用哪套底色。",
+          "enum": ["dark", "light", "colored"]
+        }
+      }
+    },
     "status": {
       "enum": ["draft", "blocked", "ready_for_production", "in_production", "ready_for_review"]
     },
     "fact_refs": {"type": "array", "minItems": 1},
     "deliverables": {"type": "array", "minItems": 1},
     "acceptance_criteria": {"type": "array", "minItems": 1},
+    "appeal_review": {
+      "description": "吸引力复核。**封面和标题的吸引力没有机器判据，所以它必须由人判、并且登记**——不登记就等于没做。简报进入 ready_for_production / ready_for_review，且图上有 cover_text 时必填。这份记录证明的是「有人看过封面能不能让人停下来」，不是「封面合规」。\n\n**九项分两层。** 前四项是 2026-10-07 定的同向与可读；后五项是 2026-10-08 补的心理触发器，每条都有可核验来源（见 capabilities/image-appeal/rules/appeal-rules.json 的 AP-10 至 AP-14）：`information_gap` 对应好奇心（Loewenstein 1994），`unexpectedness` 对应猎奇（Heath SUCCESs 的 Unexpected），`emotional_arousal` 对应情绪价值（Berger & Milkman 2012），`practical_value` 与 `social_currency` 对应信息价值与分享动机（Berger STEPPS）。\n\n**写简报的人不能自己判。** `reviewed_by` 必须与顶层 `author` 不同。理由是一个真实事故：2026-10-08，写简报的 Agent 自己把四项全填了 pass，十张图交付，Conan 看完说「比较素，让人没啥阅读兴趣」。机器判不了「有没有人愿意看」，但机器**能**要求判的人不是写的人。",
+      "type": "object",
+      "required": ["reviewed_by", "reviewed_at", "evidence", "verdicts"],
+      "properties": {
+        "reviewed_by": {
+          "description": "复核人。**必须与顶层 author 不同**——同一个人写又同一个人判，等于没判。",
+          "type": "string",
+          "minLength": 1
+        },
+        "reviewed_at": {"type": "string", "minLength": 1},
+        "evidence": {
+          "description": "复核人**实际看过什么**。一句话。写不出看过什么，这份复核就是照着模板填的。例：「把封面缩到 240px 宽并排刷了信息流前 20 条」。",
+          "type": "string",
+          "minLength": 1
+        },
+        "verdicts": {
+          "type": "object",
+          "required": [
+            "same_direction_as_title",
+            "has_readable_hook",
+            "has_conflict_or_tension",
+            "scannable_in_feed",
+            "information_gap",
+            "unexpectedness",
+            "emotional_arousal",
+            "practical_value",
+            "social_currency"
+          ],
+          "properties": {
+            "same_direction_as_title": {
+              "description": "封面画面与文案押的，是不是和标题同一件事。2026-10-07 实例：标题说「乱」，封面给了一张线缆整齐平行排布的静物照，正好反向。",
+              "enum": ["pass", "fail", "unknown"]
+            },
+            "has_readable_hook": {
+              "description": "有没有一句读得懂的钩子文案，而不是把关键词照抄一遍。",
+              "enum": ["pass", "fail", "unknown"]
+            },
+            "has_conflict_or_tension": {
+              "description": "**画面层面。** 画面里有没有让人停下来的冲突、悬念或痛点。",
+              "enum": ["pass", "fail", "unknown"]
+            },
+            "scannable_in_feed": {
+              "description": "缩到信息流缩略图的尺寸，还认不认得出它在说什么。注意它只说明「看得清」，不说明「有人愿意停下来点」——2026-10-08 就是把这一格的 pass 读成了有吸引力。",
+              "enum": ["pass", "fail", "unknown"]
+            },
+            "information_gap": {
+              "description": "**好奇心。** 封面有没有点出一个明确的缺口，但不填——读者知道自己缺什么，才会想补上。封面把答案说完，缺口闭合，没人点。（Loewenstein 1994，见 AP-10）",
+              "enum": ["pass", "fail", "unknown"]
+            },
+            "unexpectedness": {
+              "description": "**猎奇。文案层面。** 这句话有没有打破读者已有的预期。意料之中的话不会让人停，因为它没和任何已有认知冲突。注意这不是「把话说夸张」。（Heath SUCCESs，见 AP-11）",
+              "enum": ["pass", "fail", "unknown"]
+            },
+            "emotional_arousal": {
+              "description": "**情绪价值。** 押的是高唤醒情绪（敬畏、愤怒、焦虑）还是低唤醒（满足、平静）。传播力由唤醒度驱动，不由正负驱动——平静的美好读着舒服，但没人转。（Berger & Milkman 2012，见 AP-12）",
+              "enum": ["pass", "fail", "unknown"]
+            },
+            "practical_value": {
+              "description": "**信息价值。** 整组图里有没有一条读者能立刻用上的具体做法。判的是「有没有这条」，不是「这条好不好」。（Berger STEPPS，见 AP-13）",
+              "enum": ["pass", "fail", "unknown"]
+            },
+            "social_currency": {
+              "description": "**分享动机。** 读者转这组图，他的同事会怎么看他。答不上来就是没有社交货币——只对公司有用的内容，读者不会转。（Berger STEPPS，见 AP-14）",
+              "enum": ["pass", "fail", "unknown"]
+            }
+          }
+        },
+        "notes": {"type": "string"}
+      }
+    },
     "deliverables_items": {
       "type": "object",
       "required": [
@@ -37,6 +139,9 @@
         "status"
       ],
       "properties": {
+        "role": {
+          "description": "这张图在内容里干什么用。**用词有约定**：封面那张图的 role 必须含 `cover` 或 `封面`——校验器靠这个词认出封面，据此要求它带封面文案和吸引力复核。写别的词不会报错，但封面判据也不会触发。"
+        },
         "subject_kind": {
           "description": "这张图画的是什么。决定它能不能由模型生成：声称真实存在的东西不能生成。",
           "enum": ["concept", "product_ui", "customer_case", "real_conversation", "real_person"]
@@ -55,11 +160,40 @@
           }
         },
         "claims_on_image": {
-          "description": "图上出现的每一句主张，逐条挂事实。图上写的字和正文一样要能被追问。",
+          "description": "图上出现的每一句**事实主张**，逐条挂事实。图上写的字和正文一样要能被追问。",
           "type": "array",
           "items": {
             "type": "object",
             "required": ["text", "fact_ref"]
+          }
+        },
+        "cover_text": {
+          "description": "图上要排的**封面文案**。**和 claims_on_image 是两类东西，别混**：claims_on_image 是事实主张，必须挂 fact_ref；cover_text 是这篇文章或这个商品的题目与钩子，它不承诺效果，所以挂的是 `source_title`（取自哪条标题），不是 fact_ref。字段名对齐风格库 `sample` 的 headline / kicker / meta / layout。没有这一格，封面就只能是一张无字的图——读者在信息流里扫到它，看不到自己。",
+          "type": "object",
+          "required": ["headline", "source_title"],
+          "properties": {
+            "headline": {
+              "description": "主文案，封面钩子。必须有。",
+              "type": "string",
+              "minLength": 1
+            },
+            "source_title": {
+              "description": "这条文案取自哪条标题：文章标题或商品页标题。它是「封面与标题同向」的锚点——机器判不了同向，但能要求你写出取自哪里；写不出取自哪里，就说明它是新编的一句承诺。",
+              "type": "string",
+              "minLength": 1
+            },
+            "kicker": {
+              "description": "小字标签，压在主文案上方或下方。可省。",
+              "type": "string"
+            },
+            "meta": {
+              "description": "一行出处、编号或补充信息。可省。",
+              "type": "string"
+            },
+            "layout": {
+              "description": "文案落在画面哪个位置。取值必须在风格库某套 `sample.layout` 里出现过——文案压住主体是封面最常见的废掉方式。",
+              "type": "string"
+            }
           }
         },
         "reference_images": {
@@ -74,6 +208,28 @@
         },
         "palette_ref": {
           "description": "measure_palette.py 的输出文件路径，项目根相对。指向的那份结果既提供出图的 color_palette 参数，也是站 5 回测时比对的预期色板。",
+          "type": "string"
+        },
+        "sequence": {
+          "description": "这张图的序号，格式 `NN/NN`（第几张 / 共几张）。**有 deck 时每张都要写**，总数必须等于 `deck.sequence_total`。读者看到进度，中途离开的成本感更高（AP-06）。",
+          "type": "string",
+          "pattern": "^\\d{1,3}\\s*/\\s*\\d{1,3}$"
+        },
+        "base_image": {
+          "description": "底图路径，项目根相对。**风格库 `carrier` 是 base_image 的风格，封面必须有这一格**（AP-02）——一张只有底色的封面，在信息流里和一块空白没有区别。底图可以是模型生成的（走 assets/generated/），也可以是真实素材。",
+          "type": "string"
+        },
+        "base_image_rights": {
+          "description": "底图的权利状态。**有 base_image 就必须写**：底图大概率不是自己拍的，进产物就要登记来源与权利。",
+          "type": "string"
+        },
+        "points": {
+          "description": "这张图上**并列展示的短句**（清单、要点、对比项）。AP-07 数它的条数，上限 3——超过三个，读者一眼扫不完，就变成「要读」，而读者不读。**注意它和 claims_on_image 的分工**：points 是排版上的并列项，如果其中某一句是事实主张，它仍要出现在 claims_on_image 里并挂 fact_ref。",
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "next_step": {
+          "description": "末页给读者的具体动作。**只有最后一张需要**（AP-09）。看完七张图的人是最热的一批，末页不给落点，这批人就散掉了。「欢迎咨询」不是落点——它不是动作。",
           "type": "string"
         },
         "status": {"enum": ["planned", "blocked", "generated", "rejected"]}

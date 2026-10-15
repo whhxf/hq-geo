@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>视频风格选择 · hq-geo</title>
+<style>
+  :root{
+    --bg:#FAFAF8; --card:#FFFFFF; --border:#E5E3DC; --border-strong:#D3D1C7;
+    --text:#2B2926; --muted:#7A766E; --faint:#A8A49B;
+    --accent:#993C1D; --accent-soft:#FAECE7;
+    --ok:#3B6D11; --ok-soft:#EAF3DE;
+    --warn:#854F0B; --warn-soft:#FAEEDA;
+    --off:#5F5E5A; --off-soft:#F1EFE8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,"PingFang SC","Hiragino Sans GB",sans-serif;
+    font-size:14px;line-height:1.6}
+  header{padding:32px 40px 20px;border-bottom:1px solid var(--border)}
+  h1{margin:0 0 6px;font-size:22px;font-weight:600}
+  .sub{margin:0;color:var(--muted);max-width:760px}
+  .stats{display:flex;gap:24px;margin-top:16px;flex-wrap:wrap}
+  .stat b{display:block;font-size:20px;font-weight:600}
+  .stat span{color:var(--muted);font-size:12px}
+  .wrap{padding:24px 40px 60px;max-width:1400px}
+  .row{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:14px}
+  .row .lbl{color:var(--muted);font-size:12px;min-width:64px}
+  button.chip{border:1px solid var(--border-strong);background:var(--card);color:var(--text);
+    padding:5px 12px;border-radius:999px;cursor:pointer;font-size:13px;font-family:inherit}
+  button.chip:hover{border-color:var(--accent)}
+  button.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .rec{border:1px solid var(--border);background:var(--card);border-radius:12px;
+    padding:16px 18px;margin:8px 0 24px}
+  .rec h2{margin:0 0 8px;font-size:15px;font-weight:600}
+  .rec .why{color:var(--muted);margin:6px 0 0}
+  .rec .line{margin:4px 0}
+  .rec .line em{font-style:normal;color:var(--muted);margin-right:6px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+  .card{overflow:hidden;border:1px solid var(--border);background:var(--card);border-radius:12px;
+    padding:0 0 14px;display:flex;flex-direction:column;gap:8px}
+  .card>*:not(.thumb){margin-left:16px;margin-right:16px}
+  .card.hit{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent-soft)}
+  .card.dim{opacity:.42}
+  .card h3{margin:0;font-size:14px;font-weight:600;display:flex;gap:8px;align-items:center}
+  .thumb{width:100%;aspect-ratio:16/10;object-fit:cover;object-position:center top;
+    display:block;background:var(--off-soft);margin:0 0 4px}
+  .thumb.contain{object-fit:contain;object-position:center}
+  .thumb.none{display:flex;align-items:center;justify-content:center;
+    color:var(--faint);font-size:12px;border-bottom:1px solid var(--border)}
+  .src{font-size:11px;padding:1px 7px;border-radius:999px;background:var(--off-soft);color:var(--off);font-weight:400}
+  .kind{font-size:11px;padding:1px 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-weight:400}
+  .desc{color:var(--muted);font-size:13px;margin:0}
+  .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:6px}
+  .tag{font-size:11px;padding:2px 8px;border-radius:6px;background:var(--off-soft);color:var(--off)}
+  .tag.ok{background:var(--ok-soft);color:var(--ok)}
+  .tag.warn{background:var(--warn-soft);color:var(--warn)}
+  .tag.off{background:var(--off-soft);color:var(--off)}
+  .grp{font-size:11px;color:var(--faint)}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--muted)}
+  .note{margin-top:28px;padding-top:16px;border-top:1px solid var(--border);
+    color:var(--muted);font-size:12px;max-width:820px}
+</style>
+</head>
+<body>
+<header>
+  <h1>视频风格选择</h1>
+  <p class="sub">数据来自 <code>video-styles.json</code> 与 <code>style-map.json</code>，
+  示意图来自 <code>previews/</code>。
+  这个页面只负责让你看清每种风格长什么样、能不能跑、要不要钱。选哪个由你定。</p>
+  <div class="stats" id="stats"></div>
+</header>
+<div class="wrap">
+  <div class="row" id="topicRow"><span class="lbl">按选题</span></div>
+  <div class="row" id="srcRow"><span class="lbl">按来源</span></div>
+  <div class="row" id="execRow"><span class="lbl">按执行</span></div>
+  <div id="recBox"></div>
+  <div class="grid" id="grid"></div>
+  <p class="note" id="note"></p>
+</div>
+<script>
+const STYLES = [{"id": "wb-stream-whiteboard", "name": "白板手绘·流式笔迹", "kind": "风格", "source": "geeklee", "summary": "暖米黄纸底 #F5EBD7，笔尖按字幕顺序连续落墨，先铺线稿再添彩。未画区域完全隐藏。", "best_for": "知识讲解、课程字幕、故事口播、短视频文案", "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["python-venv", "ffmpeg"], "entry": "scripts/render_stream_whiteboard.py", "group": "whiteboard-handwriting", "preview": true}, {"id": "v3-notebook", "name": "V3 手写衬线「手帐」", "kind": "风格", "source": "lanshu", "summary": "方格纸上真笔书写、便利贴、橡皮擦。", "best_for": "一步步推导、学习笔记、教学", "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["python3", "ffmpeg", "jq", "node"], "entry": "explainer/tools/new_topic.sh", "group": "notebook-writing", "preview": true}, {"id": "v4-paper", "name": "V4 纸艺「立体书」", "kind": "风格", "source": "lanshu", "summary": "牛皮纸立体书、纸片折起、视差。", "best_for": "有温度的故事、流程、大众话题", "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["python3", "ffmpeg", "jq", "node"], "entry": "explainer/tools/new_topic.sh", "group": "paper-craft", "preview": true}, {"id": "v5-comic", "name": "V5 波普漫画「爆款」", "kind": "风格", "source": "lanshu", "summary": "半调网点漫画、贴纸拍入、爆炸字。", "best_for": "节奏快的短视频、观点、辟谣", "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["python3", "ffmpeg", "jq", "node"], "entry": "explainer/tools/new_topic.sh", "group": "pop-comic", "preview": true}, {"id": "v8-chalkboard", "name": "V8 黑板报", "kind": "风格", "source": "lanshu", "summary": "木框黑板、粉笔现写、板擦、粉笔脑图复习。", "best_for": "课堂感、入门、便于记忆", "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["python3", "ffmpeg", "jq", "node"], "entry": "explainer/tools/new_topic.sh", "group": "whiteboard-handwriting", "preview": true}, {"id": "v9-clay", "name": "V9 黏土小城「一仓」", "kind": "风格", "source": "lanshu", "summary": "等距黏土小城，比喻配真实术语标签。", "best_for": "用比喻讲给外行、可爱亲和", "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["python3", "ffmpeg", "jq", "node", "gpu-chrome"], "entry": "explainer/tools/new_topic.sh", "group": "3d-cinematic", "preview": true}, {"id": "h-09-postimp", "name": "梵高·流场笔触", "kind": "风格", "source": "huashu", "summary": "流场笔触三遍（墙竖长、地透视）+ 区域色板 + 描边。母题：星空漩涡、灯晕外扩。", "best_for": null, "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["uv", "playwright-chromium", "ffmpeg"], "entry": "scripts/engine/render.py", "group": "art-history", "preview": true}, {"id": "h-25-ghibli", "name": "吉卜力水彩背景", "kind": "风格", "source": "huashu", "summary": "水彩洗染（透明叠色 + 水痕边）、赛璐璐月牙影。母题：纱帘鼓起、树影光斑。", "best_for": null, "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["uv", "playwright-chromium", "ffmpeg"], "entry": "scripts/engine/render.py", "group": "anime-concept", "preview": true}, {"id": "h-17-ink", "name": "中国水墨写意", "kind": "风格", "source": "huashu", "summary": "毛笔笔锋飞白、墨晕 blur 洇开、留白、钤印。母题：笔触自写、墨晕扩散。", "best_for": null, "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["uv", "playwright-chromium", "ffmpeg"], "entry": "scripts/engine/render.py", "group": "ink-chinese", "preview": true}, {"id": "h-13-pop", "name": "利希滕斯坦波普", "kind": "风格", "source": "huashu", "summary": "本戴点 createPattern、粗黑描边。母题：沃霍尔四格换色、拟声框抖。", "best_for": null, "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["uv", "playwright-chromium", "ffmpeg"], "entry": "scripts/engine/render.py", "group": "pop-comic", "preview": true}, {"id": "h-14-8bit", "name": "8-bit 像素", "kind": "风格", "source": "huashu", "summary": "240×135 逐像素、14 色板、部件 1px 黑边。母题：尾巴、HUD 心闪、顶金币。", "best_for": null, "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["uv", "playwright-chromium", "ffmpeg"], "entry": "scripts/engine/render.py", "group": "pixel-retro", "preview": true}, {"id": "h-32-rembrandt", "name": "伦勃朗明暗", "kind": "风格", "source": "huashu", "summary": "光照图整幅相乘、窗光 + 烛光。母题：光柱浮尘。", "best_for": null, "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["uv", "playwright-chromium", "ffmpeg"], "entry": "scripts/engine/render.py", "group": "art-history", "preview": true}, {"id": "h-16-2026", "name": "当代扁平插画", "kind": "风格", "source": "huashu", "summary": "颗粒点彩密度函数、无描边色块。母题：角色表演、阻尼二次动作。", "best_for": null, "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["uv", "playwright-chromium", "ffmpeg"], "entry": "scripts/engine/render.py", "group": "editorial-minimal", "preview": true}, {"id": "h-01-cave", "name": "洞穴岩画", "kind": "风格", "source": "huashu", "summary": "噪声浮雕岩壁 + 炭点毛边 + 赭石。母题：动物两姿态交替奔跑、火光摇曳。", "best_for": "艺术史速通、穿越、致敬类", "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["uv", "playwright-chromium", "ffmpeg"], "entry": "scripts/engine/render.py", "group": "art-history", "preview": true}, {"id": "h-31-haring", "name": "凯斯·哈林", "kind": "风格", "source": "huashu", "summary": "粗黑等宽线、放射动作线。母题：小人按 8fps 硬切跳舞、跟 BPM 弹跳。", "best_for": "艺术史速通、穿越、致敬类", "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["uv", "playwright-chromium", "ffmpeg"], "entry": "scripts/engine/render.py", "group": "pop-comic", "preview": true}, {"id": "hd-31-crayon-scrawl", "name": "3.1 蜡笔童涂·潦草自画版", "kind": "风格", "source": "handdrawn", "summary": "明亮白底、大人歪线稿 + 孩子潦草蜡笔涂抹的家庭投稿画。", "best_for": null, "ratio": "any", "execution": "prompt-only", "status": "prompt-only", "depends_on": ["image-model"], "entry": "scripts/render_prompt.py", "group": "crayon-childlike", "preview": true}, {"id": "hd-01-xkcd", "name": "极简黑白线条讲解漫画（xkcd 火柴人）", "kind": "风格", "source": "handdrawn", "summary": "米白纸、细线火柴人、多格网格讲解图。带版式。", "best_for": "分步讲解、概念拆解", "ratio": "any", "execution": "prompt-only", "status": "prompt-only", "depends_on": ["image-model"], "entry": "scripts/render_prompt.py", "group": "technical-diagram", "preview": true}, {"id": "hd-02-crayon-kid", "name": "蜡笔童涂（5 岁小孩坏画）", "kind": "风格", "source": "handdrawn", "summary": "故意画坏的儿童蜡笔画，歪线、出界、大量留白。", "best_for": null, "ratio": "any", "execution": "prompt-only", "status": "prompt-only", "depends_on": ["image-model"], "entry": "scripts/render_prompt.py", "group": "crayon-childlike", "preview": true}, {"id": "hd-03-ghibli", "name": "吉卜力风", "kind": "风格", "source": "handdrawn", "summary": "单一焦点、简化背景、大色块平滑水彩渐变、云少而整。", "best_for": null, "ratio": "any", "execution": "prompt-only", "status": "prompt-only", "depends_on": ["image-model"], "entry": "scripts/render_prompt.py", "group": "anime-concept", "preview": true}, {"id": "hd-04-bean-infographic", "name": "小豆人黑色涂鸦信息图", "kind": "风格", "source": "handdrawn", "summary": "竖版多格信息图，黑色涂鸦小人。带版式。", "best_for": "信息图、要点罗列", "ratio": "any", "execution": "prompt-only", "status": "prompt-only", "depends_on": ["image-model"], "entry": "scripts/render_prompt.py", "group": "pop-comic", "preview": true}, {"id": "hd-05-mspaint", "name": "MS Paint 烂涂鸦", "kind": "风格", "source": "handdrawn", "summary": "越烂越好，鼠标涂鸦质感。", "best_for": null, "ratio": "any", "execution": "prompt-only", "status": "prompt-only", "depends_on": ["image-model"], "entry": "scripts/render_prompt.py", "group": "crayon-childlike", "preview": true}, {"id": "hd-06-ballpoint-scribble", "name": "圆珠笔单线涂鸦", "kind": "风格", "source": "handdrawn", "summary": "单线速写，偏艺术速写向。", "best_for": "肖像、动物", "ratio": "any", "execution": "prompt-only", "status": "prompt-only", "depends_on": ["image-model"], "entry": "scripts/render_prompt.py", "group": "pop-comic", "preview": true}, {"id": "hd-07-crayon-photo", "name": "蜡笔实拍（真·儿童手涂纸张）", "kind": "风格", "source": "handdrawn", "summary": "像真蜡笔涂在纸上的照片，一眼真人手涂。", "best_for": null, "ratio": "any", "execution": "prompt-only", "status": "prompt-only", "depends_on": ["image-model"], "entry": "scripts/render_prompt.py", "group": "crayon-childlike", "preview": true}, {"id": "hd-08-ink", "name": "水墨写意", "kind": "风格", "source": "handdrawn", "summary": "纯风格，无内置版式。", "best_for": null, "ratio": "any", "execution": "prompt-only", "status": "prompt-only", "depends_on": ["image-model"], "entry": "scripts/render_prompt.py", "group": "ink-chinese", "preview": true}, {"id": "hd-09-pixel", "name": "复古像素", "kind": "风格", "source": "handdrawn", "summary": "纯风格，无内置版式。", "best_for": null, "ratio": "any", "execution": "prompt-only", "status": "prompt-only", "depends_on": ["image-model"], "entry": "scripts/render_prompt.py", "group": "pixel-retro", "preview": true}, {"id": "hd-10-soft-wash-sketch", "name": "情绪叙事淡彩速写", "kind": "风格", "source": "handdrawn", "summary": "淡彩速写，可加侧边手写中文。橙色关键物。", "best_for": null, "ratio": "any", "execution": "prompt-only", "status": "prompt-only", "depends_on": ["image-model"], "entry": "scripts/render_prompt.py", "group": "anime-concept", "preview": true}, {"id": "hd-11-watercolor-concept", "name": "二维水彩风格（复古动画概念稿）", "kind": "风格", "source": "handdrawn", "summary": "白纸上一侧淡奶油/杏色干刷痕，单人或双人半身立绘。", "best_for": null, "ratio": "any", "execution": "prompt-only", "status": "prompt-only", "depends_on": ["image-model"], "entry": "scripts/render_prompt.py", "group": "anime-concept", "preview": true}, {"id": "hd-12-warm-concept", "name": "暖光童画（动画概念暖绘）", "kind": "风格", "source": "handdrawn", "summary": "暖光动画概念稿，半身像，松散干刷笔触。", "best_for": null, "ratio": "any", "execution": "prompt-only", "status": "prompt-only", "depends_on": ["image-model"], "entry": "scripts/render_prompt.py", "group": "anime-concept", "preview": true}, {"id": "hd-13-paper-folk", "name": "北欧纸雕", "kind": "风格", "source": "handdrawn", "summary": "低饱和土色底、纸雕造型、民俗云与叶点缀。", "best_for": null, "ratio": "any", "execution": "prompt-only", "status": "prompt-only", "depends_on": ["image-model"], "entry": "scripts/render_prompt.py", "group": "paper-craft", "preview": true}, {"id": "hd-14-nordic-storybook", "name": "北欧绘本水粉", "kind": "风格", "source": "handdrawn", "summary": "水粉质感、暖白或淡冰蓝纸底、单个椭圆投影或光晕。", "best_for": null, "ratio": "any", "execution": "prompt-only", "status": "prompt-only", "depends_on": ["image-model"], "entry": "scripts/render_prompt.py", "group": "anime-concept", "preview": true}, {"id": "hd-15-softnose-vinyl", "name": "大鼻软偶", "kind": "风格", "source": "handdrawn", "summary": "软胶潮玩质感、困倦眯眼、街头穿搭。", "best_for": null, "ratio": "any", "execution": "prompt-only", "status": "prompt-only", "depends_on": ["image-model"], "entry": "scripts/render_prompt.py", "group": "3d-cinematic", "preview": true}, {"id": "hd-16-gouache-spotlight", "name": "聚光水粉立绘", "kind": "风格", "source": "handdrawn", "summary": "水粉立绘，背景色按互补规则自动选。", "best_for": null, "ratio": "any", "execution": "prompt-only", "status": "prompt-only", "depends_on": ["image-model"], "entry": "scripts/render_prompt.py", "group": "anime-concept", "preview": true}, {"id": "hd-17-inked-storybook", "name": "墨线绘本", "kind": "风格", "source": "handdrawn", "summary": "墨线勾边、单一氛围渐变背景、2–4 色协调。", "best_for": null, "ratio": "any", "execution": "prompt-only", "status": "prompt-only", "depends_on": ["image-model"], "entry": "scripts/render_prompt.py", "group": "ink-chinese", "preview": true}, {"id": "hd-18-warm-flat-storybook", "name": "暖色扁平绘本", "kind": "风格", "source": "handdrawn", "summary": "全身居中偏下、大片安静留白、暖色扁平。", "best_for": null, "ratio": "any", "execution": "prompt-only", "status": "prompt-only", "depends_on": ["image-model"], "entry": "scripts/render_prompt.py", "group": "anime-concept", "preview": true}, {"id": "hd-19-roundhead-redline", "name": "圆头红线极简童画", "kind": "风格", "source": "handdrawn", "summary": "圆头造型 + 红线，正式生产必须附原创锚点图。", "best_for": null, "ratio": "any", "execution": "prompt-only", "status": "prompt-only", "depends_on": ["image-model", "anchor-image"], "entry": "scripts/render_prompt.py", "group": "crayon-childlike", "preview": true}, {"id": "hd-20-warm-yellow-ink-story", "name": "暖黄墨线情绪小剧场", "kind": "风格", "source": "handdrawn", "summary": "暖黄墨线，正式生产必须附原创锚点图。", "best_for": null, "ratio": "any", "execution": "prompt-only", "status": "prompt-only", "depends_on": ["image-model", "anchor-image"], "entry": "scripts/render_prompt.py", "group": "ink-chinese", "preview": true}, {"id": "g-t1-3b1b", "name": "3Blue1Brown 数学可视化", "kind": "语法", "source": "huashu", "summary": "参数化片段语法，适合数学与抽象概念的动态演示。", "best_for": "数学、算法、抽象原理", "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["uv", "playwright-chromium", "ffmpeg"], "entry": "scripts/engine/render.py --spec", "group": "explainer-grammar", "preview": true}, {"id": "g-t2-keynote-ui", "name": "Keynote UI 演示", "kind": "语法", "source": "huashu", "summary": "界面演示语法，适合产品与软件讲解。", "best_for": "产品演示、软件操作", "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["uv", "playwright-chromium", "ffmpeg"], "entry": "scripts/engine/render.py --spec", "group": "explainer-grammar", "preview": true}, {"id": "g-t3-finance-chart", "name": "财经图表", "kind": "语法", "source": "huashu", "summary": "图表动画语法，适合数据与财务讲解。", "best_for": "数据解读、财报、趋势", "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["uv", "playwright-chromium", "ffmpeg"], "entry": "scripts/engine/render.py --spec", "group": "explainer-grammar", "preview": true}, {"id": "g-y1-kurzgesagt", "name": "Kurzgesagt 科普", "kind": "语法", "source": "huashu", "summary": "扁平矢量科普动画语法。", "best_for": "科普、宏大叙事", "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["uv", "playwright-chromium", "ffmpeg"], "entry": "scripts/engine/render.py --spec", "group": "explainer-grammar", "preview": true}, {"id": "g-y2-vox", "name": "Vox 解释", "kind": "语法", "source": "huashu", "summary": "新闻解释型动画语法，图文混排。", "best_for": "时事解释、背景说明", "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["uv", "playwright-chromium", "ffmpeg"], "entry": "scripts/engine/render.py --spec", "group": "explainer-grammar", "preview": true}, {"id": "g-y3-whiteboard", "name": "白板手绘语法", "kind": "语法", "source": "huashu", "summary": "白板手绘解说语法。", "best_for": "知识讲解、教学", "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["uv", "playwright-chromium", "ffmpeg"], "entry": "scripts/engine/render.py --spec", "group": "explainer-grammar", "preview": true}, {"id": "g-y4-storytime", "name": "故事时间", "kind": "语法", "source": "huashu", "summary": "叙事型动画语法。", "best_for": "故事、案例、经历", "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["uv", "playwright-chromium", "ffmpeg"], "entry": "scripts/engine/render.py --spec", "group": "explainer-grammar", "preview": true}, {"id": "g-y5-kinetic-type", "name": "动态字体", "kind": "语法", "source": "huashu", "summary": "以文字运动为主体的语法。", "best_for": "金句、观点、开场", "ratio": "16:9", "execution": "local-render", "status": "needs-install", "depends_on": ["uv", "playwright-chromium", "ffmpeg"], "entry": "scripts/engine/render.py --spec", "group": "explainer-grammar", "preview": true}];
+const MAP = {"schema_version": 1, "kind": "video-style-map", "note": "这是系统建议，不是硬规则。人在 gallery.html 里最终定。首选只从 execution=local-render 的风格里挑——prompt-only 的现在跑不出画面（缺外部生图模型）。被 video-styles.json 的 blocked 清单屏蔽的风格不参与映射。", "routing": {"when": "选题定稿后、写分镜脚本前（video-pipeline 站 1 与站 2 之间）。", "how": "用选题的措辞匹配下面的 cues，取命中的第一条；没有命中就用 default。产出 2-3 个候选，交人确认。", "output": "写进 content/videos/<task-id>/script.json 的 style 字段，附选择理由。", "escalate": "候选全落在 prompt-only 或 paid-api 时，停机问人。不擅自接外部生图模型，不擅自花钱。"}, "topics": [{"id": "tutorial-step", "name": "教程 / 分步操作", "cues": ["怎么做", "步骤", "教程", "教学", "上手", "操作", "设置", "配置"], "primary": "wb-stream-whiteboard", "secondary": ["v3-notebook", "v8-chalkboard"], "reason": "分步内容要「跟着画出来」。白板按字幕顺序逐区落墨，天然对应一步一画。"}, {"id": "concept-explain", "name": "概念讲解 / 原理科普", "cues": ["是什么", "为什么", "原理", "讲解", "科普", "机制", "怎么理解"], "primary": "g-y1-kurzgesagt", "secondary": ["g-y2-vox", "g-y3-whiteboard"], "reason": "讲机制与原理。Kurzgesagt 语法把抽象概念拆成分镜，一步一图，配色高饱和。"}, {"id": "opinion-hot-take", "name": "观点 / 辟谣", "cues": ["其实", "误区", "辟谣", "观点", "真相", "别再", "错了"], "primary": "v5-comic", "secondary": ["g-y5-kinetic-type", "h-31-haring"], "reason": "观点要节奏快、有梗。波普漫画的贴纸拍入和爆炸字能把一句话砸实。"}, {"id": "product-demo", "name": "产品演示", "cues": ["产品", "功能", "演示", "界面", "工具", "软件", "上手体验"], "primary": "g-t2-keynote-ui", "secondary": ["v3-notebook", "h-16-2026"], "reason": "产品要显克制与可信。Keynote UI 语法把界面与数字放大，注意力落在功能上。"}, {"id": "data-report", "name": "数据 / 财报解读", "cues": ["数据", "增长", "财报", "指标", "趋势", "营收", "统计"], "primary": "g-t3-finance-chart", "secondary": ["g-t1-3b1b", "h-16-2026"], "reason": "图表要动起来讲。财经图表语法专为数据动画设计，数字带单位。"}, {"id": "story-case", "name": "故事 / 案例", "cues": ["案例", "故事", "经历", "客户", "复盘", "我们做过"], "primary": "v4-paper", "secondary": ["g-y4-storytime", "h-25-ghibli"], "reason": "故事要温度。牛皮纸立体书让每个环节能「立起来」，翻页就是推进。"}, {"id": "tech-deep-dive", "name": "技术深挖", "cues": ["架构", "实现", "源码", "工程", "底层", "性能", "调试"], "primary": "g-t1-3b1b", "secondary": ["g-t2-keynote-ui", "g-y2-vox"], "reason": "面向从业者要密度。3Blue1Brown 语法把推导一步步画出来，一步一帧。"}, {"id": "brand-flagship", "name": "品牌 / 发布", "cues": ["发布", "上线", "重磅", "旗舰", "品牌", "新品"], "primary": "v9-clay", "secondary": ["h-16-2026", "h-32-rembrandt"], "reason": "发布要一次立住。黏土立体把主体做成实物，注意力压在单一物件上。"}, {"id": "beginner-analogy", "name": "讲给小白 / 用比喻", "cues": ["小白", "入门", "比喻", "通俗", "零基础", "外行", "怎么简单说"], "primary": "v9-clay", "secondary": ["v8-chalkboard", "v3-notebook"], "reason": "比喻要看得见。黏土小城把每个概念配一个实物，并标出真实术语。"}, {"id": "art-tribute", "name": "艺术致敬 / 风格速通", "cues": ["艺术", "名画", "穿越", "致敬", "风格史", "美术"], "primary": "h-09-postimp", "secondary": ["h-25-ghibli", "h-13-pop", "h-31-haring"], "reason": "这类片子的机制就是风格在变、场景不变。从梵高起步，质量最稳。"}, {"id": "personal-brand", "name": "个人品牌 / 口播", "cues": ["口播", "出镜", "个人", "分享", "我来说", "聊一聊"], "primary": "g-y4-storytime", "secondary": ["v3-notebook", "wb-stream-whiteboard"], "reason": "两条口播专线（讲解员、数字人）已按 Conan 决定屏蔽。改用故事时间语法承载第一人称讲述。"}], "default": {"primary": "wb-stream-whiteboard", "secondary": ["v3-notebook", "v8-chalkboard"], "reason": "兜底。白板是现在唯一完整跑通六站、且零外部 API 的风格。"}, "cost_note": "全部首选都是 local-render，零 API 花费。唯一付费项 presenter-digital-human 已按 Conan 决定屏蔽。"};
+const REG = {"sources": {"geeklee": {"repo": "geeklee/srt-whiteboard-animation", "url": "https://github.com/geeklee/srt-whiteboard-animation", "license": "MIT", "stars": 4197, "form": "本地渲染器", "input": "SRT 字幕 + 线稿 PNG", "note": "分区遮罩编排 + 流式笔迹。真渲染器，自建 .venv。"}, "lanshu": {"repo": "cclank/lanshu-create-ai-presenter-video", "url": "https://github.com/cclank/lanshu-create-ai-presenter-video", "license": "MIT", "stars": 2574, "form": "本地渲染器 + 可选付费数字人", "input": "选题或讲稿", "note": "styled 路线纯本地（HTML/JS + ffmpeg）；presenter 路线需授权照片与付费 API。"}, "huashu": {"repo": "alchaincyf/huashu-art-motion", "url": "https://github.com/alchaincyf/huashu-art-motion", "license": "MIT", "stars": 3013, "form": "代码绘制引擎", "input": "镜头表 + 可选口播", "note": "35 种艺术风格 + 9 种解说语法。Playwright 渲染，带 film_gate 门禁。"}, "handdrawn": {"repo": "threerocks/hand-drawn-styles", "url": "https://github.com/threerocks/hand-drawn-styles", "license": "MIT", "stars": 2204, "form": "提示词生成器", "input": "内容 + 画风编号", "note": "只产出提示词，不生图。要出画面必须接一个外部生图模型。"}}};
+
+const SRC_NAME = {"geeklee": "geeklee", "lanshu": "cclank", "huashu": "alchaincyf", "handdrawn": "threerocks"};
+const GRP_NAME = {"whiteboard-handwriting": "白板/黑板手写", "notebook-writing": "手帐/笔记书写", "ink-chinese": "水墨/国风", "crayon-childlike": "蜡笔/童趣", "anime-concept": "动画概念/日式", "pixel-retro": "像素/复古", "pop-comic": "波普/漫画", "editorial-minimal": "高级留白/扁平", "tech-dark": "科技暗色", "paper-craft": "纸艺/立体", "3d-cinematic": "3D/电影感", "technical-diagram": "技术图解", "presenter-human": "真人/数字人", "art-history": "艺术史标本"};
+const EXEC = {
+  "local-render": {label:"本地渲染", cls:"ok", hint:"装依赖即可跑，不调外部 API"},
+  "prompt-only": {label:"只出提示词", cls:"off", hint:"缺外部生图模型，现在出不了画面"},
+  "paid-api": {label:"付费接口", cls:"warn", hint:"按量计费，上线前须设月度硬上限"}
+};
+const STATUS = {
+  "needs-install": "依赖未装",
+  "prompt-only": "出不了画面",
+  "needs-authorization": "未授权",
+  "ready": "可跑"
+};
+
+let fTopic = null, fSrc = null, fExec = null;
+
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));}
+
+function chipRow(el, label, values, getLabel, onPick){
+  const row = document.getElementById(el);
+  row.innerHTML = '<span class="lbl">'+label+'</span>';
+  const all = document.createElement("button");
+  all.className = "chip" + (onPick.value===null?" on":"");
+  all.textContent = "全部";
+  all.onclick = ()=>{onPick.set(null); render();};
+  row.appendChild(all);
+  values.forEach(v=>{
+    const b = document.createElement("button");
+    b.className = "chip" + (onPick.value===v?" on":"");
+    b.textContent = getLabel(v);
+    b.onclick = ()=>{onPick.set(onPick.value===v?null:v); render();};
+    row.appendChild(b);
+  });
+}
+
+const pickTopic = {value:null, set(v){fTopic=v;}};
+const pickSrc = {value:null, set(v){fSrc=v;}};
+const pickExec = {value:null, set(v){fExec=v;}};
+
+function matches(item){
+  if(fSrc && item.source!==fSrc) return false;
+  if(fExec && item.execution!==fExec) return false;
+  return true;
+}
+
+function renderRec(){
+  const box = document.getElementById("recBox");
+  if(!fTopic){ box.innerHTML=""; return; }
+  const t = MAP.topics.find(x=>x.id===fTopic);
+  const d = t || MAP.default;
+  const rec = t ? t : {name:"兜底", reason:MAP.default.reason};
+  const name = t ? t.name : "未命中兜底";
+  const prim = STYLES.find(s=>s.id===d.primary);
+  const secs = (d.secondary||[]).map(id=>STYLES.find(s=>s.id===id)).filter(Boolean);
+  box.innerHTML =
+    '<div class="rec"><h2>推荐：'+esc(name)+'</h2>'+
+    '<div class="line"><em>首选</em>'+esc(prim?prim.name:d.primary)+
+      (prim?' <span class="grp">'+esc(EXEC[prim.execution].label)+' · '+esc(SRC_NAME[prim.source]||prim.source)+'</span>':'')+'</div>'+
+    (secs.length?'<div class="line"><em>备选</em>'+secs.map(s=>esc(s.name)).join(" · ")+'</div>':'')+
+    '<p class="why">'+esc(d.reason)+'</p></div>';
+}
+
+function render(){
+  renderRec();
+  const grid = document.getElementById("grid");
+  const t = fTopic ? MAP.topics.find(x=>x.id===fTopic) : null;
+  const hits = new Set();
+  if(t){ hits.add(t.primary); (t.secondary||[]).forEach(s=>hits.add(s)); }
+  const list = STYLES.filter(matches);
+  grid.innerHTML = list.map(s=>{
+    const hit = hits.has(s.id);
+    const dim = (fTopic && !hit);
+    const ex = EXEC[s.execution] || {label:s.execution,cls:"off"};
+    const thumb = s.preview
+      ? '<img class="thumb'+(s.kind==="语法"?" contain":"")+'" loading="lazy" src="previews/'+esc(s.id)+'.jpg" alt="'+esc(s.name)+' 示意图">'
+      : '<div class="thumb none">无示意图</div>';
+    return '<div class="card'+(hit?" hit":"")+(dim?" dim":"")+'">'+
+      thumb+
+      '<h3>'+esc(s.name)+
+        '<span class="src">'+esc(SRC_NAME[s.source]||s.source)+'</span>'+
+        (s.kind==="语法"?'<span class="kind">语法</span>':'')+'</h3>'+
+      '<p class="desc">'+esc(s.summary)+'</p>'+
+      '<div class="meta">'+
+        '<span class="tag '+ex.cls+'">'+esc(ex.label)+'</span>'+
+        '<span class="tag">'+esc(s.ratio)+'</span>'+
+        (s.best_for?'<span class="tag">适合 '+esc(s.best_for)+'</span>':'')+
+        '<span class="grp">'+esc(GRP_NAME[s.group]||s.group)+'</span>'+
+      '</div>'+
+      (s.depends_on&&s.depends_on.length?'<div class="grp">依赖 '+esc(s.depends_on.join(" · "))+'</div>':'')+
+    '</div>';
+  }).join("");
+  document.getElementById("note").textContent =
+    MAP.note + " " + (MAP.cost_note||"");
+}
+
+function stats(){
+  const c = k => STYLES.filter(s=>s.execution===k).length;
+  const have = STYLES.filter(s=>s.preview).length;
+  document.getElementById("stats").innerHTML =
+    '<div class="stat"><b>'+STYLES.length+'</b><span>条目总数</span></div>'+
+    '<div class="stat"><b>'+have+'</b><span>有示意图</span></div>'+
+    '<div class="stat"><b>'+STYLES.filter(s=>s.kind==="风格").length+'</b><span>视觉风格</span></div>'+
+    '<div class="stat"><b>'+STYLES.filter(s=>s.kind==="语法").length+'</b><span>解说语法</span></div>'+
+    '<div class="stat"><b>'+c("local-render")+'</b><span>本地渲染</span></div>'+
+    '<div class="stat"><b>'+c("prompt-only")+'</b><span>只出提示词</span></div>'+
+    '<div class="stat"><b>'+c("paid-api")+'</b><span>付费接口</span></div>';
+}
+
+const srcs = [...new Set(STYLES.map(s=>s.source))];
+chipRow("topicRow","按选题", MAP.topics.map(t=>t.id), id=>MAP.topics.find(t=>t.id===id).name, pickTopic);
+chipRow("srcRow","按来源", srcs, id=>SRC_NAME[id]||id, pickSrc);
+chipRow("execRow","按执行", Object.keys(EXEC), id=>EXEC[id].label, pickExec);
+stats(); render();
+</script>
+</body>
+</html>

@@ -63,7 +63,7 @@ hq-geo/
 │   ├── geo/               ← GEO 能力唯一真源（方法 + 契约 + 校验器）
 │   ├── content-production/← 文章、视频简报、图片简报的契约与校验
 │   ├── fact-packs/        ← 事实包契约、校验器与补录工具
-│   ├── creative-handoff/  ← 与外部媒体制作系统的 CreativeJob → ProductionReceipt 协议
+│   ├── video-production/  ← 视频线：分镜、出帧与成片（2026-10-10 自建）
 │   └── project-scaffold/  ← 新建项目根的脚手架（不覆盖已有文件）
 ├── skills/                ← 判断与路由，不复制方法论正文
 ├── test/                  ← 质量门禁、功能登记、测试套件
@@ -84,19 +84,19 @@ hq-geo/
 ├── facts/                 ← 事实包，创作上下文的唯一事实真源
 ├── topics/                ← 选题假设与测试状态
 ├── research/              ← raw 只追加，normalized 可重算
-├── content/briefs/        ← 供外部制作系统执行的制作简报
+├── content/briefs/        ← 供三条流水线执行的制作简报
 ├── content/packages/      ← 按渠道组织的发布包（文章成稿在 blog 包内）
 ├── content/styles/        ← 风格示例 HTML，给你看样选风格
-└── assets/generated/      ← 外部制作系统回传的成品 manifest
+└── assets/generated/      ← 生成产物的成品 manifest
 ```
 
 ## 质量门禁
 
 ```bash
-python3 test/run_quality_gate.py --project <项目根>
+python3 test/run_quality_gate.py
 ```
 
-在项目根里跑时可以省掉 `--project`。只有这一条命令，全部测试一秒内跑完。
+**门禁只测系统根，不需要项目。** 加 `--project <项目根>` 时会额外比一次该项目的产出基准。
 门禁结论不是 `PASS`，就不得宣称可发布。
 
 **产出比基准变少会直接判 `FAIL`。** 稿子消失通常不报错，页面就是空的——门禁要是还绿着，就没人会发现。

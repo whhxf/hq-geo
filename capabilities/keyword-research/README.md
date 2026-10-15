@@ -16,6 +16,7 @@
 ```
 capabilities/keyword-research/
 ├── README.md          这一份：定位、三类对象、校验器拦什么
+├── ROUTING.md         场景识别：这次该用哪一套关键词能力
 ├── channels/          渠道适配器——加渠道就是加文件
 │   ├── README.md      接口定义 + 渠道表 + 待建清单
 │   └── <channel>.md   一个渠道一个文件（现有 4 个）

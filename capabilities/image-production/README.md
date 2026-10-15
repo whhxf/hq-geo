@@ -8,6 +8,7 @@
     参考图（可选）──→ 量色板 ─┴──→ 组装 prompt ──→ 模型一步出图 ──→ 验收
                         └────────────────────────────────────────↗
                               同一份色板，回测时拿来做预期
+    封面另加一步：cover_text 用真实文本渲染叠上去（A 方案），落 assets/composed/
 ```
 
 ## 这一线管什么
@@ -32,6 +33,10 @@
 | `tests/test_palette.py` | 颜色数学、PNG 解码、取色、回测、参考吸收的单测 |
 | `PRD-reference-absorption.md` | 参考吸收的设计文档（为什么这么做、边界在哪） |
 
+**「有人愿意点」那半边在 `capabilities/image-appeal/`。** 那边有十四条吸引力判据、
+像素测量器和执行者。两边共用一个契约、一份风格库——风格库的 `carrier` 字段
+决定封面要不要底图，是两边唯一的接线点。
+
 入口在 `skills/image-pipeline/SKILL.md`。
 
 **零第三方依赖。** 这四个脚本只用标准库。PIL 在开发时被用作一次性
@@ -46,13 +51,57 @@
 |---|---|
 | `subject_kind` 是产品界面/客户案例/真实记录时，`synthetic` 必须为 false | 生成图冒充真实产品，看图的人当真 |
 | `synthetic` 必须显式写 | 生成图默默混进真实素材里，事后分不清 |
-| 图上每句主张都要挂 `fact_ref` | 图上写「效率提升 300%」，正文里根本没这句 |
+| 图上每句**事实主张**都要挂 `fact_ref` | 图上写「效率提升 300%」，正文里根本没这句 |
+| 封面必须有 `cover_text`，且写清 `source_title` | 封面是一张无字的图，在一屏几十条的流里没人看得见 |
+| `cover_text` 必须挂 `source_title`，不挂 `fact_ref` | 两类文字混在一起，封面要么被迫无字，要么变成绕过事实纪律的后门 |
+| `cover_text` 与 `claims_on_image` 不许出现同一句话 | 同一句话既当题目又当事实主张，「挂没挂 `fact_ref`」这个信号就失真了 |
+| `cover_text.layout` 必须在风格库出现过的位置里 | 文案压住主体，封面自己把自己废掉 |
+| 有封面文案时，`ready` 必须带 `appeal_review` 且九项全 `pass` | 封面能出图、能发，却没有任何人问过它「能不能让人停下来」 |
+| `appeal_review.reviewed_by` 必须与 `author` 不同，且必须写 `evidence` | 写简报的人自己判吸引力——2026-10-08 的事故就是这样发生的 |
+| 多张图必须有 `deck` 四格 | 序号、单一风格、封面隔离、末页落点四条组层面判据无处落地 |
+| `base_image` 必须在项目根内；`status=generated` 时文件必须真的在 | 路径拼错或忘了生成，封面渲染成一块空白底，而简报看上去是合规的 |
 | 素材必须写权利状态 | 出事了说不清这张图哪来的 |
 | `style_id` 必须在风格库里 | 拼错不报错，只是静默出一张没有风格的图 |
 | `ready_for_production` 时不能有 blocked 的图 | 简报说可以出，实际有图出不来 |
-| 有 `reference_images` 就必须写 `reference_instruction` | 模型把参考图当成待编辑对象，你拿到「改了一下的参考图」 |
+| 有 `reference_images` 就必须写 `reference_instruction` | 模型把参考图当待编辑对象，你拿到「改了一下的参考图」 |
 | 参考图路径必须在项目根内，且文件真的在 | 越出项目根的图没有权利登记；文件不在要到出图时才发现，钱已经花了 |
 | `palette_ref` 必须在，且是测量结果 | 静默不出色板，图和预期两样，只能靠人肉发现 |
+
+**数值判据不在这里。** 这个校验器守**结构与登记**；阈值类判据（封面标题长度、
+视觉复杂度、风格漂移、序号、落点、文案机器化）住在
+`capabilities/image-appeal/rules/appeal-rules.json`，由 `check_appeal.py` 执行。
+`validate_image_brief.py` 把它调起来，**不重写它的数字**——一个方法只保留一个真源。
+
+## 封面文字与吸引力（2026-10-07 补）
+
+**两类文字分开走。** `claims_on_image` 是**事实主张**，必须挂 `fact_ref`——
+这一半本来就有，是对的。`cover_text` 是**封面文案**（文章或商品的题目与钩子），
+它不承诺效果，所以挂 `source_title`。
+
+分开之前只有一条路：所有图上文字都得挂事实。封面标题是文章的题目、不是事实主张，
+挂不上 `fact_ref`，于是**封面被迫无文字**。而风格库的 `sample` 里本来就定义了
+`headline` / `kicker` / `meta` / `layout`——**风格支持封面文字，是契约把路堵了。**
+
+**吸引力分成两半，两半都要（2026-10-08 补）。**
+
+**机器判的那一半**住在 `capabilities/image-appeal/`——十四条判据、像素测量器、
+执行者 `check_appeal.py`。它判的是能数出来的事：封面标题长度、封面底图复杂度、
+封面与内页的隔离、全套单一风格、序号、单页要点条数、末页落点、文案机器化模式。
+
+**人判的那一半**是 `appeal_review`：九项逐项给 `pass` / `fail` / `unknown`，
+**九项全 `pass` 才允许简报进 `ready`**。前四项是 2026-10-07 定的同向与可读；
+后五项是 2026-10-08 补的心理触发器（信息缺口 / 意外点 / 情绪唤醒 / 信息价值 / 社交货币），
+每条对应 appeal-rules.json 里一条有来源的人判规则。
+
+**复核人必须独立于作者。** `reviewed_by` 不能等于顶层 `author`，并且要写清
+`evidence`——实际看过什么。这一条是 2026-10-08 加上的，因为出过事故：
+写简报的 Agent 自己把四项全填了 `pass`，十张图交付，Conan 看完说「比较素」。
+**登记了，质量没守住。**
+
+**文案怎么上封面：A 方案。** 底图模型生成，文字用真实文本渲染叠上去——
+改字不用重出图。**排版环节还没进系统**（合成脚本要依赖 PIL，系统根只用标准库），
+当前由外部工具合成，产物落项目根 `assets/composed/<brief-id>/`，
+与模型直出的 `assets/generated/` 分开。
 
 ## 参考吸收：从喜欢的图里量出风格
 
@@ -93,6 +142,14 @@ python3 capabilities/image-production/scripts/measure_palette.py \
 
 ## 出图模型
 
+`prompt.base_image_prefix` 描述不含文字的底图风格；存在时由生成器优先采用。
+`prompt.prefix` 可保留完整成品的风格描述，但不能把“生成标题”带进底图请求。
+文字由排版引擎渲染；底图请求的负面条件明确排除文字、字母和数字。
+
+生成入口与简报校验分开守门：即使直接调用 `generate_image.py`，也必须拒绝
+`synthetic != true`、真实界面/人物/案例/对话题材，以及 blocked/rejected 交付物。
+真实素材走排版引擎合成，不送进模型重画。
+
 `wan2.7-image-pro`（DashScope，异步 HTTP）。**密钥不进代码**：
 
 1. `~/.config/hq-geo/image.json` 里写 `{"api_key": "sk-..."}`，或
@@ -104,8 +161,8 @@ python3 capabilities/image-production/scripts/measure_palette.py \
 ## 和另外两条线的关系
 
 - **文章线**（`skills/article-pipeline/`）：八站，自建，已跑通。
-- **视频线**：外发。hq-geo 出 `CreativeJob`，Vidmix 做，回 `ProductionReceipt`。
-  协议在 `capabilities/creative-handoff/`。
+- **视频线**（`skills/video-pipeline/`）：六站，**2026-10-10 起自建**。
+  此前外发 Vidmix 的 `CreativeJob → ProductionReceipt` 协议已删除。
 - **中间要不要搭桥**（图生视频首帧、视频截帧做图），**图片线走通之后再说，现在不设计。**
 
 ## 风格库从哪来

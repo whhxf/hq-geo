@@ -4,9 +4,9 @@
 策略库、风格约定和任务约定都是 Agent 要读的文件。格式坏了，
 Agent 不会报错，它会自己编一套——那比读不到更糟。
 
-系统和项目是两个根，这个文件横跨两边：**约定**（策略库、风格、任务格式、
-外部顾问）在系统根，**记录**（学习库）在项目根。所以两个路径分开取，
-不混成一个 ROOT。
+**只读系统根。** 2026-10-10 起这个文件不再读项目根：门禁不依赖任何项目，
+实例层的记录由项目侧自己管。原先读项目 `LEARNING.md` 的那段改成读系统根的
+`learning-loop.md`——格式定义本来就住在那里，项目文件只是照格式写的一条记录。
 """
 
 import re
@@ -14,15 +14,12 @@ import sys
 from pathlib import Path
 
 SYSTEM = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(SYSTEM))
-from project import find_project  # noqa: E402
-
-PROJECT = find_project()
 
 STRATEGIES = "capabilities/content-production/strategies/creative-strategies.md"
 STYLES = "capabilities/content-production/styles/README.md"
 TASKS = "capabilities/content-production/tasks/README.md"
 LEARNING = "LEARNING.md"
+LEARNING_LOOP = "capabilities/content-production/learning-loop.md"
 PIPELINE = "skills/article-pipeline/SKILL.md"
 ADVISORS = "capabilities/content-production/external-advisors.md"
 READER_AUDIT = "capabilities/content-production/reader-audit.md"
@@ -38,11 +35,6 @@ PATTERN_HEADING = re.compile(r"^## (P\d{2}) (.+)$", re.MULTILINE)
 def read(relative: str) -> str:
     """读系统根的文件。系统层的约定都在这里。"""
     return (SYSTEM / relative).read_text(encoding="utf-8")
-
-
-def read_project(relative: str) -> str:
-    """读项目根的文件。实例层的记录都在这里。"""
-    return (PROJECT / relative).read_text(encoding="utf-8")
 
 
 def strategy_blocks(text: str) -> dict:
@@ -122,7 +114,11 @@ def section_body(text: str, heading: str) -> str:
 
 
 def check_learning_loop(errors: list) -> None:
-    """下半圈：分发登记 → 学习 → 改进。任何一段断了，生产就不会产生积累。"""
+    """下半圈：分发登记 → 学习 → 改进。任何一段断了，生产就不会产生积累。
+
+    查的是**约定**（系统根的 `learning-loop.md`），不是某个项目写下的记录。
+    2026-10-10 前这段读项目根的 `LEARNING.md`，门禁因此依赖一个具体项目。
+    """
     tasks = read(TASKS)
     for needle, reason in [
         ("分发登记怎么填", "任务约定必须写明分发登记填什么"),
@@ -131,18 +127,18 @@ def check_learning_loop(errors: list) -> None:
         if needle not in tasks:
             errors.append(reason)
 
-    if not (PROJECT / LEARNING).is_file():
-        errors.append(f"学习库不存在: {LEARNING}")
+    if not (SYSTEM / LEARNING_LOOP).is_file():
+        errors.append(f"学习闭环约定不存在: {LEARNING_LOOP}")
     else:
-        learning = read_project(LEARNING)
+        loop = read(LEARNING_LOOP)
         # 断言格式定义整行，不是关键词是否出现——关键词在别处也有，那种断言删掉定义行也不会红
         for line, reason in [
             ("- **这次**：发生了什么", "学习记录必须写明「这次」记什么"),
             ("- **下次**：怎么做", "学习记录必须写明「下次」记什么"),
             ("- **去向**：BACKLOG / 策略库 / 只是记着", "「去向」的三个出口缺一不可"),
         ]:
-            if line not in learning:
-                errors.append(f"学习库格式定义缺失（{reason}）: {line}")
+            if line not in loop:
+                errors.append(f"学习闭环约定缺失格式定义（{reason}）: {line}")
 
     pipeline = read(PIPELINE)
     for index in range(1, 9):

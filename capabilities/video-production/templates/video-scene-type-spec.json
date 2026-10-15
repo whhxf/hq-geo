@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "video-scene-1080x1920",
+  "surface": "image",
+  "background": "#FAF8F3",
+  "font_family": "\"PingFang SC\",\"Hiragino Sans GB\",\"Heiti SC\",sans-serif",
+  "canvas": {
+    "width": 1080,
+    "height": 1920,
+    "margin": {
+      "top": 280,
+      "right": 108,
+      "bottom": 460,
+      "left": 108
+    },
+    "text_layout": "center"
+  },
+  "roles": {
+    "kicker": {
+      "kind": "caption",
+      "size_px": 36,
+      "line_height": 1.5,
+      "letter_spacing_em": 0.04,
+      "weight": 500,
+      "color": "#993C1D"
+    },
+    "headline": {
+      "kind": "display",
+      "size_px": 108,
+      "line_height": 1.24,
+      "letter_spacing_em": 0.06,
+      "weight": 700,
+      "color": "#2B2926"
+    },
+    "meta": {
+      "kind": "body",
+      "size_px": 40,
+      "line_height": 1.75,
+      "letter_spacing_em": 0.02,
+      "weight": 400,
+      "color": "#5C5751"
+    },
+    "footer": {
+      "kind": "caption",
+      "size_px": 26,
+      "line_height": 1.6,
+      "letter_spacing_em": 0.04,
+      "weight": 400,
+      "color": "#8C8781"
+    }
+  },
+  "chinese": {
+    "line_break": "strict",
+    "paragraph_indent_em": 0,
+    "paragraph_spacing_em": 1.2,
+    "text_autospace": true
+  }
+}
