@@ -5,18 +5,19 @@
 `capabilities/keyword-research/` 的其余部分是**怎么用**；这里是**凭什么**。
 将来有人问「为什么站 1 要列种子词表而不是定一个核心词」，答案在这里，不在代码里。
 
-## 五份方法卡
+## 六份方法卡
 
 | 文件 | 回答什么 | 来源 |
 |---|---|---|
 | `ahrefs-keyword-research.md` | 站 1–站 4 的骨架从哪来 | Ahrefs 官方教程（一手） |
 | `serp-overlap-clustering.md` | **本系统实测的聚类判据**（阈值、失效边界） | Ahrefs 思路 + 2026-09-29 小红书/抖音实测 |
 | `cross-evidence-validation.md` | 商业工具和内容渠道**怎么合起来用**（各回答一半；**三指标一致 → 合簇 / 分化 → 两件事**） | 2026-09-29 聚光 + 广点通 + SERP 交叉实测 |
+| `demand-card.md` | **需求簇之后那一段**：怎么变成卡、怎么接页面、**多张卡怎么排序（四象限）** | 2026-10-16 外贸方向落地实测 |
 | `divergence-convergence.md` | 为什么是「先发散再收敛」这个形状 | Design Council 双钻模型溯源 |
 | `research-library.md` | 做完之后**什么值得留、留在哪、怎么留** | 2026-09-29 成本教训——结论只留在对话里等于白采一次 |
 
-**优先级**：`serp-overlap-clustering.md` 和 `cross-evidence-validation.md` 是操作手册，
-另两份是背景。冲突时以实测为准——**实测推翻照搬，不是反过来**。
+**优先级**：`serp-overlap-clustering.md`、`cross-evidence-validation.md`、`demand-card.md`
+是操作手册，另三份是背景。冲突时以实测为准——**实测推翻照搬，不是反过来**。
 
 ## 引进决策（2026-09-29）
 
